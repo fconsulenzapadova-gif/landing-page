@@ -379,7 +379,7 @@ const ClientAccess: React.FC = () => {
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2024 Filippo Marcuzzo - Consulente Immobiliare. I tuoi dati sono protetti e utilizzati solo per contattarti riguardo la tua richiesta.
+            © 2025 Filippo Marcuzzo - Consulente Immobiliare. I tuoi dati sono protetti e utilizzati solo per contattarti riguardo la tua richiesta.
           </p>
         </div>
       </div>

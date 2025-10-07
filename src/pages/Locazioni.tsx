@@ -58,13 +58,13 @@ const Locazioni: React.FC = () => {
             Gestisco ogni aspetto della locazione con professionalità e trasparenza.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
+            <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
+              <Link to="/richieste?type=locazione">
                 <Search className="mr-2 h-5 w-5" />
                 Cerca Casa in Affitto
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-blue-600">
+              </Link>
+            </Button>
+            <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
               <Mail className="mr-2 h-5 w-5" />
               Affitta la Tua Casa
             </Button>
@@ -392,13 +392,13 @@ const Locazioni: React.FC = () => {
             Contattami per una consulenza gratuita sui tuoi progetti di locazione
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste">
+            <Link to="/richieste?type=locazione">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
                 <Search className="mr-2 h-5 w-5" />
                 Cerca Casa in Affitto
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-blue-600">
+            <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
               <Phone className="mr-2 h-5 w-5" />
               Chiamami: 379 260 6775
             </Button>

@@ -145,3 +145,4 @@ $RECYCLE.BIN/
 # Linux
 *~
 node_modules
+.vercel

@@ -19,5 +19,15 @@ export default defineConfig(() => ({
   },
   build: {
     outDir: "dist",
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Ignore TypeScript warnings during build
+        if (warning.code === 'PLUGIN_WARNING') return;
+        warn(warning);
+      }
+    }
   },
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  }
 }));

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import BackButton from '@/components/BackButton';
 import { Loader2, Home, Send, User, Phone, Mail, MapPin, Euro, Building, Calendar, CheckCircle, Shield, ArrowLeft, LogIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { processClientRequest } from '@/utils/clientRequestProcessor';
 import { FormattedInput } from '@/components/ui/formatted-input';
 
@@ -31,12 +31,22 @@ const PublicRequests: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  
+  // Determina il tipo di richiesta dal parametro URL
+  const getInitialRequestType = (): 'acquisto' | 'vendita' | 'locazione' => {
+    const type = searchParams.get('type');
+    if (type === 'acquisto' || type === 'vendita' || type === 'locazione') {
+      return type;
+    }
+    return 'acquisto'; // default
+  };
   
   const [formData, setFormData] = useState<ClientRequest>({
     name: '',
     phone: '',
     email: '',
-    requestType: 'acquisto',
+    requestType: getInitialRequestType(),
     propertyType: '',
     location: '',
     budget: '',
@@ -121,27 +131,27 @@ const PublicRequests: React.FC = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-lime-50 via-emerald-50 to-teal-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-lime-200 bg-white/80 backdrop-blur-sm shadow-xl">
           <CardContent className="pt-6">
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-green-600" />
+              <div className="w-16 h-16 bg-lime-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-8 w-8 text-lime-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Richiesta Inviata!</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-2xl font-bold text-lime-700 mb-2">Richiesta Inviata!</h2>
+              <p className="text-emerald-600 mb-6">
                 Grazie per aver inviato la tua richiesta. Ti contatterò entro 24 ore per discutere le tue esigenze.
               </p>
               <div className="space-y-3">
                 <Link to="/">
-                  <Button className="w-full">
+                  <Button className="w-full bg-lime-600 hover:bg-lime-700">
                     <Home className="mr-2 h-4 w-4" />
                     Torna alla Home
                   </Button>
                 </Link>
                 <Button 
                   variant="outline" 
-                  className="w-full"
+                  className="w-full border-lime-300 text-lime-700 hover:bg-lime-50"
                   onClick={() => {
                     setSubmitted(false);
                     setFormData({
@@ -169,24 +179,34 @@ const PublicRequests: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div 
+      className="min-h-screen bg-white relative"
+      style={{
+        backgroundImage: 'url(/piazza-vicina.JPG)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Overlay scuro per migliorare la leggibilità */}
+      <div className="absolute inset-0 bg-black/40 z-0"></div>
       {/* Back Button */}
-      <BackButton to="/" label="Home" />
+      <div className="relative z-10">
+        <BackButton to="/" label="Home" />
+      </div>
       
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white/90 backdrop-blur-sm shadow-sm border-b border-emerald-100 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <nav className="flex items-center space-x-6">
-              <Link to="/" className="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors">
-                <div className="text-primary">‹</div>
-                Home
-              </Link>
-            </nav>
-            <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Filippo Marcuzzo</h1>
-              </div>
+            <Link to="/" className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+              <span className="font-medium">Torna alla Home</span>
+            </Link>
+            <Link to="/client-access" className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 transition-colors">
+              <LogIn className="h-4 w-4" />
+              <span className="text-sm">Area Clienti</span>
             </Link>
           </div>
         </div>
@@ -194,7 +214,7 @@ const PublicRequests: React.FC = () => {
 
       {/* Hero Section with Background Image */}
       <section 
-        className="py-20 px-4 relative min-h-[400px] bg-gradient-to-r from-blue-500 to-purple-600" 
+        className="py-20 px-4 relative min-h-[400px] bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700" 
         style={{ 
           backgroundImage: 'url(/padova-test.jpg)',
           backgroundSize: 'cover',
@@ -202,209 +222,225 @@ const PublicRequests: React.FC = () => {
           backgroundRepeat: 'no-repeat'
         }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-        <div className="container mx-auto text-center relative z-10">
-          <Badge variant="secondary" className="mb-4 animate-fade-in">
+        <div className="absolute inset-0 bg-black/30"></div>
+        <div className="container mx-auto text-center relative z-10 bg-emerald-600/80 backdrop-blur-sm rounded-xl border border-emerald-400/30 py-12 px-8 mx-4 sm:mx-auto max-w-4xl">
+          <Badge variant="secondary" className="mb-4 animate-fade-in bg-white/90 text-emerald-700 border-emerald-200 font-medium">
             Richiesta Gratuita
           </Badge>
           <h1 className="text-5xl font-bold text-white mb-6 animate-slide-up drop-shadow-lg">
             Invia la Tua Richiesta
           </h1>
-          <p className="text-xl text-gray-100 mb-8 max-w-3xl mx-auto animate-fade-in drop-shadow-md">
+          <p className="text-xl text-emerald-50 mb-8 max-w-3xl mx-auto animate-fade-in drop-shadow-md">
             Compila il form sottostante con le tue esigenze. Ti contatterò entro 24 ore per offrirti 
             una consulenza personalizzata e gratuita.
           </p>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
 
         {/* Trust Indicators */}
-        <div className="flex flex-wrap justify-center gap-6 mb-8">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Shield className="h-4 w-4 text-green-600" />
+        <div className="flex flex-wrap justify-center gap-6 mb-8 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+          <div className="flex items-center space-x-2 text-sm text-emerald-700">
+            <Shield className="h-4 w-4 text-lime-600" />
             <span>Dati Protetti</span>
           </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <CheckCircle className="h-4 w-4 text-blue-600" />
+          <div className="flex items-center space-x-2 text-sm text-emerald-700">
+            <CheckCircle className="h-4 w-4 text-emerald-600" />
             <span>Consulenza Gratuita</span>
           </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Phone className="h-4 w-4 text-purple-600" />
+          <div className="flex items-center space-x-2 text-sm text-emerald-700">
+            <Phone className="h-4 w-4 text-teal-600" />
             <span>Risposta in 24h</span>
           </div>
         </div>
 
-        <Card className="max-w-4xl mx-auto shadow-xl border-2 backdrop-blur-lg bg-white/95">
-          <CardHeader className="text-center bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-lg">
-            <CardTitle className="flex items-center justify-center space-x-2 text-2xl">
-              <Send className="h-6 w-6 text-primary" />
+        <Card className="max-w-4xl mx-auto shadow-lg border border-emerald-100 bg-white/95 backdrop-blur-sm">
+          <CardHeader className="text-center bg-emerald-50 rounded-t-lg">
+            <CardTitle className="flex items-center justify-center space-x-2 text-2xl text-emerald-900">
+              <Send className="h-6 w-6 text-emerald-600" />
               <span>Dettagli della Richiesta</span>
             </CardTitle>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-emerald-600 mt-2">
               Compila tutti i campi per ricevere una consulenza personalizzata
             </p>
           </CardHeader>
           <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Personal Information Section */}
               <div className="space-y-6">
-                <div className="flex items-center space-x-2 pb-2 border-b border-gray-200">
-                  <User className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Informazioni Personali</h3>
+                <div className="flex items-center space-x-2 pb-2 border-b border-emerald-200">
+                  <User className="h-5 w-5 text-emerald-600" />
+                  <h3 className="text-lg font-semibold text-emerald-800">Informazioni Personali</h3>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium">Nome e Cognome *</Label>
+                    <Label htmlFor="name" className="text-sm font-medium text-emerald-700 flex items-center space-x-2">
+                      <User className="h-4 w-4 text-emerald-600" />
+                      <span>Nome Completo *</span>
+                    </Label>
                     <Input
                       id="name"
+                      type="text"
                       placeholder="Il tuo nome completo"
                       value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      className={`transition-all duration-200 ${errors.name ? 'border-red-500 focus:border-red-500' : 'focus:border-primary'}`}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      required
+                      className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
                     />
-                    {errors.name && <p className="text-sm text-red-500 flex items-center space-x-1"><span>⚠️</span><span>{errors.name}</span></p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-medium">Telefono *</Label>
-                    <Input
-                      id="phone"
-                      placeholder="+39 XXX XXX XXXX"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className={`transition-all duration-200 ${errors.phone ? 'border-red-500 focus:border-red-500' : 'focus:border-primary'}`}
-                    />
-                    {errors.phone && <p className="text-sm text-red-500 flex items-center space-x-1"><span>⚠️</span><span>{errors.phone}</span></p>}
-                  </div>
+                      <Label htmlFor="phone" className="text-sm font-medium text-emerald-700 flex items-center space-x-2">
+                        <Phone className="h-4 w-4 text-emerald-600" />
+                        <span>Telefono *</span>
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+39 123 456 7890"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        required
+                        className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
+                      />
+                    </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">Email *</Label>
+                  <Label htmlFor="email" className="text-sm font-medium text-emerald-700 flex items-center space-x-2">
+                    <Mail className="h-4 w-4 text-emerald-600" />
+                    <span>Email *</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="tua@email.com"
+                    placeholder="nome@email.com"
                     value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`transition-all duration-200 ${errors.email ? 'border-red-500 focus:border-red-500' : 'focus:border-primary'}`}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    required
+                    className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
                   />
-                  {errors.email && <p className="text-sm text-red-500 flex items-center space-x-1"><span>⚠️</span><span>{errors.email}</span></p>}
                 </div>
               </div>
 
               {/* Request Details Section */}
               <div className="space-y-6">
-                <div className="flex items-center space-x-2 pb-2 border-b border-gray-200">
-                  <Building className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Dettagli della Richiesta</h3>
+                <div className="flex items-center space-x-2 pb-2 border-b border-emerald-200">
+                  <Building className="h-5 w-5 text-emerald-600" />
+                  <h3 className="text-lg font-semibold text-emerald-800">Dettagli della Richiesta</h3>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="requestType" className="text-sm font-medium">Tipo di Richiesta *</Label>
-                  <Select value={formData.requestType} onValueChange={(value: 'acquisto' | 'vendita' | 'locazione') => handleInputChange('requestType', value)}>
-                    <SelectTrigger className="transition-all duration-200 focus:border-primary">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="acquisto">🏠 Acquisto</SelectItem>
-                      <SelectItem value="vendita">💰 Vendita</SelectItem>
-                      <SelectItem value="locazione">🔑 Locazione</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="requestType" className="text-sm font-medium text-emerald-700">Tipo di Richiesta *</Label>
+                    <Select value={formData.requestType} onValueChange={(value: 'acquisto' | 'vendita' | 'locazione') => setFormData({...formData, requestType: value})}>
+                      <SelectTrigger className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500">
+                        <SelectValue placeholder="Seleziona il tipo di richiesta" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-emerald-200">
+                        <SelectItem value="acquisto" className="hover:bg-emerald-50">Acquisto Casa</SelectItem>
+                        <SelectItem value="vendita" className="hover:bg-emerald-50">Vendita Casa</SelectItem>
+                        <SelectItem value="locazione" className="hover:bg-emerald-50">Locazione</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
-              {/* Property Details */}
+              {/* Property Details Section */}
               <div className="space-y-6">
-                <div className="flex items-center space-x-2 pb-2 border-b border-gray-200">
-                  <Home className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Dettagli dell'Immobile</h3>
+                <div className="flex items-center space-x-2 pb-2 border-b border-emerald-200">
+                  <Home className="h-5 w-5 text-emerald-600" />
+                  <h3 className="text-lg font-semibold text-emerald-800">Dettagli dell'Immobile</h3>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="propertyType" className="text-sm font-medium">Tipo di Immobile</Label>
+                    <Label htmlFor="propertyType" className="text-sm font-medium text-emerald-700">Tipo di Immobile</Label>
                     <Input
                       id="propertyType"
-                      placeholder="es. Appartamento, Villa, Ufficio..."
+                      type="text"
+                      placeholder="Es: Appartamento, Villa, Ufficio..."
                       value={formData.propertyType}
-                      onChange={(e) => handleInputChange('propertyType', e.target.value)}
-                      className="transition-all duration-200 focus:border-primary hover:border-gray-400"
+                      onChange={(e) => setFormData({...formData, propertyType: e.target.value})}
+                      className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="location" className="text-sm font-medium">Zona di Interesse *</Label>
+                    <Label htmlFor="location" className="text-sm font-medium text-emerald-700">Zona di Interesse *</Label>
                     <Input
                       id="location"
-                      placeholder="es. Centro, Periferia, Quartiere specifico..."
+                      type="text"
+                      placeholder="Es: Centro storico, Periferia..."
                       value={formData.location}
-                      onChange={(e) => handleInputChange('location', e.target.value)}
-                      className={`transition-all duration-200 ${errors.location ? 'border-red-500 focus:border-red-500' : 'focus:border-primary hover:border-gray-400'}`}
+                      onChange={(e) => setFormData({...formData, location: e.target.value})}
+                      required
+                      className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
                     />
-                    {errors.location && <p className="text-sm text-red-500 flex items-center space-x-1"><span>⚠️</span><span>{errors.location}</span></p>}
                   </div>
                 </div>
-
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="budget" className="text-sm font-medium">Budget *</Label>
-                    <FormattedInput
+                    <Label htmlFor="budget" className="text-sm font-medium text-emerald-700">Budget *</Label>
+                    <Input
                       id="budget"
-                      placeholder="es. €200.000, €1.500/mese..."
+                      type="text"
+                      placeholder="Es: 200.000 - 300.000 €"
                       value={formData.budget}
-                      onChange={(formatted) => handleInputChange('budget', formatted)}
-                      className={`transition-all duration-200 ${errors.budget ? 'border-red-500 focus:border-red-500' : 'focus:border-primary hover:border-gray-400'}`}
+                      onChange={(e) => setFormData({...formData, budget: e.target.value})}
+                      required
+                      className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
                     />
-                    {errors.budget && <p className="text-sm text-red-500 flex items-center space-x-1"><span>⚠️</span><span>{errors.budget}</span></p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="timeframe" className="text-sm font-medium">Tempistiche</Label>
+                    <Label htmlFor="timeframe" className="text-sm font-medium text-emerald-700">Tempistiche</Label>
                     <Input
                       id="timeframe"
-                      placeholder="es. Entro 3 mesi, Non urgente..."
+                      type="text"
+                      placeholder="Es: Entro 6 mesi"
                       value={formData.timeframe}
-                      onChange={(e) => handleInputChange('timeframe', e.target.value)}
-                      className="transition-all duration-200 focus:border-primary hover:border-gray-400"
+                      onChange={(e) => setFormData({...formData, timeframe: e.target.value})}
+                      className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Additional Details */}
+              {/* Additional Details Section */}
               <div className="space-y-6">
-                <div className="flex items-center space-x-2 pb-2 border-b border-gray-200">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Dettagli Aggiuntivi</h3>
+                <div className="flex items-center space-x-2 pb-2 border-b border-emerald-200">
+                  <CheckCircle className="h-5 w-5 text-emerald-600" />
+                  <h3 className="text-lg font-semibold text-emerald-800">Dettagli Aggiuntivi</h3>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="features" className="text-sm font-medium">Caratteristiche Desiderate</Label>
-                  <Textarea
-                    id="features"
-                    placeholder="es. 3 camere, 2 bagni, giardino, garage, ascensore, terrazzo..."
-                    value={formData.features}
-                    onChange={(e) => handleInputChange('features', e.target.value)}
-                    rows={3}
-                    className="transition-all duration-200 focus:border-primary hover:border-gray-400 resize-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notes" className="text-sm font-medium">Note Aggiuntive</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Qualsiasi altra informazione che ritieni utile..."
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange('notes', e.target.value)}
-                    rows={3}
-                    className="transition-all duration-200 focus:border-primary hover:border-gray-400 resize-none"
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="features" className="text-sm font-medium text-emerald-700">Caratteristiche Desiderate</Label>
+                    <Textarea
+                      id="features"
+                      placeholder="Es: 3 camere, 2 bagni, giardino, garage..."
+                      value={formData.features}
+                      onChange={(e) => setFormData({...formData, features: e.target.value})}
+                      rows={3}
+                      className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500 resize-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="notes" className="text-sm font-medium text-emerald-700">Note Aggiuntive</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Qualsiasi informazione aggiuntiva che ritieni utile..."
+                      value={formData.notes}
+                      onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                      rows={4}
+                      className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500 resize-none"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Privacy Notice */}
-              <Alert className="border-blue-200 bg-blue-50/50 backdrop-blur-sm">
-                <Shield className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800">
-                  I tuoi dati personali saranno utilizzati esclusivamente per contattarti riguardo la tua richiesta 
-                  e non saranno condivisi con terze parti. Rispettiamo la tua privacy secondo il GDPR.
+              <Alert className="border-emerald-200 bg-emerald-50">
+                <Shield className="h-4 w-4 text-emerald-600" />
+                <AlertDescription className="text-emerald-700">
+                  I tuoi dati personali saranno trattati nel rispetto della privacy e utilizzati esclusivamente per contattarti riguardo la tua richiesta. Non verranno mai condivisi con terze parti.
                 </AlertDescription>
               </Alert>
 
@@ -412,7 +448,7 @@ const PublicRequests: React.FC = () => {
               <div className="pt-6">
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl" 
+                  className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl" 
                   size="lg" 
                   disabled={loading}
                 >
@@ -434,19 +470,19 @@ const PublicRequests: React.FC = () => {
         </Card>
 
         {/* Footer */}
-        <div className="text-center mt-8 space-y-2">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-muted-foreground">
+        <div className="text-center mt-8 space-y-2 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-gray-600">
             <div className="flex items-center space-x-2">
-              <Phone className="h-4 w-4" />
+              <Phone className="h-4 w-4 text-emerald-600" />
               <span>Tel: 379 260 6775</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Building className="h-4 w-4" />
+              <Building className="h-4 w-4 text-emerald-600" />
               <span>P.IVA: 0555 8150 289</span>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            © 2024 Filippo Marcuzzo - Consulente Immobiliare. I tuoi dati sono protetti e utilizzati solo per contattarti riguardo la tua richiesta.
+          <p className="text-sm text-gray-600">
+            © 2025 Filippo Marcuzzo - Consulente Immobiliare. I tuoi dati sono protetti e utilizzati solo per contattarti riguardo la tua richiesta.
           </p>
         </div>
       </div>

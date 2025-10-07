@@ -21,15 +21,15 @@ export const useSupabaseClients = () => {
         .from('buyers')
         .insert({
           name: buyer.name,
-          email: buyer.email,
-          phone: buyer.phone,
-          birthday: buyer.birthday,
+          email: buyer.email || null,
+          phone: buyer.phone || null,
+          birthday: buyer.birthday || null,
           budget: buyer.budget,
           property_type: buyer.propertyType,
           type: buyer.type,
           features: buyer.features,
-          zona: buyer.zona,
-          notes: buyer.notes,
+          zona: buyer.zona || null,
+          notes: buyer.notes || null,
           user_id: user.id
         })
         .select()
@@ -64,11 +64,11 @@ export const useSupabaseClients = () => {
         .from('sellers')
         .insert({
           name: seller.name,
-          email: seller.email,
-          phone: seller.phone,
-          birthday: seller.birthday,
-          status: seller.status,
-          notes: seller.notes,
+          email: seller.email || null,
+          phone: seller.phone || null,
+          birthday: seller.birthday || null,
+          status: seller.status || 'active',
+          notes: seller.notes || null,
           user_id: user.id
         })
         .select()

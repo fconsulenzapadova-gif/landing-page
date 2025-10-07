@@ -57,13 +57,13 @@ const VenditaImmobili: React.FC = () => {
             professionale che garantisce risultati concreti in tempi ottimali.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste">
+            <Link to="/richieste?type=vendita">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-green-600 hover:bg-green-50">
                 <BarChart3 className="mr-2 h-5 w-5" />
                 Valutazione Gratuita
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-green-600">
+            <Button size="lg" className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
               <Mail className="mr-2 h-5 w-5" />
               Contattami Ora
             </Button>
@@ -371,13 +371,13 @@ const VenditaImmobili: React.FC = () => {
             Richiedi subito una valutazione gratuita del tuo immobile
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste">
+            <Link to="/richieste?type=vendita">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-green-600 hover:bg-green-50">
                 <BarChart3 className="mr-2 h-5 w-5" />
                 Valutazione Gratuita
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-green-600">
+            <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
               <Phone className="mr-2 h-5 w-5" />
               Chiamami: 379 260 6775
             </Button>
@@ -403,7 +403,7 @@ const VenditaImmobili: React.FC = () => {
             </div>
           </div>
           <p className="text-gray-400 text-sm">
-            © 2024 Filippo Marcuzzo - Consulente Immobiliare. Tutti i diritti riservati.
+            © 2025 Filippo Marcuzzo - Consulente Immobiliare. Tutti i diritti riservati.
           </p>
         </div>
       </footer>

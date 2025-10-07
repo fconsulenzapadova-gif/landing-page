@@ -11,6 +11,7 @@ const PublicRequests = lazy(() => import('./pages/PublicRequests'));
 const AcquistoCasa = lazy(() => import('./pages/AcquistoCasa'));
 const VenditaImmobili = lazy(() => import('./pages/VenditaImmobili'));
 const Locazioni = lazy(() => import('./pages/Locazioni'));
+const ServiziPersonalizzati = lazy(() => import('./pages/ServiziPersonalizzati'));
 const ClientAccess = lazy(() => import('./pages/ClientAccess'));
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ function LandingApp() {
                 <Route path="/acquisto-casa" element={<AcquistoCasa />} />
                 <Route path="/vendita-immobili" element={<VenditaImmobili />} />
                 <Route path="/locazioni" element={<Locazioni />} />
+                <Route path="/servizi-personalizzati" element={<ServiziPersonalizzati />} />
                 
                 {/* Redirect any CRM routes to external CRM */}
                 <Route path="/dashboard" element={<Navigate to="http://localhost:8081" replace />} />

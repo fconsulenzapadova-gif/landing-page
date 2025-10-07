@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,11 +18,31 @@ import {
   Euro,
   Clock,
   MapPin,
-  Star
+  Star,
+  Copy,
+  Check
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AcquistoCasa: React.FC = () => {
+  const [showEmail, setShowEmail] = useState(false);
+  const [emailCopied, setEmailCopied] = useState(false);
+  const email = "filippo.marcuzzo@example.com"; // Sostituisci con la tua email reale
+
+  const handleContactClick = () => {
+    setShowEmail(true);
+    setTimeout(() => setShowEmail(false), 4000); // Torna al testo originale dopo 4 secondi
+  };
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(email);
+      setEmailCopied(true);
+      setTimeout(() => setEmailCopied(false), 1500);
+    } catch (err) {
+      console.error('Errore nel copiare l\'email:', err);
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Back Button */}
@@ -55,16 +75,47 @@ const AcquistoCasa: React.FC = () => {
             garantendoti professionalità e trasparenza in ogni momento.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
+            <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
+              <Link to="/richieste?type=acquisto">
                 <Phone className="mr-2 h-5 w-5" />
                 Richiedi Consulenza Gratuita
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-blue-600 font-semibold">
-              <Mail className="mr-2 h-5 w-5" />
-              Contattami Ora
+              </Link>
             </Button>
+            <div className="relative">
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden relative"
+                onClick={handleContactClick}
+              >
+                <div className="flex items-center justify-center relative">
+                  <div className={`flex items-center transition-all duration-500 ${showEmail ? 'opacity-0 transform -translate-y-2' : 'opacity-100 transform translate-y-0'}`}>
+                    <Mail className="mr-2 h-5 w-5" />
+                    Contattami Ora
+                  </div>
+                  <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${showEmail ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-2'}`}>
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4" />
+                      <span className="text-sm font-medium truncate max-w-[180px]">{email}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyEmail();
+                        }}
+                        className="h-6 w-6 p-0 hover:bg-blue-500/20 ml-1"
+                      >
+                        {emailCopied ? (
+                          <Check className="h-3 w-3 text-green-300" />
+                        ) : (
+                          <Copy className="h-3 w-3 text-white/80" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -295,13 +346,13 @@ const AcquistoCasa: React.FC = () => {
             Contattami oggi stesso per una consulenza gratuita e personalizzata
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste">
+            <Link to="/richieste?type=acquisto">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
                 <FileText className="mr-2 h-5 w-5" />
                 Invia la Tua Richiesta
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-blue-600">
+            <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
               <Phone className="mr-2 h-5 w-5" />
               Chiamami: 379 260 6775
             </Button>
@@ -327,7 +378,7 @@ const AcquistoCasa: React.FC = () => {
             </div>
           </div>
           <p className="text-gray-400 text-sm">
-            © 2024 Filippo Marcuzzo - Consulente Immobiliare. Tutti i diritti riservati.
+            © 2025 Filippo Marcuzzo - Consulente Immobiliare. Tutti i diritti riservati.
           </p>
         </div>
       </footer>

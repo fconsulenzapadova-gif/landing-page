@@ -63,27 +63,7 @@ const Landing: React.FC = () => {
             Esperienza, professionalità e tecnologia al servizio delle tue esigenze immobiliari. 
             Trova la casa dei tuoi sogni o vendi al miglior prezzo con il supporto di un esperto.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-scale-in">
-            <Link to="/richieste">
-              <Button 
-                size="lg" 
-                className="w-full sm:w-auto bg-white/95 text-primary hover:bg-white hover:text-primary/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-white/20 hover:border-white/40"
-              >
-                <Search className="mr-2 h-5 w-5" />
-                Trova la Tua Casa
-              </Button>
-            </Link>
-            <Link to="/richieste">
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="w-full sm:w-auto bg-transparent text-white border-2 border-white/60 hover:bg-white/10 hover:border-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <Key className="mr-2 h-5 w-5" />
-                Vendi la Tua Proprietà
-              </Button>
-            </Link>
-          </div>
+
         </div>
       </section>
 
@@ -292,13 +272,13 @@ const Landing: React.FC = () => {
 
                   {/* CTA Button */}
                   <div className="pt-6">
-                    <Link to="/richieste">
-                      <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                      <Link to="/richieste?type=acquisto">
                         <Phone className="mr-2 h-5 w-5" />
                         Parliamone Insieme
                         <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -438,7 +418,7 @@ const Landing: React.FC = () => {
 
           {/* CTA for Custom Services */}
           <div className="text-center mt-12">
-            <Link to="/richieste">
+            <Link to="/servizi-personalizzati">
               <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
                 <FileText className="mr-2 h-5 w-5" />
                 Richiedi un Servizio Personalizzato
@@ -457,7 +437,7 @@ const Landing: React.FC = () => {
             Contattami oggi stesso per una consulenza gratuita e personalizzata
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste">
+            <Link to="/richieste?type=acquisto">
               <Button 
                 size="lg" 
                 variant="secondary" 
@@ -526,7 +506,7 @@ const Landing: React.FC = () => {
             </div>
           </div>
           <p className="text-gray-400 text-sm">
-            © 2024 Filippo Marcuzzo - Consulente Immobiliare. Tutti i diritti riservati.
+            © 2025 Filippo Marcuzzo - Consulente Immobiliare. Tutti i diritti riservati.
           </p>
         </div>
       </footer>

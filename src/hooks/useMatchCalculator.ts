@@ -118,8 +118,8 @@ const calculateMatch = (buyer: BuyerClient, seller: SellerClient, property: Prop
 
   // Match caratteristiche (peso: 15 punti)
   if (buyer.features && property.features) {
-    const buyerFeatures = buyer.features.toLowerCase();
-    const propertyFeatures = property.features.toLowerCase();
+    const buyerFeatures = Array.isArray(buyer.features) ? buyer.features.join(' ').toLowerCase() : String(buyer.features).toLowerCase();
+    const propertyFeatures = Array.isArray(property.features) ? property.features.join(' ').toLowerCase() : String(property.features).toLowerCase();
     
     const buyerKeywords = buyerFeatures.split(/[\s,]+/).filter(word => word.length > 2);
     const propertyKeywords = propertyFeatures.split(/[\s,]+/).filter(word => word.length > 2);
@@ -151,6 +151,6 @@ const calculateMatch = (buyer: BuyerClient, seller: SellerClient, property: Prop
     propertyId: property.id,
     score: Math.min(100, score), // Cap a 100
     matchReasons,
-    operationType: property.operationType
+    operationType: (property.operationType as 'vendita' | 'locazione') || 'vendita'
   };
 };
