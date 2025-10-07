@@ -43,8 +43,8 @@ function LandingApp() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
-            <Toaster />
           </div>
+          <Toaster />
         </Router>
       </AuthProvider>
     </QueryClientProvider>
