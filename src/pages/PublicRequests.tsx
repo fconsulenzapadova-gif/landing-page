@@ -380,12 +380,11 @@ const PublicRequests: React.FC = () => {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="budget" className="text-sm font-medium text-emerald-700">Budget</Label>
-                    <Input
+                    <FormattedInput
                       id="budget"
-                      type="text"
-                      placeholder="Es: 200.000 - 300.000 €"
+                      placeholder="Es: 200.000 - 300.000"
                       value={formData.budget}
-                      onChange={(e) => setFormData({...formData, budget: e.target.value})}
+                      onChange={(formatted) => setFormData({...formData, budget: formatted})}
                       className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
                     />
                   </div>

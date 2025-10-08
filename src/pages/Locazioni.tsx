@@ -50,8 +50,8 @@ const Locazioni: React.FC = () => {
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
             <Key className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Servizi di Locazione
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+            Locazioni
           </h1>
           <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
             Trova l'inquilino perfetto per la tua proprietà o la casa ideale in affitto. 
