@@ -469,7 +469,7 @@ const Landing: React.FC = () => {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div className="text-center hover:scale-105 transition-all duration-300 cursor-pointer" role="button" tabIndex={0} aria-label="Chiama il numero 379 260 6775">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4 translucent-button">
                 <Phone className="h-6 w-6 text-blue-600" />
               </div>
@@ -477,7 +477,7 @@ const Landing: React.FC = () => {
               <p className="text-gray-600">379 260 6775</p>
             </div>
             
-            <div className="text-center hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div className="text-center hover:scale-105 transition-all duration-300 cursor-pointer" role="button" tabIndex={0} aria-label="Invia email a info@filippomarcuzzo.com">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4 translucent-button">
                 <Mail className="h-6 w-6 text-green-600" />
               </div>
@@ -485,7 +485,7 @@ const Landing: React.FC = () => {
               <p className="text-gray-600">info@filippomarcuzzo.com</p>
             </div>
             
-            <div className="text-center hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div className="text-center hover:scale-105 transition-all duration-300 cursor-pointer" role="button" tabIndex={0} aria-label="Informazioni ufficio">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4 translucent-button">
                 <MapPin className="h-6 w-6 text-purple-600" />
               </div>

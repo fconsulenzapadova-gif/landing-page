@@ -19,7 +19,7 @@ async function testConnection() {
   
   try {
     // Prova a fare una query semplice per testare la connessione
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('clients')
       .select('count', { count: 'exact', head: true });
     
