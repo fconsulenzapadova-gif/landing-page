@@ -55,7 +55,7 @@ const ClientAccess: React.FC = () => {
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email non valida';
     if (!formData.propertyType) newErrors.propertyType = 'Tipo immobile è obbligatorio';
     if (!formData.location.trim()) newErrors.location = 'Zona è obbligatoria';
-    if (!formData.budget.trim()) newErrors.budget = 'Budget è obbligatorio';
+    // Budget non è più obbligatorio
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -293,7 +293,7 @@ const ClientAccess: React.FC = () => {
                     {errors.location && <p className="text-sm text-destructive">{errors.location}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="budget">Budget *</Label>
+                    <Label htmlFor="budget">Budget</Label>
                     <FormattedInput
                       id="budget"
                       placeholder="es. €200.000, €1.500/mese"

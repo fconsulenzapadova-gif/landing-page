@@ -65,7 +65,7 @@ const PublicRequests: React.FC = () => {
     if (!formData.email.trim()) newErrors.email = 'Email obbligatoria';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email non valida';
     if (!formData.location.trim()) newErrors.location = 'Zona obbligatoria';
-    if (!formData.budget.trim()) newErrors.budget = 'Budget obbligatorio';
+    // Budget non è più obbligatorio
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -379,14 +379,13 @@ const PublicRequests: React.FC = () => {
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="budget" className="text-sm font-medium text-emerald-700">Budget *</Label>
+                    <Label htmlFor="budget" className="text-sm font-medium text-emerald-700">Budget</Label>
                     <Input
                       id="budget"
                       type="text"
                       placeholder="Es: 200.000 - 300.000 €"
                       value={formData.budget}
                       onChange={(e) => setFormData({...formData, budget: e.target.value})}
-                      required
                       className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
                     />
                   </div>
