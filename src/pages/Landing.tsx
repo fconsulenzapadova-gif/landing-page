@@ -84,8 +84,8 @@ const Landing: React.FC = () => {
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 hover:bg-blue-200 transition-colors duration-200">
                     <Search className="h-6 w-6 text-blue-600" />
                   </div>
-                  <CardTitle className="flex items-center justify-between">
-                    Acquisto<br />Casa
+                  <CardTitle className="flex items-center justify-between whitespace-nowrap">
+                    Acquisto Casa
                     <ArrowRight className="h-4 w-4 text-blue-600 transition-transform duration-200 group-hover:translate-x-1" />
                   </CardTitle>
                 </CardHeader>
