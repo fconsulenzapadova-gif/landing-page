@@ -65,7 +65,42 @@ const saveOrGetClient = async (request: ClientRequest) => {
 };
 
 /**
+ * Invia i dati del lead al CRM esterno
+ */
+const sendToCRM = async (request: ClientRequest): Promise<boolean> => {
+  try {
+    const crmData = {
+      name: request.name,
+      email: request.email,
+      phone: request.phone,
+      landing_page_url: 'www.filippomarcuzzo.com'
+    };
+
+    const response = await fetch('https://crm-pro-five.vercel.app/api/submit-lead', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(crmData)
+    });
+
+    if (!response.ok) {
+      console.error('CRM API Error:', response.status, response.statusText);
+      return false;
+    }
+
+    const result = await response.json();
+    console.log('Lead inviato al CRM con successo:', result);
+    return true;
+  } catch (error) {
+    console.error('Errore nell\'invio al CRM:', error);
+    return false;
+  }
+};
+
+/**
  * Processes a client request and saves it to both client tables and client_requests
+ * Also sends the lead to external CRM system
  * This creates a proper relationship between clients and their requests
  */
 export const processClientRequest = async (request: ClientRequest): Promise<{ success: boolean; message: string; clientId?: string }> => {
@@ -96,6 +131,11 @@ export const processClientRequest = async (request: ClientRequest): Promise<{ su
       console.error('Error saving client request:', error);
       throw error;
     }
+
+    // 3. Invia i dati anche al CRM esterno (non bloccante)
+    sendToCRM(request).catch(error => {
+      console.error('Errore nell\'invio al CRM (non bloccante):', error);
+    });
 
     return {
       success: true,

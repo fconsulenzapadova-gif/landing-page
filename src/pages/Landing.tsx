@@ -211,19 +211,27 @@ const Landing: React.FC = () => {
 
                   <div className="space-y-4 text-gray-600 leading-relaxed">
                     <p className="text-lg">
-                      Sono <strong className="text-gray-900">Filippo Marcuzzo</strong>, consulente immobiliare con oltre 10 anni di esperienza nel settore. 
-                      La mia passione per il real estate nasce dalla convinzione che ogni persona meriti di trovare la casa perfetta per le proprie esigenze.
+                      Sono <strong className="text-gray-900">Filippo Marcuzzo</strong>, consulente e mediatore immobiliare specializzato in operazioni di investimento e valorizzazione patrimoniale nel mercato di Padova e provincia.
                     </p>
                     
                     <p>
-                      Nel corso della mia carriera ho accompagnato centinaia di famiglie e investitori nel loro percorso immobiliare, 
-                      dalla ricerca della prima casa agli investimenti più complessi. La mia filosofia si basa su tre pilastri fondamentali: 
-                      <strong className="text-gray-900">trasparenza, professionalità e risultati concreti</strong>.
+                      La mia attività nasce da una visione chiara: trasformare ogni immobile in un'opportunità strategica, capace di generare rendimento, valore e crescita nel tempo.
                     </p>
                     
                     <p>
-                      Grazie alla mia profonda conoscenza del mercato locale e alle partnership consolidate con i migliori professionisti del settore 
-                      (notai, avvocati, commercialisti), posso offrirti un servizio completo e personalizzato per ogni tua esigenza immobiliare.
+                      Collaboro con investitori privati, professionisti e società nella ricerca, acquisizione e gestione di asset immobiliari residenziali e commerciali, seguendo ogni fase del processo — dall'analisi preliminare fino alla rivendita o alla messa a reddito.
+                    </p>
+                    
+                    <p>
+                      Il mio approccio si basa su analisi di mercato accurate, strategie personalizzate e gestione trasparente delle trattative, con l'obiettivo di ottimizzare il ritorno sull'investimento e minimizzare i rischi operativi e fiscali.
+                    </p>
+                    
+                    <p>
+                      Grazie a una rete consolidata di professionisti qualificati — notai, tecnici, avvocati e consulenti fiscali — offro un servizio completo, integrato e strutturato, capace di adattarsi a ogni esigenza, dall'investitore privato fino alle realtà corporate.
+                    </p>
+                    
+                    <p>
+                      Credo che l'investimento immobiliare debba essere gestito con metodo, visione e competenza. Per questo accompagno i miei clienti in percorsi di crescita patrimoniale consapevoli, fondati su strategia, solidità e risultati misurabili.
                     </p>
                   </div>
 
