@@ -1,20 +1,44 @@
 {
   "root": true,
-  "env": { 
-    "browser": true, 
-    "es2020": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
     "node": true
   },
-  "extends": [
-    "eslint:recommended"
-  ],
-  "ignorePatterns": ["dist", ".eslintrc.json", "tailwind.config.js", "vite.config.ts", "postcss.config.js"],
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": "latest",
+    "ecmaVersion": 2020,
     "sourceType": "module"
   },
+  "plugins": [
+    "@typescript-eslint",
+    "react",
+    "react-hooks"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "prettier"
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "ignorePatterns": [
+    "vite.config.ts",
+    "tailwind.config.js",
+    "postcss.config.js",
+    "dist/",
+    "node_modules/"
+  ],
   "rules": {
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "react/react-in-jsx-scope": "off",
+    "react/no-unescaped-entities": "off",
     "no-console": "off"
   }
 }
