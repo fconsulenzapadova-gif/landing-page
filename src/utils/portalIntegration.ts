@@ -129,11 +129,11 @@ export const PROPERTY_TYPE_MAPPING = {
 // Funzioni di utilità per il parsing delle caratteristiche
 export const parseFeatures = (featuresString: string): Record<string, unknown> => {
   const features: Record<string, unknown> = {};
-  
+
   if (!featuresString) return features;
-  
+
   const featureList = featuresString.split(',').map(f => f.trim().toLowerCase());
-  
+
   // Parsing intelligente delle caratteristiche
   featureList.forEach(feature => {
     // Numero di locali
@@ -141,31 +141,31 @@ export const parseFeatures = (featuresString: string): Record<string, unknown> =
     if (roomsMatch) {
       features.rooms = parseInt(roomsMatch[1]);
     }
-    
+
     // Numero di bagni
     const bathroomsMatch = feature.match(/(\d+)\s*bagni?/);
     if (bathroomsMatch) {
       features.bathrooms = parseInt(bathroomsMatch[1]);
     }
-    
+
     // Superficie
     const surfaceMatch = feature.match(/(\d+)\s*mq|(\d+)\s*m²|(\d+)\s*metri/);
     if (surfaceMatch) {
       features.surface = parseInt(surfaceMatch[1] || surfaceMatch[2] || surfaceMatch[3]);
     }
-    
+
     // Piano
     const floorMatch = feature.match(/(\d+)°?\s*piano|piano\s*(\d+)/);
     if (floorMatch) {
       features.floor = parseInt(floorMatch[1] || floorMatch[2]);
     }
-    
+
     // Classe energetica
     const energyMatch = feature.match(/classe\s*energetica\s*([a-g])/i);
     if (energyMatch) {
       features.energyClass = energyMatch[1].toUpperCase();
     }
-    
+
     // Caratteristiche booleane
     if (feature.includes('arredato') || feature.includes('ammobiliato')) {
       features.furnished = true;
@@ -183,7 +183,7 @@ export const parseFeatures = (featuresString: string): Record<string, unknown> =
       features.elevator = true;
     }
   });
-  
+
   return features;
 };
 
@@ -200,20 +200,20 @@ export const convertToPortalFormat = (
     highlight?: boolean;
   } = {}
 ): PortalProperty => {
-  const featuresString = Array.isArray(property.features) 
-    ? property.features.join(', ') 
+  const featuresString = Array.isArray(property.features)
+    ? property.features.join(', ')
     : property.features || '';
   const features = parseFeatures(featuresString);
-  
+
   // Parsing del prezzo
   const priceString = property.price?.replace(/[^\d,.-]/g, '').replace(',', '.') || '0';
   const price = parseFloat(priceString);
-  
+
   // Parsing della location
   const locationParts = property.location?.split(',').map(part => part.trim()) || [];
   const address = locationParts[0] || property.location || '';
   const city = locationParts[1] || '';
-  
+
   const portalProperty: PortalProperty = {
     title: `${property.propertyType} - ${property.location}`,
     description: [
@@ -234,7 +234,7 @@ export const convertToPortalFormat = (
       name: seller.name,
       phone: additionalData.contactPhone || seller.phone || '',
       email: additionalData.contactEmail || seller.email || '',
-      agency: 'Immobiliare Filippo Marcuzzo'
+      agency: 'Gemüt Capital'
     },
     options: {
       showOnMap: additionalData.showOnMap ?? true,
@@ -242,42 +242,42 @@ export const convertToPortalFormat = (
       autoRenew: true
     }
   };
-  
+
   return portalProperty;
 };
 
 // Funzione per validare i dati prima della pubblicazione
 export const validatePropertyData = (portalProperty: PortalProperty): { valid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   if (!portalProperty.title || portalProperty.title.trim().length < 10) {
     errors.push('Il titolo deve essere di almeno 10 caratteri');
   }
-  
+
   if (!portalProperty.description || portalProperty.description.trim().length < 50) {
     errors.push('La descrizione deve essere di almeno 50 caratteri');
   }
-  
+
   if (!portalProperty.price || portalProperty.price <= 0) {
     errors.push('Il prezzo deve essere maggiore di zero');
   }
-  
+
   if (!portalProperty.location.address) {
     errors.push('L\'indirizzo è obbligatorio');
   }
-  
+
   if (!portalProperty.contact.phone && !portalProperty.contact.email) {
     errors.push('Almeno un contatto (telefono o email) è obbligatorio');
   }
-  
+
   if (portalProperty.contact.phone && !/^[+]?[0-9\s\-()]{8,}$/.test(portalProperty.contact.phone)) {
     errors.push('Il numero di telefono non è valido');
   }
-  
+
   if (portalProperty.contact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(portalProperty.contact.email)) {
     errors.push('L\'email non è valida');
   }
-  
+
   return {
     valid: errors.length === 0,
     errors
@@ -297,21 +297,21 @@ export const publishToPortal = async (
       error: `Errori di validazione: ${validation.errors.join(', ')}`
     };
   }
-  
+
   try {
     // Simulazione chiamata API
     await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
-    
+
     // Simulazione risultato (85% successo)
     const success = Math.random() > 0.15;
-    
+
     if (success) {
       const listingId = `${portalId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
       const baseUrls = {
         immobiliare: 'https://www.immobiliare.it/annunci/',
         idealista: 'https://www.idealista.it/immobile/'
       };
-      
+
       return {
         success: true,
         id: listingId,
@@ -326,7 +326,7 @@ export const publishToPortal = async (
         'Immobile già presente nel portale',
         'Categoria non supportata'
       ];
-      
+
       return {
         success: false,
         error: errors[Math.floor(Math.random() * errors.length)]
@@ -349,9 +349,9 @@ export const updatePortalListing = async (
   try {
     // Simulazione chiamata API
     await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 2000));
-    
+
     const success = Math.random() > 0.1; // 90% successo per gli aggiornamenti
-    
+
     if (success) {
       return { success: true };
     } else {
@@ -376,9 +376,9 @@ export const deletePortalListing = async (
   try {
     // Simulazione chiamata API
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1500));
-    
+
     const success = Math.random() > 0.05; // 95% successo per le eliminazioni
-    
+
     if (success) {
       return { success: true };
     } else {
@@ -403,10 +403,10 @@ export const getListingStatus = async (
   try {
     // Simulazione chiamata API
     await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
-    
+
     const statuses = ['active', 'inactive', 'pending', 'rejected'] as const;
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    
+
     return {
       success: true,
       status

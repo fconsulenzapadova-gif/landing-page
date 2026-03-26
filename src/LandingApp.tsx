@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Suspense, lazy } from 'react';
 import { Toaster } from './components/ui/toaster';
+import CookieConsent from './components/CookieConsent';
 import { AuthProvider } from './contexts/AuthContext';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -11,8 +12,14 @@ const PublicRequests = lazy(() => import('./pages/PublicRequests'));
 const AcquistoCasa = lazy(() => import('./pages/AcquistoCasa'));
 const VenditaImmobili = lazy(() => import('./pages/VenditaImmobili'));
 const Locazioni = lazy(() => import('./pages/Locazioni'));
+const Privacy = lazy(() => import('./pages/Privacy'));
 const ServiziPersonalizzati = lazy(() => import('./pages/ServiziPersonalizzati'));
 const ClientAccess = lazy(() => import('./pages/ClientAccess'));
+
+// Lazy load service detail pages
+const DettaglioVerificaTetto = lazy(() => import('./pages/DettaglioVerificaTetto'));
+const DettaglioValorizzazioneBook = lazy(() => import('./pages/DettaglioValorizzazioneBook'));
+const DettaglioValutazionePatrimonio = lazy(() => import('./pages/DettaglioValutazionePatrimonio'));
 
 const queryClient = new QueryClient();
 
@@ -26,6 +33,7 @@ function LandingApp() {
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Landing />} />
+                <Route path="/privacy" element={<Privacy />} />
                 <Route path="/richieste" element={<PublicRequests />} />
                 <Route path="/accesso-clienti" element={<ClientAccess />} />
                 
@@ -34,6 +42,11 @@ function LandingApp() {
                 <Route path="/vendita-immobili" element={<VenditaImmobili />} />
                 <Route path="/locazioni" element={<Locazioni />} />
                 <Route path="/servizi-personalizzati" element={<ServiziPersonalizzati />} />
+                
+                {/* Service detail pages */}
+                <Route path="/dettaglio-verifica-tetto" element={<DettaglioVerificaTetto />} />
+                <Route path="/dettaglio-valorizzazione-book" element={<DettaglioValorizzazioneBook />} />
+                <Route path="/dettaglio-valutazione-patrimonio" element={<DettaglioValutazionePatrimonio />} />
                 
                 {/* Redirect any CRM routes to external CRM */}
                 <Route path="/dashboard" element={<Navigate to="http://localhost:8081" replace />} />
@@ -47,6 +60,7 @@ function LandingApp() {
             </Suspense>
           </div>
           <Toaster />
+          <CookieConsent />
         </Router>
       </AuthProvider>
     </QueryClientProvider>

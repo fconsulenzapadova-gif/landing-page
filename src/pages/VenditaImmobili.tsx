@@ -2,16 +2,14 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import BackButton from '@/components/BackButton';
-import { 
-  ArrowLeft, 
-  TrendingUp, 
-  Home, 
-  Camera, 
-  FileText, 
-  Users, 
-  CheckCircle, 
-  Phone, 
+import {
+  TrendingUp,
+  Home,
+  Camera,
+  FileText,
+  Users,
+  CheckCircle,
+  Phone,
   Mail,
   Building,
   Euro,
@@ -27,21 +25,6 @@ import { Link } from 'react-router-dom';
 const VenditaImmobili: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
-      {/* Back Button */}
-      <BackButton to="/" label="Home" />
-      
-      {/* Header */}
-      <header className="bg-white/60 backdrop-blur-md border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <ArrowLeft className="h-5 w-5 text-green-600" />
-              <span className="font-medium text-green-600">Torna alla Home</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-green-600 to-green-800 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -53,7 +36,7 @@ const VenditaImmobili: React.FC = () => {
             Vendita Immobili
           </h1>
           <p className="text-xl mb-8 text-green-100 max-w-3xl mx-auto">
-            Massimizza il valore della tua proprietà con strategie di marketing innovative e un approccio 
+            Massimizza il valore della tua proprietà con strategie di marketing innovative e un approccio
             professionale che garantisce risultati concreti in tempi ottimali.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -80,7 +63,7 @@ const VenditaImmobili: React.FC = () => {
               Un approccio strategico e professionale per vendere al miglior prezzo nel minor tempo possibile
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="text-center hover:shadow-lg transition-all duration-300 hover:scale-105">
               <CardHeader>
@@ -145,7 +128,7 @@ const VenditaImmobili: React.FC = () => {
       <section className="py-16 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Il Mio Processo di Vendita</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Il Nostro Processo di Vendita</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Un metodo collaudato in 6 fasi per garantire il successo della vendita
             </p>
@@ -184,7 +167,7 @@ const VenditaImmobili: React.FC = () => {
                 <h3 className="text-lg font-semibold">Marketing e Promozione</h3>
               </div>
               <p className="text-gray-600">
-                Pubblicazione su tutti i portali immobiliari e promozione attraverso i miei canali digitali.
+                Pubblicazione su tutti i portali immobiliari e promozione attraverso i nostri canali digitali.
               </p>
             </div>
 
@@ -231,7 +214,7 @@ const VenditaImmobili: React.FC = () => {
       <section className="py-16 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">La Mia Strategia di Marketing</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">La Nostra Strategia di Marketing</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Utilizzo tutti i canali disponibili per garantire la massima visibilità al tuo immobile
             </p>
@@ -287,7 +270,7 @@ const VenditaImmobili: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-4">
-                  Sfrutto la mia rete di contatti per trovare acquirenti
+                  Sfruttiamo la nostra rete di contatti per trovare acquirenti
                 </p>
                 <ul className="text-sm text-gray-500 space-y-1">
                   <li>• Database clienti</li>
@@ -305,9 +288,9 @@ const VenditaImmobili: React.FC = () => {
       <section className="py-16 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Perché Affidarti a Me</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Perché Affidarti a Noi</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              La mia esperienza e dedizione per ottenere il miglior risultato dalla vendita del tuo immobile
+              La nostra esperienza e dedizione per ottenere il miglior risultato dalla vendita del tuo immobile
             </p>
           </div>
 
@@ -343,7 +326,7 @@ const VenditaImmobili: React.FC = () => {
               <div>
                 <h3 className="font-semibold mb-2">Gestione Completa</h3>
                 <p className="text-gray-600">
-                  Mi occupo di tutto: dalle visite alla documentazione, fino alla firma del contratto definitivo.
+                  Ci occupiamo di tutto: dalle visite alla documentazione, fino alla firma del contratto definitivo.
                 </p>
               </div>
             </div>
@@ -390,7 +373,7 @@ const VenditaImmobili: React.FC = () => {
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Building className="h-6 w-6" />
-            <span className="text-lg font-semibold">Filippo Marcuzzo</span>
+            <span className="text-lg font-semibold">Gemüt Capital</span>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 text-sm text-gray-300">
             <div className="flex items-center space-x-2">
@@ -402,8 +385,13 @@ const VenditaImmobili: React.FC = () => {
               <span>P.IVA: 0555 8150 289</span>
             </div>
           </div>
+          <div className="mt-4 mb-4">
+            <a href="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors underline">
+              Informativa Privacy
+            </a>
+          </div>
           <p className="text-gray-400 text-sm">
-            © 2025 Filippo Marcuzzo - Consulente Immobiliare. Tutti i diritti riservati.
+            © 2025 Gemüt Capital - Consulente Immobiliare. Tutti i diritti riservati.
           </p>
         </div>
       </footer>

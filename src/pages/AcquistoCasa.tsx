@@ -2,17 +2,15 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import BackButton from '@/components/BackButton';
-import { 
-  ArrowLeft, 
-  Search, 
-  Home, 
-  Calculator, 
-  FileText, 
-  Shield, 
-  Users, 
-  CheckCircle, 
-  Phone, 
+import {
+  Search,
+  Home,
+  Calculator,
+  FileText,
+  Shield,
+  Users,
+  CheckCircle,
+  Phone,
   Mail,
   Building,
   Euro,
@@ -27,7 +25,7 @@ import { Link } from 'react-router-dom';
 const AcquistoCasa: React.FC = () => {
   const [showEmail, setShowEmail] = useState(false);
   const [emailCopied, setEmailCopied] = useState(false);
-  const email = "filippo.marcuzzo@example.com"; // Sostituisci con la tua email reale
+  const email = "info@gemutcapital.com";
 
   const handleContactClick = () => {
     setShowEmail(true);
@@ -45,24 +43,13 @@ const AcquistoCasa: React.FC = () => {
   };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Back Button */}
-      <BackButton to="/" label="Home" />
-      
-      {/* Header */}
-      <header className="bg-white/60 backdrop-blur-md border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <ArrowLeft className="h-5 w-5 text-blue-600" />
-              <span className="font-medium text-blue-600">Torna alla Home</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url(/foto-cortina.JPG)' }}
+        ></div>
+        <div className="absolute inset-0 bg-black/50"></div>
         <div className="container mx-auto text-center relative z-10">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
             <Search className="h-8 w-8 text-white" />
@@ -71,7 +58,7 @@ const AcquistoCasa: React.FC = () => {
             Acquisto Casa
           </h1>
           <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Ti accompagno in ogni fase dell'acquisto della tua casa dei sogni, dalla ricerca alla firma del contratto, 
+            Ti accompagno in ogni fase dell'acquisto della tua casa dei sogni, dalla ricerca alla firma del contratto,
             garantendoti professionalità e trasparenza in ogni momento.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -82,8 +69,8 @@ const AcquistoCasa: React.FC = () => {
               </Link>
             </Button>
             <div className="relative">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden relative"
                 onClick={handleContactClick}
               >
@@ -124,12 +111,12 @@ const AcquistoCasa: React.FC = () => {
       <section className="py-16 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Come Ti Aiuto nell'Acquisto</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Come Ti Aiutiamo nell'Acquisto</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Un servizio completo e personalizzato per trovare e acquistare la casa perfetta per te
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="text-center hover:shadow-lg transition-all duration-300 hover:scale-105">
               <CardHeader>
@@ -154,7 +141,7 @@ const AcquistoCasa: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 text-sm">
-                  Verifico il valore di mercato e ti aiuto a fare l'offerta giusta al momento giusto
+                  Verifichiamo il valore di mercato e ti aiutiamo a fare l'offerta giusta al momento giusto
                 </p>
               </CardContent>
             </Card>
@@ -194,7 +181,7 @@ const AcquistoCasa: React.FC = () => {
       <section className="py-16 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Il Mio Metodo di Lavoro</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Il Nostro Metodo di Lavoro</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Un processo strutturato in 6 fasi per garantirti il miglior risultato
             </p>
@@ -221,7 +208,7 @@ const AcquistoCasa: React.FC = () => {
                 <h3 className="text-lg font-semibold">Ricerca Attiva</h3>
               </div>
               <p className="text-gray-600">
-                Utilizzo il mio network e le migliori piattaforme per trovare immobili che corrispondono ai tuoi parametri.
+                Utilizziamo il nostro network e le migliori piattaforme per trovare immobili che corrispondono ai tuoi parametri.
               </p>
             </div>
 
@@ -257,7 +244,7 @@ const AcquistoCasa: React.FC = () => {
                 <h3 className="text-lg font-semibold">Pratiche Burocratiche</h3>
               </div>
               <p className="text-gray-600">
-                Mi occupo di tutta la documentazione necessaria, dai controlli catastali alle verifiche ipotecarie.
+                Ci occupiamo di tutta la documentazione necessaria, dai controlli catastali alle verifiche ipotecarie.
               </p>
             </div>
 
@@ -280,9 +267,9 @@ const AcquistoCasa: React.FC = () => {
       <section className="py-16 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Perché Scegliere Me</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Perché Scegliere Noi</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              La mia esperienza e dedizione al tuo servizio per un acquisto senza stress
+              La nostra esperienza e dedizione al tuo servizio per un acquisto senza stress
             </p>
           </div>
 
@@ -318,7 +305,7 @@ const AcquistoCasa: React.FC = () => {
               <div>
                 <h3 className="font-semibold mb-2">Network Esclusivo</h3>
                 <p className="text-gray-600">
-                  Accesso a immobili non ancora sul mercato grazie alla mia rete di contatti con proprietari e colleghi.
+                  Accesso a immobili non ancora sul mercato grazie alla nostra rete di contatti con proprietari e colleghi.
                 </p>
               </div>
             </div>
@@ -330,7 +317,7 @@ const AcquistoCasa: React.FC = () => {
               <div>
                 <h3 className="font-semibold mb-2">Assistenza Completa</h3>
                 <p className="text-gray-600">
-                  Ti seguo in ogni fase, dalla ricerca al rogito, garantendoti supporto costante e professionale.
+                  Ti seguiamo in ogni fase, dalla ricerca al rogito, garantendoti supporto costante e professionale.
                 </p>
               </div>
             </div>
@@ -365,7 +352,7 @@ const AcquistoCasa: React.FC = () => {
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Building className="h-6 w-6" />
-            <span className="text-lg font-semibold">Filippo Marcuzzo</span>
+            <span className="text-lg font-semibold">Gemüt Capital</span>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 text-sm text-gray-300">
             <div className="flex items-center space-x-2">
@@ -377,8 +364,13 @@ const AcquistoCasa: React.FC = () => {
               <span>P.IVA: 0555 8150 289</span>
             </div>
           </div>
+          <div className="mt-4 mb-4">
+            <Link to="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors underline">
+              Informativa Privacy
+            </Link>
+          </div>
           <p className="text-gray-400 text-sm">
-            © 2025 Filippo Marcuzzo - Consulente Immobiliare. Tutti i diritti riservati.
+            © 2025 Gemüt Capital - Consulente Immobiliare. Tutti i diritti riservati.
           </p>
         </div>
       </footer>

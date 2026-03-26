@@ -30,7 +30,7 @@ const ClientAccess: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
-  
+
   const [formData, setFormData] = useState<ClientRequest>({
     name: '',
     phone: '',
@@ -63,7 +63,7 @@ const ClientAccess: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast({
         title: "Errore",
@@ -90,7 +90,7 @@ const ClientAccess: React.FC = () => {
       };
 
       const result = await processClientRequest(requestData);
-      
+
       if (result.success) {
         setSubmitted(true);
         toast({
@@ -137,7 +137,7 @@ const ClientAccess: React.FC = () => {
               <p><strong>Immobile:</strong> {formData.propertyType}</p>
               <p><strong>Zona:</strong> {formData.location}</p>
             </div>
-            <Button 
+            <Button
               onClick={() => {
                 setSubmitted(false);
                 setFormData({
@@ -378,8 +378,13 @@ const ClientAccess: React.FC = () => {
               <span>P.IVA: 0555 8150 289</span>
             </div>
           </div>
+          <div className="mt-4 mb-4">
+            <a href="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors underline">
+              Informativa Privacy
+            </a>
+          </div>
           <p className="text-sm text-muted-foreground">
-            © 2025 Filippo Marcuzzo - Consulente Immobiliare. I tuoi dati sono protetti e utilizzati solo per contattarti riguardo la tua richiesta.
+            © 2025 Gemüt Capital - Consulente Immobiliare. I tuoi dati sono protetti e utilizzati solo per contattarti riguardo la tua richiesta.
           </p>
         </div>
       </div>

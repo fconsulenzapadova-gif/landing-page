@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Home, 
-  Users, 
-  TrendingUp, 
-  Shield, 
-  Phone, 
-  Mail, 
-  MapPin, 
+import {
+  Home,
+  Users,
+  TrendingUp,
+  Shield,
+  Phone,
+  Mail,
+  MapPin,
   Star,
   ArrowRight,
   Building,
@@ -35,16 +35,16 @@ const Landing: React.FC = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Filippo Marcuzzo</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Gemüt Capital</h1>
             </div>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section 
-        className="py-20 px-4 relative min-h-[500px]" 
-        style={{ 
+      <section
+        className="py-20 px-4 relative min-h-[500px]"
+        style={{
           backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/prato-padova.jpg")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -60,7 +60,7 @@ const Landing: React.FC = () => {
             <span className="text-blue-300"> di Fiducia</span>
           </h2>
           <p className="text-xl text-gray-100 mb-8 max-w-3xl mx-auto animate-fade-in drop-shadow-md">
-            Esperienza, professionalità e tecnologia al servizio delle tue esigenze immobiliari. 
+            Esperienza, professionalità e tecnologia al servizio delle tue esigenze immobiliari.
             Trova la casa dei tuoi sogni o vendi al miglior prezzo con il supporto di un esperto.
           </p>
 
@@ -71,12 +71,12 @@ const Landing: React.FC = () => {
       <section className="py-16 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">I Miei Servizi</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">I Nostri Servizi</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Offro un servizio completo e personalizzato per ogni tua esigenza immobiliare
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             <Link to="/acquisto-casa" className="block">
               <Card className="hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-blue-50/50 active:scale-100 active:bg-blue-100/30 translucent-button cursor-pointer h-full border-2 hover:border-blue-200 active:border-blue-300">
@@ -91,7 +91,7 @@ const Landing: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">
-                    Ti aiuto a trovare la casa perfetta per le tue esigenze, gestendo ogni aspetto della trattativa.
+                    Ti aiutiamo a trovare la casa perfetta per le tue esigenze, gestendo ogni aspetto della trattativa.
                   </p>
                   <ul className="text-sm text-gray-500 space-y-1">
                     <li>• Ricerca personalizzata</li>
@@ -185,14 +185,12 @@ const Landing: React.FC = () => {
                 {/* Left Column - Image and Stats */}
                 <div className="relative">
                   <div className="relative">
-                    <div className="w-full h-96 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-2xl flex items-center justify-center shadow-xl">
-                      <div className="text-center">
-                        <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                          <Users className="h-16 w-16 text-white" />
-                        </div>
-                        <h4 className="text-xl font-bold text-gray-800">Filippo Marcuzzo</h4>
-                        <p className="text-blue-600 font-semibold">Consulente Immobiliare</p>
-                      </div>
+                    <div className="w-full h-96 flex items-center justify-center">
+                      <img
+                        src="/profile.jpg"
+                        alt="Filippo Marcuzzo"
+                        className="h-full w-auto max-w-full rounded-2xl shadow-lg object-contain transition-transform duration-500 hover:scale-105"
+                      />
                     </div>
                   </div>
                 </div>
@@ -204,32 +202,32 @@ const Landing: React.FC = () => {
                       Chi Sono Io
                     </Badge>
                     <h3 className="text-4xl font-bold text-gray-900 mb-6">
-                      La Tua Guida nel Mondo 
+                      La Tua Guida nel Mondo
                       <span className="text-blue-600"> Immobiliare</span>
                     </h3>
                   </div>
 
                   <div className="space-y-4 text-gray-600 leading-relaxed">
                     <p className="text-lg">
-                      Sono <strong className="text-gray-900">Filippo Marcuzzo</strong>, consulente e mediatore immobiliare specializzato in operazioni di investimento e valorizzazione patrimoniale nel mercato di Padova e provincia.
+                      Sono <strong className="text-gray-900">Filippo Marcuzzo</strong>, consulente immobiliare specializzato in operazioni di investimento e valorizzazione patrimoniale nel mercato di Padova e provincia.
                     </p>
-                    
+
                     <p>
                       La mia attività nasce da una visione chiara: trasformare ogni immobile in un'opportunità strategica, capace di generare rendimento, valore e crescita nel tempo.
                     </p>
-                    
+
                     <p>
                       Collaboro con investitori privati, professionisti e società nella ricerca, acquisizione e gestione di asset immobiliari residenziali e commerciali, seguendo ogni fase del processo — dall'analisi preliminare fino alla rivendita o alla messa a reddito.
                     </p>
-                    
+
                     <p>
                       Il mio approccio si basa su analisi di mercato accurate, strategie personalizzate e gestione trasparente delle trattative, con l'obiettivo di ottimizzare il ritorno sull'investimento e minimizzare i rischi operativi e fiscali.
                     </p>
-                    
+
                     <p>
                       Grazie a una rete consolidata di professionisti qualificati — notai, tecnici, avvocati e consulenti fiscali — offro un servizio completo, integrato e strutturato, capace di adattarsi a ogni esigenza, dall'investitore privato fino alle realtà corporate.
                     </p>
-                    
+
                     <p>
                       Credo che l'investimento immobiliare debba essere gestito con metodo, visione e competenza. Per questo accompagno i miei clienti in percorsi di crescita patrimoniale consapevoli, fondati su strategia, solidità e risultati misurabili.
                     </p>
@@ -237,16 +235,6 @@ const Landing: React.FC = () => {
 
                   {/* Credentials */}
                   <div className="grid grid-cols-2 gap-4 pt-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Shield className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-900">Certificato</div>
-                        <div className="text-sm text-gray-600">Agente Immobiliare</div>
-                      </div>
-                    </div>
-                    
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                         <Star className="h-5 w-5 text-green-600" />
@@ -256,7 +244,7 @@ const Landing: React.FC = () => {
                         <div className="text-sm text-gray-600">Mercato Residenziale</div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                         <TrendingUp className="h-5 w-5 text-purple-600" />
@@ -266,14 +254,14 @@ const Landing: React.FC = () => {
                         <div className="text-sm text-gray-600">Valutazioni Immobiliari</div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <Users className="h-5 w-5 text-orange-600" />
+                        <BarChart3 className="h-5 w-5 text-orange-600" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900">Membro</div>
-                        <div className="text-sm text-gray-600">FIAIP Nazionale</div>
+                        <div className="font-semibold text-gray-900">Focus su</div>
+                        <div className="text-sm text-gray-600">Investimenti Strategici</div>
                       </div>
                     </div>
                   </div>
@@ -299,12 +287,12 @@ const Landing: React.FC = () => {
       <section className="py-16 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">Perché Scegliermi</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">Perché Sceglierci</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              La mia esperienza e dedizione fanno la differenza nel tuo percorso immobiliare
+              La nostra esperienza e dedizione fanno la differenza nel tuo percorso immobiliare
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -313,7 +301,7 @@ const Landing: React.FC = () => {
               <h4 className="font-semibold mb-2">Esperienza Consolidata</h4>
               <p className="text-sm text-gray-600">Anni di esperienza nel settore immobiliare</p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-8 w-8 text-green-600" />
@@ -321,7 +309,7 @@ const Landing: React.FC = () => {
               <h4 className="font-semibold mb-2">Massima Trasparenza</h4>
               <p className="text-sm text-gray-600">Comunicazione chiara e onesta in ogni fase</p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="h-8 w-8 text-purple-600" />
@@ -329,7 +317,7 @@ const Landing: React.FC = () => {
               <h4 className="font-semibold mb-2">Servizio Personalizzato</h4>
               <p className="text-sm text-gray-600">Ogni cliente è unico e merita attenzione dedicata</p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="h-8 w-8 text-orange-600" />
@@ -337,7 +325,7 @@ const Landing: React.FC = () => {
               <h4 className="font-semibold mb-2">Risultati Garantiti</h4>
               <p className="text-sm text-gray-600">Focus sui risultati e soddisfazione del cliente</p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="h-8 w-8 text-indigo-600" />
@@ -358,7 +346,7 @@ const Landing: React.FC = () => {
               Soluzioni innovative e personalizzate per valorizzare al meglio il tuo patrimonio immobiliare
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* UAV Roof Inspection */}
             <Card className="hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 hover:border-indigo-200 bg-white/80 backdrop-blur-sm">
@@ -372,12 +360,18 @@ const Landing: React.FC = () => {
                 <p className="text-gray-600 mb-4">
                   Ispezione professionale del tetto utilizzando droni di ultima generazione per una valutazione accurata e sicura.
                 </p>
-                <ul className="text-sm text-gray-500 space-y-2 text-left">
+                <ul className="text-sm text-gray-500 space-y-2 text-left mb-6">
                   <li>• Rilevamento danni e usura</li>
                   <li>• Documentazione fotografica HD</li>
                   <li>• Report dettagliato dello stato</li>
                   <li>• Preventivi per eventuali riparazioni</li>
                 </ul>
+                <Link to="/dettaglio-verifica-tetto">
+                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+                    Scopri di Più
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
@@ -393,12 +387,18 @@ const Landing: React.FC = () => {
                 <p className="text-gray-600 mb-4">
                   Servizio fotografico professionale per valorizzare al massimo il tuo immobile e aumentarne l'appeal commerciale.
                 </p>
-                <ul className="text-sm text-gray-500 space-y-2 text-left">
+                <ul className="text-sm text-gray-500 space-y-2 text-left mb-6">
                   <li>• Fotografie professionali HD</li>
                   <li>• Riprese aeree con drone</li>
                   <li>• Virtual tour 360°</li>
                   <li>• Home staging digitale</li>
                 </ul>
+                <Link to="/dettaglio-valorizzazione-book">
+                  <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                    Scopri di Più
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
@@ -414,12 +414,18 @@ const Landing: React.FC = () => {
                 <p className="text-gray-600 mb-4">
                   Analisi approfondita del valore del tuo patrimonio immobiliare per decisioni di investimento consapevoli.
                 </p>
-                <ul className="text-sm text-gray-500 space-y-2 text-left">
+                <ul className="text-sm text-gray-500 space-y-2 text-left mb-6">
                   <li>• Perizia tecnica certificata</li>
                   <li>• Analisi di mercato comparativa</li>
                   <li>• Consulenza fiscale specializzata</li>
                   <li>• Strategie di ottimizzazione</li>
                 </ul>
+                <Link to="/dettaglio-valutazione-patrimonio">
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Scopri di Più
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
@@ -446,9 +452,9 @@ const Landing: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/richieste?type=acquisto">
-              <Button 
-                size="lg" 
-                variant="secondary" 
+              <Button
+                size="lg"
+                variant="secondary"
                 className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 hover:text-primary/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-white/20"
               >
                 <FileText className="mr-2 h-5 w-5" />
@@ -467,24 +473,34 @@ const Landing: React.FC = () => {
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Contatti</h3>
             <p className="text-gray-600">Sono sempre disponibile per rispondere alle tue domande</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center hover:scale-105 transition-all duration-300 cursor-pointer" role="button" tabIndex={0} aria-label="Chiama il numero 379 260 6775">
+            <a
+              href="https://wa.me/393792606775"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center hover:scale-105 transition-all duration-300 cursor-pointer"
+              aria-label="Contattami su WhatsApp"
+            >
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4 translucent-button">
                 <Phone className="h-6 w-6 text-blue-600" />
               </div>
-              <h4 className="font-semibold mb-2">Telefono</h4>
+              <h4 className="font-semibold mb-2">WhatsApp</h4>
               <p className="text-gray-600">379 260 6775</p>
-            </div>
-            
-            <div className="text-center hover:scale-105 transition-all duration-300 cursor-pointer" role="button" tabIndex={0} aria-label="Invia email a info@filippomarcuzzo.com">
+            </a>
+
+            <a
+              href="mailto:info@gemutcapital.com"
+              className="block text-center hover:scale-105 transition-all duration-300 cursor-pointer"
+              aria-label="Invia email a info@gemutcapital.com"
+            >
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4 translucent-button">
                 <Mail className="h-6 w-6 text-green-600" />
               </div>
               <h4 className="font-semibold mb-2">Email</h4>
-              <p className="text-gray-600">info@filippomarcuzzo.com</p>
-            </div>
-            
+              <p className="text-gray-600">info@gemutcapital.com</p>
+            </a>
+
             <div className="text-center hover:scale-105 transition-all duration-300 cursor-pointer" role="button" tabIndex={0} aria-label="Informazioni ufficio">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4 translucent-button">
                 <MapPin className="h-6 w-6 text-purple-600" />
@@ -501,7 +517,7 @@ const Landing: React.FC = () => {
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Building className="h-6 w-6" />
-            <span className="text-lg font-semibold">Filippo Marcuzzo</span>
+            <span className="text-lg font-semibold">Gemüt Capital</span>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 text-sm text-gray-300">
             <div className="flex items-center space-x-2">
@@ -513,8 +529,13 @@ const Landing: React.FC = () => {
               <span>P.IVA: 0555 8150 289</span>
             </div>
           </div>
+          <div className="mt-4 mb-4">
+            <Link to="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors underline">
+              Informativa Privacy
+            </Link>
+          </div>
           <p className="text-gray-400 text-sm">
-            © 2025 Filippo Marcuzzo - Consulente Immobiliare. Tutti i diritti riservati.
+            © 2025 Gemüt Capital - Consulente Immobiliare. Tutti i diritti riservati.
           </p>
         </div>
       </footer>
