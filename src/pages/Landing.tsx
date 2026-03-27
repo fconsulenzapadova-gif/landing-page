@@ -366,7 +366,7 @@ const Landing: React.FC = () => {
                   <li>• Report dettagliato dello stato</li>
                   <li>• Preventivi per eventuali riparazioni</li>
                 </ul>
-                <Link to="/dettaglio-verifica-tetto">
+                <Link to="/servizi-premium">
                   <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
                     Scopri di Più
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -393,7 +393,7 @@ const Landing: React.FC = () => {
                   <li>• Virtual tour 360°</li>
                   <li>• Home staging digitale</li>
                 </ul>
-                <Link to="/dettaglio-valorizzazione-book">
+                <Link to="/servizi-premium">
                   <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
                     Scopri di Più
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -420,7 +420,7 @@ const Landing: React.FC = () => {
                   <li>• Consulenza fiscale specializzata</li>
                   <li>• Strategie di ottimizzazione</li>
                 </ul>
-                <Link to="/dettaglio-valutazione-patrimonio">
+                <Link to="/servizi-premium">
                   <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                     Scopri di Più
                     <ArrowRight className="ml-2 h-4 w-4" />

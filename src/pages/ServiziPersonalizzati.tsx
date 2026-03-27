@@ -28,51 +28,11 @@ import {
   TrendingUp,
   X
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ServiziPersonalizzati: React.FC = () => {
-  const [formData, setFormData] = useState({
-    nome: '',
-    email: '',
-    telefono: '',
-    descrizioneProgetto: ''
-  });
+  const navigate = useNavigate();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  console.log('Component rendered, isModalOpen:', isModalOpen);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Qui si può implementare l'invio del form
-    console.log('Form data:', formData);
-    alert('Grazie per la tua richiesta! Ti contatteremo presto.');
-    // Reset form
-    setFormData({
-      nome: '',
-      email: '',
-      telefono: '',
-      descrizioneProgetto: ''
-    });
-    setIsModalOpen(false);
-  };
-
-  const openModal = () => {
-    console.log('openModal called');
-    setIsModalOpen(true);
-  };
-  const closeModal = () => {
-    console.log('closeModal called');
-    setIsModalOpen(false);
-  };
   return (
     <div
       className="min-h-screen relative"
@@ -326,7 +286,7 @@ const ServiziPersonalizzati: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-lime-600 to-emerald-700 text-white">
+      <section className="py-16 px-4 relative z-10 bg-gradient-to-r from-lime-600 to-emerald-700 text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-4xl font-bold mb-6 text-white drop-shadow-lg">Hai un Progetto Particolare in Mente?</h2>
           <p className="text-xl mb-10 text-white font-medium max-w-2xl mx-auto drop-shadow-md">
@@ -337,128 +297,13 @@ const ServiziPersonalizzati: React.FC = () => {
               size="lg"
               variant="secondary"
               className="w-full sm:w-auto bg-white text-lime-600 hover:bg-lime-50 font-bold text-lg py-4 px-8 shadow-xl hover:shadow-2xl transition-all duration-300 border-2 border-white"
-              onClick={openModal}
+              onClick={() => navigate('/prenotazione')}
             >
               <FileText className="mr-3 h-6 w-6" />
               Descrivi il Tuo Progetto
             </Button>
           </div>
 
-          {/* Modal personalizzato */}
-          {isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              {/* Overlay */}
-              <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                onClick={closeModal}
-              ></div>
-
-              {/* Modal Content */}
-              <div className="relative bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                {/* Header */}
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-lime-600">
-                      Descrivi il Tuo Progetto
-                    </h2>
-                    <button
-                      onClick={closeModal}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <X className="h-6 w-6" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Form */}
-                <div className="p-6">
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label htmlFor="nome" className="text-sm font-medium text-gray-700">
-                          Nome e Cognome *
-                        </label>
-                        <Input
-                          id="nome"
-                          name="nome"
-                          type="text"
-                          required
-                          value={formData.nome}
-                          onChange={handleInputChange}
-                          placeholder="Il tuo nome completo"
-                          className="bg-white/80"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="telefono" className="text-sm font-medium text-gray-700">
-                          Telefono *
-                        </label>
-                        <Input
-                          id="telefono"
-                          name="telefono"
-                          type="tel"
-                          required
-                          value={formData.telefono}
-                          onChange={handleInputChange}
-                          placeholder="Il tuo numero di telefono"
-                          className="bg-white/80"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                        Email *
-                      </label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="La tua email"
-                        className="bg-white/80"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="descrizioneProgetto" className="text-sm font-medium text-gray-700">
-                        Descrizione del Progetto *
-                      </label>
-                      <Textarea
-                        id="descrizioneProgetto"
-                        name="descrizioneProgetto"
-                        required
-                        value={formData.descrizioneProgetto}
-                        onChange={handleInputChange}
-                        placeholder="Descrivi dettagliatamente il tuo progetto, le tue esigenze specifiche e cosa stai cercando..."
-                        className="min-h-[120px] bg-white/80"
-                      />
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                      <Button
-                        type="submit"
-                        className="flex-1 bg-lime-600 hover:bg-lime-700 text-white font-semibold py-3"
-                      >
-                        <Mail className="mr-2 h-5 w-5" />
-                        Invia Richiesta
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={closeModal}
-                        className="flex-1 sm:flex-none"
-                      >
-                        Annulla
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-500 text-center">
-                      * Campi obbligatori. I tuoi dati saranno trattati nel rispetto della privacy.
-                    </p>
-                  </form>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </section>
 

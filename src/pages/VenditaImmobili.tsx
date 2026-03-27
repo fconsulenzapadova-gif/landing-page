@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,8 @@ import {
 import { Link } from 'react-router-dom';
 
 const VenditaImmobili: React.FC = () => {
+  const [showPhone, setShowPhone] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
       {/* Hero Section */}
@@ -40,15 +42,36 @@ const VenditaImmobili: React.FC = () => {
             professionale che garantisce risultati concreti in tempi ottimali.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste?type=vendita">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-green-600 hover:bg-green-50">
-                <BarChart3 className="mr-2 h-5 w-5" />
-                Valutazione Gratuita
-              </Button>
-            </Link>
-            <Button size="lg" className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
-              <Mail className="mr-2 h-5 w-5" />
-              Contattami Ora
+            <Button 
+              size="lg" 
+              variant="secondary" 
+              className="w-full sm:w-auto bg-white text-green-600 hover:bg-green-50 font-semibold shadow-lg relative overflow-hidden"
+              onClick={() => setShowPhone(!showPhone)}
+            >
+              <div className="invisible flex items-center">
+                <Phone className="mr-2 h-5 w-5" />
+                Richiedi Consulenza Gratuita
+              </div>
+              <div 
+                className="absolute inset-0 flex items-center justify-center transition-all duration-500" 
+                style={{ transform: showPhone ? 'rotateX(180deg)' : 'rotateX(0deg)', opacity: showPhone ? 0 : 1 }}
+              >
+                <Phone className="mr-2 h-5 w-5" />
+                Richiedi Consulenza Gratuita
+              </div>
+              <div 
+                className="absolute inset-0 flex items-center justify-center transition-all duration-500" 
+                style={{ transform: showPhone ? 'rotateX(0deg)' : 'rotateX(-180deg)', opacity: showPhone ? 1 : 0 }}
+              >
+                <Phone className="mr-2 h-5 w-5" />
+                <span className="font-bold text-lg tracking-wider">379 260 6775</span>
+              </div>
+            </Button>
+            <Button asChild size="lg" className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+              <a href="mailto:info@gemutcapital.com">
+                <Mail className="mr-2 h-5 w-5" />
+                Contattami Ora
+              </a>
             </Button>
           </div>
         </div>
@@ -354,10 +377,10 @@ const VenditaImmobili: React.FC = () => {
             Richiedi subito una valutazione gratuita del tuo immobile
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste?type=vendita">
+            <Link to="/prenotazione">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-green-600 hover:bg-green-50">
                 <BarChart3 className="mr-2 h-5 w-5" />
-                Valutazione Gratuita
+                Prenota un Appuntamento
               </Button>
             </Link>
             <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">

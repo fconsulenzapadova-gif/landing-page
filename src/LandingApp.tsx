@@ -15,11 +15,10 @@ const Locazioni = lazy(() => import('./pages/Locazioni'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const ServiziPersonalizzati = lazy(() => import('./pages/ServiziPersonalizzati'));
 const ClientAccess = lazy(() => import('./pages/ClientAccess'));
+const Prenotazione = lazy(() => import('./pages/Prenotazione'));
 
 // Lazy load service detail pages
-const DettaglioVerificaTetto = lazy(() => import('./pages/DettaglioVerificaTetto'));
-const DettaglioValorizzazioneBook = lazy(() => import('./pages/DettaglioValorizzazioneBook'));
-const DettaglioValutazionePatrimonio = lazy(() => import('./pages/DettaglioValutazionePatrimonio'));
+const ServiziPremium = lazy(() => import('./pages/ServiziPremium'));
 
 const queryClient = new QueryClient();
 
@@ -42,11 +41,13 @@ function LandingApp() {
                 <Route path="/vendita-immobili" element={<VenditaImmobili />} />
                 <Route path="/locazioni" element={<Locazioni />} />
                 <Route path="/servizi-personalizzati" element={<ServiziPersonalizzati />} />
+                <Route path="/prenotazione" element={<Prenotazione />} />
                 
                 {/* Service detail pages */}
-                <Route path="/dettaglio-verifica-tetto" element={<DettaglioVerificaTetto />} />
-                <Route path="/dettaglio-valorizzazione-book" element={<DettaglioValorizzazioneBook />} />
-                <Route path="/dettaglio-valutazione-patrimonio" element={<DettaglioValutazionePatrimonio />} />
+                <Route path="/servizi-premium" element={<ServiziPremium />} />
+                <Route path="/dettaglio-verifica-tetto" element={<Navigate to="/servizi-premium" replace />} />
+                <Route path="/dettaglio-valorizzazione-book" element={<Navigate to="/servizi-premium" replace />} />
+                <Route path="/dettaglio-valutazione-patrimonio" element={<Navigate to="/servizi-premium" replace />} />
                 
                 {/* Redirect any CRM routes to external CRM */}
                 <Route path="/dashboard" element={<Navigate to="http://localhost:8081" replace />} />

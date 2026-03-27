@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,8 @@ import {
 import { Link } from 'react-router-dom';
 
 const Locazioni: React.FC = () => {
+  const [showPhone, setShowPhone] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
       {/* Hero Section */}
@@ -41,15 +43,36 @@ const Locazioni: React.FC = () => {
             Gestisco ogni aspetto della locazione con professionalità e trasparenza.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
-              <Link to="/richieste?type=locazione">
-                <Search className="mr-2 h-5 w-5" />
-                Cerca Casa in Affitto
-              </Link>
+            <Button 
+              size="lg" 
+              variant="secondary" 
+              className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 font-semibold shadow-lg relative overflow-hidden"
+              onClick={() => setShowPhone(!showPhone)}
+            >
+              <div className="invisible flex items-center">
+                <Phone className="mr-2 h-5 w-5" />
+                Richiedi Consulenza Gratuita
+              </div>
+              <div 
+                className="absolute inset-0 flex items-center justify-center transition-all duration-500" 
+                style={{ transform: showPhone ? 'rotateX(180deg)' : 'rotateX(0deg)', opacity: showPhone ? 0 : 1 }}
+              >
+                <Phone className="mr-2 h-5 w-5" />
+                Richiedi Consulenza Gratuita
+              </div>
+              <div 
+                className="absolute inset-0 flex items-center justify-center transition-all duration-500" 
+                style={{ transform: showPhone ? 'rotateX(0deg)' : 'rotateX(-180deg)', opacity: showPhone ? 1 : 0 }}
+              >
+                <Phone className="mr-2 h-5 w-5" />
+                <span className="font-bold text-lg tracking-wider">379 260 6775</span>
+              </div>
             </Button>
-            <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
-              <Mail className="mr-2 h-5 w-5" />
-              Affitta la Tua Casa
+            <Button asChild size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+              <a href="mailto:info@gemutcapital.com">
+                <Mail className="mr-2 h-5 w-5" />
+                Contattami Ora
+              </a>
             </Button>
           </div>
         </div>
@@ -375,10 +398,10 @@ const Locazioni: React.FC = () => {
             Contattami per una consulenza gratuita sui tuoi progetti di locazione
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/richieste?type=locazione">
+            <Link to="/prenotazione">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
                 <Search className="mr-2 h-5 w-5" />
-                Cerca Casa in Affitto
+                Prenota un Appuntamento
               </Button>
             </Link>
             <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
