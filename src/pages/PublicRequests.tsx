@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import BackButton from '@/components/BackButton';
-import { Loader2, Home, Send, User, Phone, Mail, MapPin, Euro, Building, Calendar, CheckCircle, Shield, ArrowLeft, LogIn } from 'lucide-react';
+import { Loader2, Send, User, Phone, Mail, Building, CheckCircle, Home, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link, useSearchParams } from 'react-router-dom';
 import { processClientRequest } from '@/utils/clientRequestProcessor';
@@ -55,8 +54,6 @@ const PublicRequests: React.FC = () => {
     notes: ''
   });
 
-  const [errors, setErrors] = useState<Partial<ClientRequest>>({});
-
   const validateForm = (): boolean => {
     const newErrors: Partial<ClientRequest> = {};
 
@@ -67,15 +64,7 @@ const PublicRequests: React.FC = () => {
     if (!formData.location.trim()) newErrors.location = 'Zona obbligatoria';
     // Budget non è più obbligatorio
 
-    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleInputChange = (field: keyof ClientRequest, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,13 +129,12 @@ const PublicRequests: React.FC = () => {
               </div>
               <h2 className="text-2xl font-bold text-lime-700 mb-2">Richiesta Inviata!</h2>
               <p className="text-emerald-600 mb-6">
-                Grazie per aver inviato la tua richiesta. Ti contatterò entro 24 ore per discutere le tue esigenze.
+                Grazie per aver inviato la tua richiesta. Ti contatteremo entro 24 ore per discutere le tue esigenze.
               </p>
               <div className="space-y-3">
                 <Link to="/">
                   <Button className="w-full bg-lime-600 hover:bg-lime-700">
-                    <Home className="mr-2 h-4 w-4" />
-                    Torna alla Home
+                    Gemüt!
                   </Button>
                 </Link>
                 <Button 
@@ -191,27 +179,6 @@ const PublicRequests: React.FC = () => {
     >
       {/* Overlay scuro per migliorare la leggibilità */}
       <div className="absolute inset-0 bg-black/40 z-0"></div>
-      {/* Back Button */}
-      <div className="relative z-10">
-        <BackButton to="/" label="Home" />
-      </div>
-      
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm shadow-sm border-b border-emerald-100 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-              <span className="font-medium">Torna alla Home</span>
-            </Link>
-            <Link to="/client-access" className="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 transition-colors">
-              <LogIn className="h-4 w-4" />
-              <span className="text-sm">Area Clienti</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Hero Section with Background Image */}
       <section 
         className="py-20 px-4 relative min-h-[400px] bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700" 
@@ -231,7 +198,7 @@ const PublicRequests: React.FC = () => {
             Invia la Tua Richiesta
           </h1>
           <p className="text-xl text-emerald-50 mb-8 max-w-3xl mx-auto animate-fade-in drop-shadow-md">
-            Compila il form sottostante con le tue esigenze. Ti contatterò entro 24 ore per offrirti 
+            Compila il form sottostante con le tue esigenze. Ti contatteremo entro 24 ore per offrirti 
             una consulenza personalizzata e gratuita.
           </p>
         </div>
@@ -480,7 +447,7 @@ const PublicRequests: React.FC = () => {
             </div>
           </div>
           <p className="text-sm text-gray-600">
-            © 2025 Filippo Marcuzzo - Consulente Immobiliare. I tuoi dati sono protetti e utilizzati solo per contattarti riguardo la tua richiesta.
+            © 2025 Gemüt! - Società di Mediazione Immobiliare. I tuoi dati sono protetti e utilizzati solo per contattarti riguardo la tua richiesta.
           </p>
         </div>
       </div>

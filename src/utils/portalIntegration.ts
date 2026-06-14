@@ -234,7 +234,7 @@ export const convertToPortalFormat = (
       name: seller.name,
       phone: additionalData.contactPhone || seller.phone || '',
       email: additionalData.contactEmail || seller.email || '',
-      agency: 'Immobiliare Filippo Marcuzzo'
+      agency: 'Gemüt!'
     },
     options: {
       showOnMap: additionalData.showOnMap ?? true,
