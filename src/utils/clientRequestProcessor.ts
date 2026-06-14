@@ -73,7 +73,7 @@ const sendToCRM = async (request: ClientRequest): Promise<boolean> => {
       name: request.name,
       email: request.email,
       phone: request.phone,
-      landing_page_url: 'www.filippomarcuzzo.com'
+      landing_page_url: 'www.gemutcapital.com'
     };
 
     const response = await fetch('https://crm-pro-five.vercel.app/api/submit-lead', {
@@ -160,12 +160,12 @@ export const createPendingRequest = async (request: ClientRequest): Promise<{ su
     // This would require a separate 'pending_requests' table in the database
     // For now, we'll just log the request and return success
     console.log('Pending request created:', request);
-    
+
     // In a real implementation, you might:
     // 1. Save to a 'pending_requests' table
     // 2. Send an email notification to admins
     // 3. Create a webhook to external systems
-    
+
     return {
       success: true,
       message: 'La tua richiesta è stata ricevuta e sarà processata dal nostro team entro 24 ore.'

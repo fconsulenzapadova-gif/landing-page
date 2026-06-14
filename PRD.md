@@ -298,11 +298,11 @@ Payload:
   "name": "...",
   "email": "...",
   "phone": "...",
-  "landing_page_url": "www.filippomarcuzzo.com"
+  "landing_page_url": "www.gemutcapital.com"
 }
 ```
 
-L'errore CRM non blocca il salvataggio Supabase. Il dominio nel payload e storico e non coincide necessariamente con il dominio Gemüt Capital.
+L'errore CRM non blocca il salvataggio Supabase. Il payload identifica la landing con il dominio Gemüt Capital.
 
 ### 8.4 Vincolo RLS importante
 
@@ -607,7 +607,6 @@ Nell'ambiente analizzato il comando `npm` non era disponibile nel `PATH`. Il 14 
 - Privacy page minimale.
 - Redirect CRM puntano a `localhost:8081`, quindi non sono validi in produzione pubblica.
 - `ClientAccess` duplica il flusso richieste ed espone copy CRM storico.
-- Payload CRM esterno usa `www.filippomarcuzzo.com`.
 - RLS SQL e flusso anonimo `saveOrGetClient` possono essere incompatibili.
 - Moduli portali immobiliari sono simulati.
 - Dashboard e diversi hook CRM sono dormienti.
