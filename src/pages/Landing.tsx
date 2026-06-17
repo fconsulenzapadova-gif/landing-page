@@ -101,12 +101,52 @@ const Landing: React.FC = () => {
       servicesLastScrollYRef.current = currentScrollY;
     };
 
+    const syncServicesBreakpoint = () => {
+      const sectionRect = servicesSection.getBoundingClientRect();
+      const sectionIsVisible = sectionRect.top < window.innerHeight && sectionRect.bottom > 0;
+
+      if (desktopQuery.matches) {
+        if (sectionIsVisible) setHasDesktopServicesRevealed(true);
+        return;
+      }
+
+      const mobileBoundary = window.innerHeight * 0.9;
+      const visibleItems = new Set<number>();
+      serviceItems.forEach((item) => {
+        const itemRect = item.getBoundingClientRect();
+        if (itemRect.top < mobileBoundary && itemRect.bottom > 0) {
+          visibleItems.add(Number(item.dataset.serviceRevealIndex));
+        }
+      });
+
+      setRevealedMobileServiceItems((currentItems) => {
+        const hasChanged =
+          visibleItems.size !== currentItems.size ||
+          [...visibleItems].some((index) => !currentItems.has(index));
+        return hasChanged ? visibleItems : currentItems;
+      });
+    };
+
     window.addEventListener('scroll', trackServicesScrollDirection, { passive: true });
+    desktopQuery.addEventListener('change', syncServicesBreakpoint);
+    mobileQuery.addEventListener('change', syncServicesBreakpoint);
 
     const desktopObserver = new IntersectionObserver(
       ([entry]) => {
-        if (!desktopQuery.matches || !entry.isIntersecting) return;
-        setHasDesktopServicesRevealed(servicesScrollDirectionRef.current === 'down');
+        if (!desktopQuery.matches) return;
+
+        if (entry.isIntersecting) {
+          setHasDesktopServicesRevealed(servicesScrollDirectionRef.current === 'down');
+          return;
+        }
+
+        if (
+          !entry.isIntersecting &&
+          servicesScrollDirectionRef.current === 'up' &&
+          entry.boundingClientRect.top >= window.innerHeight
+        ) {
+          setHasDesktopServicesRevealed(false);
+        }
       },
       { threshold: 0.15 },
     );
@@ -137,7 +177,10 @@ const Landing: React.FC = () => {
               nextItems.delete(index);
             }
           });
-          return nextItems;
+          const hasChanged =
+            nextItems.size !== currentItems.size ||
+            [...nextItems].some((index) => !currentItems.has(index));
+          return hasChanged ? nextItems : currentItems;
         });
       },
       { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
@@ -150,6 +193,8 @@ const Landing: React.FC = () => {
       desktopObserver.disconnect();
       mobileObserver.disconnect();
       window.removeEventListener('scroll', trackServicesScrollDirection);
+      desktopQuery.removeEventListener('change', syncServicesBreakpoint);
+      mobileQuery.removeEventListener('change', syncServicesBreakpoint);
     };
   }, []);
 

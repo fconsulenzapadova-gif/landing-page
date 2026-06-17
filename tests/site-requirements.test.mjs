@@ -189,15 +189,47 @@ test('home services use responsive bidirectional reveal sequences', () => {
     servicesObserverEffect,
     /window\.removeEventListener\('scroll', trackServicesScrollDirection\)/,
   );
+  assert.match(
+    servicesObserverEffect,
+    /desktopQuery\.addEventListener\('change', syncServicesBreakpoint\)/,
+  );
+  assert.match(
+    servicesObserverEffect,
+    /mobileQuery\.addEventListener\('change', syncServicesBreakpoint\)/,
+  );
+  assert.match(
+    servicesObserverEffect,
+    /desktopQuery\.removeEventListener\('change', syncServicesBreakpoint\)/,
+  );
+  assert.match(
+    servicesObserverEffect,
+    /mobileQuery\.removeEventListener\('change', syncServicesBreakpoint\)/,
+  );
+  assert.match(
+    servicesObserverEffect,
+    /if \(desktopQuery\.matches\)[\s\S]*setHasDesktopServicesRevealed\(true\)/,
+  );
+  assert.match(
+    servicesObserverEffect,
+    /itemRect\.top < mobileBoundary && itemRect\.bottom > 0/,
+  );
   assert.match(landing, /new IntersectionObserver/);
   assert.match(landing, /'IntersectionObserver' in window/);
   assert.match(
+    desktopObserverCallback,
+    /if \(!desktopQuery\.matches\) return/,
+  );
+  assert.doesNotMatch(
     desktopObserverCallback,
     /if \(!desktopQuery\.matches \|\| !entry\.isIntersecting\) return/,
   );
   assert.match(
     desktopObserverCallback,
     /setHasDesktopServicesRevealed\(servicesScrollDirectionRef\.current === 'down'\)/,
+  );
+  assert.match(
+    desktopObserverCallback,
+    /!entry\.isIntersecting[\s\S]*servicesScrollDirectionRef\.current === 'up'[\s\S]*entry\.boundingClientRect\.top >= window\.innerHeight[\s\S]*setHasDesktopServicesRevealed\(false\)/,
   );
   assert.match(mobileObserverCallback, /if \(!mobileQuery\.matches\) return/);
   assert.match(
@@ -212,6 +244,7 @@ test('home services use responsive bidirectional reveal sequences', () => {
     mobileObserverCallback,
     /(?:else )?if \(!entry\.isIntersecting && direction === 'up'\) \{\s*nextItems\.delete\(index\)/,
   );
+  assert.match(mobileObserverCallback, /return hasChanged \? nextItems : currentItems/);
   assert.doesNotMatch(landing, /desktopObserver\.unobserve/);
   assert.doesNotMatch(landing, /mobileObserver\.unobserve/);
   assert.match(
