@@ -183,7 +183,7 @@ Il copy pubblico usa la prima persona plurale per la voce di Gemüt Capital e ma
 - titolo hero `Gemüt Capital, il tuo partner immobiliare di fiducia.`, con `Gemüt Capital` e `di fiducia` in azzurro chiaro;
 - definizione del termine tedesco Gemüt nascosta per default e mostrata sopra il titolo su hover/focus di `Gemüt Capital` o tap mobile, con espansione animata che sposta titolo e claim;
 - claim operativo su esperienza, professionalita e tecnologia, visibile subito da `md` in su e rivelato una sola volta su mobile con fade/slide dopo il primo scroll verso il basso oltre 24 px;
-- sezione `I Nostri Servizi` con titolo/sottotitolo e card `Sto cercando un immobile`, `Vorrei sapere quanto vale il mio immobile` e `Servizi per l'affitto`; su desktop la sezione compare dall'alto in sequenza titolo → tre card da sinistra a destra, mentre su mobile ogni blocco compare da sinistra quando entra nel viewport durante lo scroll;
+- sezione `I Nostri Servizi` con titolo/sottotitolo e card `Sto cercando un immobile`, `Vorrei sapere quanto vale il mio immobile` e `Servizi per l'affitto`; il comportamento attivo e bidirezionale e si ripete a ogni attraversamento: su desktop, scorrendo verso il basso, titolo e sottotitolo compaiono dall'alto seguiti dalle card 1 → 2 → 3, mentre scorrendo verso l'alto le card scompaiono verso l'alto in ordine 3 → 2 → 1 e infine titolo e sottotitolo; su mobile ogni blocco impilato compare da sinistra quando entra nel viewport scorrendo verso il basso e scompare verso sinistra, nel naturale ordine inverso dei blocchi impilati, scorrendo verso l'alto; `prefers-reduced-motion` continua a ridurre le transizioni;
 - biografia espandibile di Filippo Marcuzzo;
 - smooth scroll verso la biografia;
 - vantaggi e rete professionale;
