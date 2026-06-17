@@ -149,6 +149,14 @@ test('home services use responsive bidirectional reveal sequences', () => {
     landing.indexOf('{/* Services Section */}'),
     landing.indexOf('{/* Chi Sono Io Toggle Button */}'),
   );
+  const desktopObserverCallback = landing.slice(
+    landing.indexOf('const desktopObserver = new IntersectionObserver'),
+    landing.indexOf('const mobileObserver = new IntersectionObserver'),
+  );
+  const mobileObserverCallback = landing.slice(
+    landing.indexOf('const mobileObserver = new IntersectionObserver'),
+    landing.indexOf('desktopObserver.observe(servicesSection)'),
+  );
 
   assert.match(
     landing,
@@ -163,13 +171,35 @@ test('home services use responsive bidirectional reveal sequences', () => {
     landing,
     /const servicesScrollDirectionRef = useRef<'up' \| 'down'>\('down'\)/,
   );
+  assert.match(landing, /const servicesLastScrollYRef = useRef\(0\)/);
+  assert.match(
+    landing,
+    /servicesScrollDirectionRef\.current\s*=\s*currentScrollY > servicesLastScrollYRef\.current\s*\?\s*'down'\s*:\s*'up'/,
+  );
+  assert.match(landing, /servicesLastScrollYRef\.current = currentScrollY/);
   assert.match(landing, /new IntersectionObserver/);
   assert.match(landing, /'IntersectionObserver' in window/);
   assert.match(
-    landing,
+    desktopObserverCallback,
+    /if \(!desktopQuery\.matches \|\| !entry\.isIntersecting\) return/,
+  );
+  assert.match(
+    desktopObserverCallback,
     /setHasDesktopServicesRevealed\(servicesScrollDirectionRef\.current === 'down'\)/,
   );
-  assert.match(landing, /nextItems\.delete\(index\)/);
+  assert.match(mobileObserverCallback, /if \(!mobileQuery\.matches\) return/);
+  assert.match(
+    mobileObserverCallback,
+    /const direction = servicesScrollDirectionRef\.current/,
+  );
+  assert.match(
+    mobileObserverCallback,
+    /if \(entry\.isIntersecting && direction === 'down'\) \{\s*nextItems\.add\(index\)/,
+  );
+  assert.match(
+    mobileObserverCallback,
+    /(?:else )?if \(!entry\.isIntersecting && direction === 'up'\) \{\s*nextItems\.delete\(index\)/,
+  );
   assert.doesNotMatch(landing, /desktopObserver\.unobserve/);
   assert.doesNotMatch(landing, /mobileObserver\.unobserve/);
   assert.match(
