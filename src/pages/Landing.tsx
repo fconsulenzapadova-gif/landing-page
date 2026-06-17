@@ -96,9 +96,18 @@ const Landing: React.FC = () => {
       const currentScrollY = window.scrollY;
       if (currentScrollY === servicesLastScrollYRef.current) return;
 
-      servicesScrollDirectionRef.current =
-        currentScrollY > servicesLastScrollYRef.current ? 'down' : 'up';
+      const direction = currentScrollY > servicesLastScrollYRef.current ? 'down' : 'up';
+      servicesScrollDirectionRef.current = direction;
       servicesLastScrollYRef.current = currentScrollY;
+
+      const sectionRect = servicesSection.getBoundingClientRect();
+      if (
+        desktopQuery.matches &&
+        sectionRect.top < window.innerHeight &&
+        sectionRect.bottom > 0
+      ) {
+        setHasDesktopServicesRevealed(direction === 'down');
+      }
     };
 
     const syncServicesBreakpoint = () => {

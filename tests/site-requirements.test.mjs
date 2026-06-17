@@ -161,6 +161,10 @@ test('home services use responsive bidirectional reveal sequences', () => {
     landing.indexOf('const servicesSection = servicesSectionRef.current'),
     landing.indexOf('if (!showAboutSection) return'),
   );
+  const servicesScrollHandler = landing.slice(
+    landing.indexOf('const trackServicesScrollDirection = () =>'),
+    landing.indexOf('const syncServicesBreakpoint = () =>'),
+  );
 
   assert.match(
     landing,
@@ -176,11 +180,27 @@ test('home services use responsive bidirectional reveal sequences', () => {
     /const servicesScrollDirectionRef = useRef<'up' \| 'down'>\('down'\)/,
   );
   assert.match(landing, /const servicesLastScrollYRef = useRef\(0\)/);
-  assert.match(
-    landing,
-    /servicesScrollDirectionRef\.current\s*=\s*currentScrollY > servicesLastScrollYRef\.current\s*\?\s*'down'\s*:\s*'up'/,
-  );
   assert.match(landing, /servicesLastScrollYRef\.current = currentScrollY/);
+  assert.match(
+    servicesScrollHandler,
+    /const direction = currentScrollY > servicesLastScrollYRef\.current \? 'down' : 'up'/,
+  );
+  assert.match(
+    servicesScrollHandler,
+    /servicesScrollDirectionRef\.current = direction/,
+  );
+  assert.match(
+    servicesScrollHandler,
+    /const sectionRect = servicesSection\.getBoundingClientRect\(\)/,
+  );
+  assert.match(
+    servicesScrollHandler,
+    /desktopQuery\.matches &&\s*sectionRect\.top < window\.innerHeight &&\s*sectionRect\.bottom > 0/,
+  );
+  assert.match(
+    servicesScrollHandler,
+    /setHasDesktopServicesRevealed\(direction === 'down'\)/,
+  );
   assert.match(
     servicesObserverEffect,
     /window\.addEventListener\('scroll', trackServicesScrollDirection, \{ passive: true \}\)/,
