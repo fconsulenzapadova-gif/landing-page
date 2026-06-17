@@ -143,7 +143,7 @@ test('home contains the approved hero and service copy', () => {
   assert.doesNotMatch(landing, /sto cercando un immobile in affitto o ho un immobile da affittare/);
 });
 
-test('home services use responsive one-shot reveal sequences', () => {
+test('home services use responsive bidirectional reveal sequences', () => {
   const landing = read('src/pages/Landing.tsx');
   const services = landing.slice(
     landing.indexOf('{/* Services Section */}'),
@@ -159,8 +159,19 @@ test('home services use responsive one-shot reveal sequences', () => {
     /const \[revealedMobileServiceItems, setRevealedMobileServiceItems\]/,
   );
   assert.match(landing, /const servicesSectionRef = useRef<HTMLElement>\(null\)/);
+  assert.match(
+    landing,
+    /const servicesScrollDirectionRef = useRef<'up' \| 'down'>\('down'\)/,
+  );
   assert.match(landing, /new IntersectionObserver/);
   assert.match(landing, /'IntersectionObserver' in window/);
+  assert.match(
+    landing,
+    /setHasDesktopServicesRevealed\(servicesScrollDirectionRef\.current === 'down'\)/,
+  );
+  assert.match(landing, /nextItems\.delete\(index\)/);
+  assert.doesNotMatch(landing, /desktopObserver\.unobserve/);
+  assert.doesNotMatch(landing, /mobileObserver\.unobserve/);
   assert.match(
     landing,
     /setRevealedMobileServiceItems\(new Set\(\[0, 1, 2, 3\]\)\)/,
@@ -174,6 +185,9 @@ test('home services use responsive one-shot reveal sequences', () => {
   assert.match(services, /md:\[transition-delay:450ms\]/);
   assert.match(services, /md:\[transition-delay:600ms\]/);
   assert.match(services, /md:\[transition-delay:750ms\]/);
+  assert.match(services, /md:\[transition-delay:300ms\]/);
+  assert.match(services, /md:\[transition-delay:150ms\]/);
+  assert.match(services, /md:\[transition-delay:0ms\]/);
   assert.match(services, /motion-reduce:transition-none/);
 });
 
