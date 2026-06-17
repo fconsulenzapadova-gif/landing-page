@@ -157,6 +157,10 @@ test('home services use responsive bidirectional reveal sequences', () => {
     landing.indexOf('const mobileObserver = new IntersectionObserver'),
     landing.indexOf('desktopObserver.observe(servicesSection)'),
   );
+  const servicesObserverEffect = landing.slice(
+    landing.indexOf('const servicesSection = servicesSectionRef.current'),
+    landing.indexOf('if (!showAboutSection) return'),
+  );
 
   assert.match(
     landing,
@@ -177,6 +181,14 @@ test('home services use responsive bidirectional reveal sequences', () => {
     /servicesScrollDirectionRef\.current\s*=\s*currentScrollY > servicesLastScrollYRef\.current\s*\?\s*'down'\s*:\s*'up'/,
   );
   assert.match(landing, /servicesLastScrollYRef\.current = currentScrollY/);
+  assert.match(
+    servicesObserverEffect,
+    /window\.addEventListener\('scroll', trackServicesScrollDirection, \{ passive: true \}\)/,
+  );
+  assert.match(
+    servicesObserverEffect,
+    /window\.removeEventListener\('scroll', trackServicesScrollDirection\)/,
+  );
   assert.match(landing, /new IntersectionObserver/);
   assert.match(landing, /'IntersectionObserver' in window/);
   assert.match(
