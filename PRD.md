@@ -1,6 +1,6 @@
 # PRD e mappa della repository - Gemüt Capital
 
-Ultimo aggiornamento: 16 giugno 2026
+Ultimo aggiornamento: 18 giugno 2026
 
 ## 1. Scopo del documento
 
