@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Home, Menu, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
+import { Home, Menu } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const navigationItems = [
   { label: 'Home', to: '/' },
@@ -8,13 +8,48 @@ const navigationItems = [
   { label: 'Vendita Immobili', to: '/vendita-immobili' },
   { label: 'Locazioni', to: '/locazioni' },
   { label: 'Verifica Stato Tetto tramite UAV', to: '/verifica-stato-tetto/' },
-  { label: 'Valorizzazione con Book Fotografico', to: '/valorizzazione-book-fotografico/' },
   { label: 'Valutazione per Patrimonio', to: '/valutazione-patrimonio/' },
 ] as const;
 
 export default function GlobalNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const lastActivationPointerType = useRef<string | null>(null);
+
+  const openMenu = () => setIsOpen(true);
+
+  const handleMenuButtonPointerEnter = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'touch') return;
+    openMenu();
+  };
+
+  const handleMenuButtonMouseEnter = () => {
+    openMenu();
+  };
+
+  const handleMenuButtonPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    lastActivationPointerType.current = event.pointerType;
+  };
+
+  const handleMenuButtonFocus = () => {
+    if (lastActivationPointerType.current) return;
+    openMenu();
+  };
+
+  const handleMenuButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+
+    if (lastActivationPointerType.current === 'touch') {
+      openMenu();
+      lastActivationPointerType.current = null;
+      return;
+    }
+
+    lastActivationPointerType.current = null;
+    setIsOpen(false);
+    navigate('/');
+  };
 
   useEffect(() => {
     setIsOpen(false);
@@ -40,26 +75,24 @@ export default function GlobalNavigation() {
     <>
       <button
         type="button"
-        aria-label={isOpen ? 'Chiudi menu di navigazione' : 'Apri menu di navigazione'}
+        aria-label="Apri menu di navigazione; su desktop clicca per tornare alla home"
         aria-expanded={isOpen}
         aria-controls="global-navigation-panel"
-        onClick={() => setIsOpen((current) => !current)}
+        onPointerEnter={handleMenuButtonPointerEnter}
+        onPointerDown={handleMenuButtonPointerDown}
+        onMouseEnter={handleMenuButtonMouseEnter}
+        onFocus={handleMenuButtonFocus}
+        onClick={handleMenuButtonClick}
         className="group fixed left-4 top-4 z-[110] flex h-12 w-12 items-center justify-center rounded-full border border-white/70 bg-white/90 text-slate-900 shadow-lg backdrop-blur-md transition hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300"
       >
-        {isOpen ? (
-          <X className="h-6 w-6" aria-hidden="true" />
-        ) : (
-          <>
-            <Menu
-              className="h-6 w-6 transition-all duration-300 group-hover:scale-75 group-hover:opacity-0"
-              aria-hidden="true"
-            />
-            <Home
-              className="absolute h-6 w-6 scale-75 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100"
-              aria-hidden="true"
-            />
-          </>
-        )}
+        <Menu
+          className="h-6 w-6 transition-all duration-300 group-hover:scale-75 group-hover:opacity-0"
+          aria-hidden="true"
+        />
+        <Home
+          className="absolute h-6 w-6 scale-75 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100"
+          aria-hidden="true"
+        />
       </button>
 
       <div

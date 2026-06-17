@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { BuyerClient, SellerClient } from '@/components/Dashboard';
 import { Contract } from '@/types/contract';
 import { useToast } from '@/hooks/use-toast';
@@ -18,13 +18,23 @@ export interface Notification {
   isRead: boolean;
 }
 
+type StoredContract = Omit<
+  Contract,
+  'createdAt' | 'updatedAt' | 'registrationDate' | 'registrationExpiryDate'
+> & {
+  createdAt: string;
+  updatedAt: string;
+  registrationDate?: string;
+  registrationExpiryDate?: string;
+};
+
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
 
   // Check for birthday notifications
-  const checkBirthdayNotifications = () => {
+  const checkBirthdayNotifications = useCallback(() => {
     const storage = getAppStorage();
     const buyers: BuyerClient[] = JSON.parse(storage.getItem('crm-buyers') || '[]');
     const sellers: SellerClient[] = JSON.parse(storage.getItem('crm-sellers') || '[]');
@@ -124,12 +134,12 @@ export const useNotifications = () => {
     });
 
     return newNotifications;
-  };
+  }, []);
 
   // Check for contract registration notifications
-  const checkContractNotifications = () => {
+  const checkContractNotifications = useCallback(() => {
     const storage = getAppStorage();
-    const contracts: Contract[] = JSON.parse(storage.getItem('crm-contracts') || '[]').map((c: any) => ({
+    const contracts: Contract[] = (JSON.parse(storage.getItem('crm-contracts') || '[]') as StoredContract[]).map((c) => ({
       ...c,
       createdAt: new Date(c.createdAt),
       updatedAt: new Date(c.updatedAt),
@@ -178,10 +188,10 @@ export const useNotifications = () => {
     });
 
     return newNotifications;
-  };
+  }, []);
 
   // Check for all notifications
-  const checkAllNotifications = () => {
+  const checkAllNotifications = useCallback(() => {
     const storage = getAppStorage();
     const birthdayNotifications = checkBirthdayNotifications();
     const contractNotifications = checkContractNotifications();
@@ -212,7 +222,7 @@ export const useNotifications = () => {
     } else {
       setNotifications(existingNotifications);
     }
-  };
+  }, [checkBirthdayNotifications, checkContractNotifications, toast]);
 
   // Load notifications on mount and check for new ones
   useEffect(() => {
@@ -222,7 +232,7 @@ export const useNotifications = () => {
     const interval = setInterval(checkAllNotifications, 1000 * 60 * 60);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [checkAllNotifications]);
 
   // Update unread count
   useEffect(() => {

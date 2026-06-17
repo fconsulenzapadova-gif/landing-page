@@ -1,6 +1,6 @@
 # PRD e mappa della repository - Gemüt Capital
 
-Ultimo aggiornamento: 14 giugno 2026
+Ultimo aggiornamento: 16 giugno 2026
 
 ## 1. Scopo del documento
 
@@ -24,7 +24,6 @@ Il prodotto pubblico presenta:
 - servizi di acquisto, vendita e locazione;
 - servizi immobiliari personalizzati;
 - ispezione tetti tramite UAV;
-- valorizzazione con book fotografico;
 - valutazione del patrimonio immobiliare;
 - profilo professionale di Filippo Marcuzzo;
 - form per acquisizione lead e richieste immobiliari;
@@ -56,7 +55,7 @@ La repository contiene inoltre codice CRM storico o condiviso per clienti, immob
 | Vendita | `src/pages/VenditaImmobili.tsx` |
 | Locazioni | `src/pages/Locazioni.tsx` |
 | Servizi personalizzati | `src/pages/ServiziPersonalizzati.tsx` |
-| Tre servizi specialistici | `src/pages/ServiceDetail.tsx` |
+| Due servizi specialistici | `src/pages/ServiceDetail.tsx` |
 | Form pubblico lead | `src/pages/PublicRequests.tsx` |
 | Elaborazione e invio lead | `src/utils/clientRequestProcessor.ts` |
 | Prenotazione consulenza | `src/pages/Prenotazione.tsx` |
@@ -91,7 +90,7 @@ La repository contiene inoltre codice CRM storico o condiviso per clienti, immob
 
 - React 18;
 - TypeScript;
-- Vite 5 con SWC;
+- Vite 8 con SWC;
 - React Router 6;
 - Tailwind CSS;
 - componenti shadcn/Radix;
@@ -141,11 +140,11 @@ L'alias `@` punta a `src`, configurato in `vite.config.ts` e nei file TypeScript
 | `/servizi-personalizzati` | `ServiziPersonalizzati` | Attivo, invio form simulato |
 | `/prenotazione` | `Prenotazione` | Attivo |
 | `/verifica-stato-tetto` | `ServiceDetail` con slug UAV | Attivo |
-| `/valorizzazione-book-fotografico` | `ServiceDetail` con slug book | Attivo |
+| `/valorizzazione-book-fotografico` | Redirect a `/` | Rimosso/legacy |
 | `/valutazione-patrimonio` | `ServiceDetail` con slug patrimonio | Attivo |
 | `/servizi-premium` | Redirect a `/` | Legacy |
 | `/dettaglio-verifica-tetto` | Redirect alla route UAV | Legacy |
-| `/dettaglio-valorizzazione-book` | Redirect alla route book | Legacy |
+| `/dettaglio-valorizzazione-book` | Redirect a `/` | Rimosso/legacy |
 | `/dettaglio-valutazione-patrimonio` | Redirect alla route patrimonio | Legacy |
 | `/dashboard` | Redirect a `http://localhost:8081` | Sviluppo/legacy |
 | `/crm/*` | Redirect a `http://localhost:8081` | Sviluppo/legacy |
@@ -160,7 +159,10 @@ Vercel reindirizza ogni URL a `index.html`, permettendo apertura diretta delle r
 
 `GlobalNavigation` fornisce:
 
-- pulsante fisso in alto a sinistra;
+- pulsante menu fisso in alto a sinistra su tutte le route pubbliche;
+- apertura del pannello laterale al passaggio mouse/penna e al focus tastiera;
+- click desktop sul pulsante che porta direttamente alla route `/`;
+- tap touch/mobile sul pulsante che apre il menu, dato che non esiste hover;
 - icona menu che diventa casa al passaggio del mouse;
 - pannello laterale;
 - evidenza della route corrente;
@@ -170,19 +172,22 @@ Vercel reindirizza ogni URL a `index.html`, permettendo apertura diretta delle r
 
 Le destinazioni principali devono restare disponibili da ogni pagina.
 
+Il copy pubblico usa la prima persona plurale per la voce di Gemüt Capital e mantiene il cliente come interlocutore singolare. La sezione espandibile `Scopri Chi Sono Io` conserva la voce personale di Filippo Marcuzzo in prima persona singolare.
+
 ### 7.2 Home
 
 `Landing.tsx` contiene:
 
-- brand `Gemüt Capital`;
-- hero con immagine di Padova;
-- claim e posizionamento;
-- card Acquisto, Vendita, Locazioni;
-- spiegazione del termine tedesco Gemüt;
+- hero con immagine di Padova come primo blocco visibile della pagina, sotto il solo pulsante menu globale;
+- badge hero `agenzia di mediazione immobiliare`;
+- titolo hero `Gemüt Capital, il tuo partner immobiliare di fiducia.`, con `Gemüt Capital` e `di fiducia` in azzurro chiaro;
+- definizione del termine tedesco Gemüt nascosta per default e mostrata sopra il titolo su hover/focus di `Gemüt Capital` o tap mobile, con espansione animata che sposta titolo e claim;
+- claim operativo su esperienza, professionalita e tecnologia, visibile subito da `md` in su e rivelato una sola volta su mobile con fade/slide dopo il primo scroll verso il basso oltre 24 px;
+- sezione `I Nostri Servizi` con titolo/sottotitolo e card `Sto cercando un immobile`, `Vorrei sapere quanto vale il mio immobile` e `Servizi per l'affitto`; su desktop la sezione compare dall'alto in sequenza titolo → tre card da sinistra a destra, mentre su mobile ogni blocco compare da sinistra quando entra nel viewport durante lo scroll;
 - biografia espandibile di Filippo Marcuzzo;
 - smooth scroll verso la biografia;
 - vantaggi e rete professionale;
-- card UAV, book fotografico e valutazione patrimonio;
+- card UAV e valutazione patrimonio in formato compatto, ridotte di circa il 30% con testi, icone e CTA proporzionati;
 - accesso ai servizi personalizzati;
 - CTA verso form richieste e contatti.
 
@@ -205,13 +210,14 @@ Le immagini iniziali sono:
 
 ### 7.4 Servizi specialistici
 
-`ServiceDetail.tsx` usa una configurazione dati unica per tre varianti:
+`ServiceDetail.tsx` usa una configurazione dati unica per due varianti:
 
 - verifica tetto tramite UAV;
-- valorizzazione con book fotografico;
 - valutazione del patrimonio.
 
 Ogni variante definisce icona, colori, badge, titolo, descrizione, CTA, immagine, vantaggi e processo. Le CTA portano a prenotazione e WhatsApp.
+
+La precedente feature "Valorizzazione con Book Fotografico" e stata rimossa dalla home, dal menu e dalla configurazione runtime. I suoi URL pubblico e legacy reindirizzano alla home.
 
 ### 7.5 Servizi personalizzati
 
@@ -251,6 +257,8 @@ Stato: UI attiva, integrazioni cookie **simulate/non collegate**.
 ### 8.1 Origine
 
 Il flusso principale parte da `PublicRequests.tsx`.
+
+La pagina usa `/prato-padova.jpg` come unico sfondo continuo, incluso dietro la hero e il form. La hero mantiene overlay scuro e pannello verde traslucido per la leggibilita.
 
 Campi:
 
@@ -525,11 +533,12 @@ Non inserire segreti reali nel repository. Le variabili `VITE_*` sono esposte al
 
 ### 15.2 Vite
 
+- Vite 8 con plugin React SWC;
 - server dev su porta `8080`;
 - host `::`;
 - output `dist`;
 - alias `@`;
-- plugin React SWC.
+- filtro warning Rollup per `PLUGIN_WARNING` storico.
 
 ### 15.3 Vercel
 
@@ -567,11 +576,13 @@ npm run dev
 npm run preview
 ```
 
-Nell'ambiente analizzato il comando `npm` non era disponibile nel `PATH`. Il 14 giugno 2026 le verifiche sono state comunque eseguite direttamente con il runtime Node integrato:
+Nell'ambiente analizzato il comando `npm` non era disponibile nel `PATH` locale. Il 16 giugno 2026 le verifiche sono state comunque eseguite direttamente con il runtime Node integrato e con `pnpm dlx npm@10` per audit/npm:
 
-- test statici: 6 superati, 0 falliti;
+- test statici: 15 superati, 0 falliti;
+- lint globale: completato senza errori;
 - build Vite di produzione: completata con successo;
-- warning non bloccanti: dati `baseline-browser-mapping` e `caniuse-lite` non aggiornati.
+- audit npm: 0 vulnerabilita;
+- warning non bloccanti: dati `baseline-browser-mapping` e `caniuse-lite` non aggiornati; `PLUGIN_TIMINGS` segnala tempo CSS post-processing in Vite/Rolldown.
 
 ### 16.3 Checklist minima dopo modifiche
 

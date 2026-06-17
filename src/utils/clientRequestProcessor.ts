@@ -1,5 +1,4 @@
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 export interface ClientRequest {
   name: string;
@@ -121,7 +120,7 @@ export const processClientRequest = async (request: ClientRequest): Promise<{ su
       status: 'pending'
     };
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('client_requests')
       .insert(clientRequestData)
       .select()

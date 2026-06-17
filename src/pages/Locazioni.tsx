@@ -34,7 +34,7 @@ const Locazioni: React.FC = () => {
           </h1>
           <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
             Trova l'inquilino perfetto per la tua proprietà o la casa ideale in affitto. 
-            Gestisco ogni aspetto della locazione con professionalità e trasparenza.
+            Gestiamo ogni aspetto della locazione con professionalità e trasparenza.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
@@ -71,7 +71,7 @@ const Locazioni: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 text-sm">
-                  Aiuto gli inquilini a trovare la casa perfetta in base alle loro esigenze e budget
+                  Aiutiamo gli inquilini a trovare la casa perfetta in base alle loro esigenze e budget
                 </p>
               </CardContent>
             </Card>
@@ -228,7 +228,7 @@ const Locazioni: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-4">
-                  Ascolto le tue esigenze specifiche per trovare immobili che corrispondano perfettamente alle tue necessità
+                  Ascoltiamo le tue esigenze specifiche per trovare immobili che corrispondano perfettamente alle tue necessità
                 </p>
                 <ul className="text-sm text-gray-500 space-y-1">
                   <li>• Analisi del budget disponibile</li>

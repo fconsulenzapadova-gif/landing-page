@@ -45,6 +45,7 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = React.memo(({
     </Button>
   );
 });
+WhatsAppButton.displayName = 'WhatsAppButton';
 
 interface WhatsAppLinkProps {
   phone: string;
@@ -78,3 +79,4 @@ export const WhatsAppLink: React.FC<WhatsAppLinkProps> = React.memo(({
     </button>
   );
 });
+WhatsAppLink.displayName = 'WhatsAppLink';

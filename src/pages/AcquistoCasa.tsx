@@ -51,7 +51,7 @@ const AcquistoCasa: React.FC = () => {
             Acquisto Casa
           </h1>
           <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Ti accompagno in ogni fase dell'acquisto della tua casa dei sogni, dalla ricerca alla firma del contratto, 
+            Ti accompagniamo in ogni fase dell'acquisto della tua casa dei sogni, dalla ricerca alla firma del contratto,
             garantendoti professionalità e trasparenza in ogni momento.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -104,7 +104,7 @@ const AcquistoCasa: React.FC = () => {
       <section className="relative py-16 px-4">
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12 bg-white/75 backdrop-blur-sm rounded-2xl border border-white/60 shadow-lg px-6 py-7 max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Come Ti Aiuto nell'Acquisto</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Come Ti Aiutiamo nell'Acquisto</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Un servizio completo e personalizzato per trovare e acquistare la casa perfetta per te
             </p>
@@ -120,7 +120,7 @@ const AcquistoCasa: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 text-sm">
-                  Analizzo le tue esigenze e cerco immobili che corrispondono perfettamente ai tuoi criteri
+                  Analizziamo le tue esigenze e cerchiamo immobili che corrispondono perfettamente ai tuoi criteri
                 </p>
               </CardContent>
             </Card>
@@ -148,7 +148,7 @@ const AcquistoCasa: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 text-sm">
-                  Controllo tutta la documentazione e ti assisto fino alla firma del contratto definitivo
+                  Controlliamo tutta la documentazione e ti assistiamo fino alla firma del contratto definitivo
                 </p>
               </CardContent>
             </Card>
@@ -200,7 +200,7 @@ const AcquistoCasa: React.FC = () => {
                 <h3 className="text-lg font-semibold">Visite Guidate</h3>
               </div>
               <p className="text-gray-600">
-                Ti accompagno nelle visite, evidenziando pregi e difetti di ogni immobile per aiutarti nella scelta.
+                Ti accompagniamo nelle visite, evidenziando pregi e difetti di ogni immobile per aiutarti nella scelta.
               </p>
             </div>
 
@@ -212,7 +212,7 @@ const AcquistoCasa: React.FC = () => {
                 <h3 className="text-lg font-semibold">Negoziazione</h3>
               </div>
               <p className="text-gray-600">
-                Gestisco la trattativa per ottenere le migliori condizioni di prezzo e tempi di consegna.
+                Gestiamo la trattativa per ottenere le migliori condizioni di prezzo e tempi di consegna.
               </p>
             </div>
 
@@ -224,7 +224,7 @@ const AcquistoCasa: React.FC = () => {
                 <h3 className="text-lg font-semibold">Pratiche Burocratiche</h3>
               </div>
               <p className="text-gray-600">
-                Mi occupo di tutta la documentazione necessaria, dai controlli catastali alle verifiche ipotecarie.
+                Ci occupiamo di tutta la documentazione necessaria, dai controlli catastali alle verifiche ipotecarie.
               </p>
             </div>
 
@@ -236,7 +236,7 @@ const AcquistoCasa: React.FC = () => {
                 <h3 className="text-lg font-semibold">Rogito</h3>
               </div>
               <p className="text-gray-600">
-                Ti assisto fino alla firma del contratto definitivo, garantendo che tutto sia in regola.
+                Ti assistiamo fino alla firma del contratto definitivo, garantendo che tutto sia in regola.
               </p>
             </div>
           </div>
@@ -297,7 +297,7 @@ const AcquistoCasa: React.FC = () => {
               <div>
                 <h3 className="font-semibold mb-2">Assistenza Completa</h3>
                 <p className="text-gray-600">
-                  Ti seguo in ogni fase, dalla ricerca al rogito, garantendoti supporto costante e professionale.
+                  Ti seguiamo in ogni fase, dalla ricerca al rogito, garantendoti supporto costante e professionale.
                 </p>
               </div>
             </div>

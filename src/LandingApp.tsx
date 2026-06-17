@@ -48,11 +48,11 @@ function LandingApp() {
                 
                 {/* Service detail pages */}
                 <Route path="/verifica-stato-tetto" element={<ServiceDetail service="verifica-stato-tetto" />} />
-                <Route path="/valorizzazione-book-fotografico" element={<ServiceDetail service="valorizzazione-book-fotografico" />} />
+                <Route path="/valorizzazione-book-fotografico" element={<Navigate to="/" replace />} />
                 <Route path="/valutazione-patrimonio" element={<ServiceDetail service="valutazione-patrimonio" />} />
                 <Route path="/servizi-premium" element={<Navigate to="/" replace />} />
                 <Route path="/dettaglio-verifica-tetto" element={<Navigate to="/verifica-stato-tetto" replace />} />
-                <Route path="/dettaglio-valorizzazione-book" element={<Navigate to="/valorizzazione-book-fotografico" replace />} />
+                <Route path="/dettaglio-valorizzazione-book" element={<Navigate to="/" replace />} />
                 <Route path="/dettaglio-valutazione-patrimonio" element={<Navigate to="/valutazione-patrimonio" replace />} />
                 
                 {/* Redirect any CRM routes to external CRM */}
