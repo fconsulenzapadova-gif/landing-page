@@ -33,6 +33,8 @@ const Landing: React.FC = () => {
   const lastScrollYRef = useRef(0);
   const servicesSectionRef = useRef<HTMLElement>(null);
   const serviceRevealRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const servicesLastScrollYRef = useRef(0);
+  const servicesScrollDirectionRef = useRef<'up' | 'down'>('down');
 
   const handleGemutPointerEnter = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (event.pointerType !== 'touch') setIsGemutDefinitionOpen(true);
@@ -86,31 +88,56 @@ const Landing: React.FC = () => {
       return;
     }
 
+    const desktopQuery = window.matchMedia('(min-width: 768px)');
+    const mobileQuery = window.matchMedia('(max-width: 767px)');
+    servicesLastScrollYRef.current = window.scrollY;
+
+    const trackServicesScrollDirection = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY === servicesLastScrollYRef.current) return;
+
+      servicesScrollDirectionRef.current =
+        currentScrollY > servicesLastScrollYRef.current ? 'down' : 'up';
+      servicesLastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', trackServicesScrollDirection, { passive: true });
+
     const desktopObserver = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setHasDesktopServicesRevealed(true);
-        desktopObserver.unobserve(entry.target);
+        if (!desktopQuery.matches || !entry.isIntersecting) return;
+        setHasDesktopServicesRevealed(servicesScrollDirectionRef.current === 'down');
       },
       { threshold: 0.15 },
     );
 
     const mobileObserver = new IntersectionObserver(
       (entries) => {
-        const revealedIndexes = entries
-          .filter((entry) => entry.isIntersecting)
-          .map((entry) => Number((entry.target as HTMLElement).dataset.serviceRevealIndex));
-
-        if (revealedIndexes.length === 0) return;
+        if (!mobileQuery.matches) return;
+        const direction = servicesScrollDirectionRef.current;
 
         setRevealedMobileServiceItems((currentItems) => {
           const nextItems = new Set(currentItems);
-          revealedIndexes.forEach((index) => nextItems.add(index));
-          return nextItems;
-        });
+          entries.forEach((entry) => {
+            const index = Number((entry.target as HTMLElement).dataset.serviceRevealIndex);
 
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) mobileObserver.unobserve(entry.target);
+            if (entry.isIntersecting && direction === 'down') {
+              nextItems.add(index);
+            }
+
+            if (
+              !entry.isIntersecting &&
+              direction === 'up' &&
+              entry.boundingClientRect.top < window.innerHeight * 0.9
+            ) {
+              return;
+            }
+
+            if (!entry.isIntersecting && direction === 'up') {
+              nextItems.delete(index);
+            }
+          });
+          return nextItems;
         });
       },
       { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
@@ -122,6 +149,7 @@ const Landing: React.FC = () => {
     return () => {
       desktopObserver.disconnect();
       mobileObserver.disconnect();
+      window.removeEventListener('scroll', trackServicesScrollDirection);
     };
   }, []);
 
@@ -210,14 +238,14 @@ const Landing: React.FC = () => {
               serviceRevealRefs.current[0] = element;
             }}
             data-service-reveal-index="0"
-            className={`mb-12 text-center transition-all duration-700 ease-out motion-reduce:transition-none md:delay-0 ${
+            className={`mb-12 text-center transition-all duration-700 ease-out motion-reduce:transition-none ${
               revealedMobileServiceItems.has(0)
                 ? 'translate-x-0 opacity-100'
                 : '-translate-x-8 opacity-0'
             } ${
               hasDesktopServicesRevealed
-                ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
-                : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
+                ? 'md:translate-x-0 md:translate-y-0 md:opacity-100 md:[transition-delay:0ms]'
+                : 'md:translate-x-0 md:-translate-y-8 md:opacity-0 md:[transition-delay:450ms]'
             }`}
           >
             <h3 className="text-3xl font-bold text-gray-900 mb-4">I Nostri Servizi</h3>
@@ -232,14 +260,14 @@ const Landing: React.FC = () => {
                 serviceRevealRefs.current[1] = element;
               }}
               data-service-reveal-index="1"
-              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none md:[transition-delay:450ms] ${
+              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none ${
                 revealedMobileServiceItems.has(1)
                   ? 'translate-x-0 opacity-100'
                   : '-translate-x-8 opacity-0'
               } ${
                 hasDesktopServicesRevealed
-                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
-                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
+                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100 md:[transition-delay:450ms]'
+                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0 md:[transition-delay:300ms]'
               }`}
             >
               <Link to="/acquisto-casa" className="block h-full">
@@ -266,14 +294,14 @@ const Landing: React.FC = () => {
                 serviceRevealRefs.current[2] = element;
               }}
               data-service-reveal-index="2"
-              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none md:[transition-delay:600ms] ${
+              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none ${
                 revealedMobileServiceItems.has(2)
                   ? 'translate-x-0 opacity-100'
                   : '-translate-x-8 opacity-0'
               } ${
                 hasDesktopServicesRevealed
-                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
-                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
+                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100 md:[transition-delay:600ms]'
+                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0 md:[transition-delay:150ms]'
               }`}
             >
               <Link to="/vendita-immobili" className="block h-full">
@@ -300,14 +328,14 @@ const Landing: React.FC = () => {
                 serviceRevealRefs.current[3] = element;
               }}
               data-service-reveal-index="3"
-              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none md:[transition-delay:750ms] ${
+              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none ${
                 revealedMobileServiceItems.has(3)
                   ? 'translate-x-0 opacity-100'
                   : '-translate-x-8 opacity-0'
               } ${
                 hasDesktopServicesRevealed
-                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
-                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
+                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100 md:[transition-delay:750ms]'
+                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0 md:[transition-delay:0ms]'
               }`}
             >
               <Link to="/locazioni" className="block h-full">
