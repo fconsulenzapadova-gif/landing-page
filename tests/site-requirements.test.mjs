@@ -180,14 +180,35 @@ test('home services use responsive bidirectional reveal sequences', () => {
   assert.match(services, /data-service-reveal-index="1"/);
   assert.match(services, /data-service-reveal-index="2"/);
   assert.match(services, /data-service-reveal-index="3"/);
+  const serviceRevealBlocks = [0, 1, 2, 3].map((index) => {
+    const start = services.indexOf(`data-service-reveal-index="${index}"`);
+    const end = index < 3
+      ? services.indexOf(`data-service-reveal-index="${index + 1}"`)
+      : services.length;
+
+    return services.slice(start, end);
+  });
   assert.match(services, /-translate-x-8 opacity-0/);
   assert.match(services, /md:-translate-y-8 md:opacity-0/);
   assert.match(services, /md:\[transition-delay:450ms\]/);
   assert.match(services, /md:\[transition-delay:600ms\]/);
   assert.match(services, /md:\[transition-delay:750ms\]/);
-  assert.match(services, /md:\[transition-delay:300ms\]/);
-  assert.match(services, /md:\[transition-delay:150ms\]/);
-  assert.match(services, /md:\[transition-delay:0ms\]/);
+  assert.match(
+    serviceRevealBlocks[0],
+    /: 'md:translate-x-0 md:-translate-y-8 md:opacity-0 md:\[transition-delay:450ms\]'/,
+  );
+  assert.match(
+    serviceRevealBlocks[1],
+    /: 'md:translate-x-0 md:-translate-y-8 md:opacity-0 md:\[transition-delay:300ms\]'/,
+  );
+  assert.match(
+    serviceRevealBlocks[2],
+    /: 'md:translate-x-0 md:-translate-y-8 md:opacity-0 md:\[transition-delay:150ms\]'/,
+  );
+  assert.match(
+    serviceRevealBlocks[3],
+    /: 'md:translate-x-0 md:-translate-y-8 md:opacity-0 md:\[transition-delay:0ms\]'/,
+  );
   assert.match(services, /motion-reduce:transition-none/);
 });
 
