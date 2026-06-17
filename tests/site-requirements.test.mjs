@@ -254,16 +254,17 @@ test('home services use responsive bidirectional reveal sequences', () => {
   assert.match(mobileObserverCallback, /if \(!mobileQuery\.matches\) return/);
   assert.match(
     mobileObserverCallback,
-    /const direction = servicesScrollDirectionRef\.current/,
+    /const mobileBoundary = window\.innerHeight \* 0\.9/,
   );
   assert.match(
     mobileObserverCallback,
-    /if \(entry\.isIntersecting && direction === 'down'\) \{\s*nextItems\.add\(index\)/,
+    /if \(entry\.isIntersecting\) \{\s*nextItems\.add\(index\)/,
   );
   assert.match(
     mobileObserverCallback,
-    /(?:else )?if \(!entry\.isIntersecting && direction === 'up'\) \{\s*nextItems\.delete\(index\)/,
+    /if \(!entry\.isIntersecting && entry\.boundingClientRect\.top >= mobileBoundary\) \{\s*nextItems\.delete\(index\)/,
   );
+  assert.doesNotMatch(mobileObserverCallback, /direction === '(?:up|down)'/);
   assert.match(mobileObserverCallback, /return hasChanged \? nextItems : currentItems/);
   assert.doesNotMatch(landing, /desktopObserver\.unobserve/);
   assert.doesNotMatch(landing, /mobileObserver\.unobserve/);

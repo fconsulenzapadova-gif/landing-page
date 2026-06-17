@@ -163,26 +163,18 @@ const Landing: React.FC = () => {
     const mobileObserver = new IntersectionObserver(
       (entries) => {
         if (!mobileQuery.matches) return;
-        const direction = servicesScrollDirectionRef.current;
+        const mobileBoundary = window.innerHeight * 0.9;
 
         setRevealedMobileServiceItems((currentItems) => {
           const nextItems = new Set(currentItems);
           entries.forEach((entry) => {
             const index = Number((entry.target as HTMLElement).dataset.serviceRevealIndex);
 
-            if (entry.isIntersecting && direction === 'down') {
+            if (entry.isIntersecting) {
               nextItems.add(index);
             }
 
-            if (
-              !entry.isIntersecting &&
-              direction === 'up' &&
-              entry.boundingClientRect.top < window.innerHeight * 0.9
-            ) {
-              return;
-            }
-
-            if (!entry.isIntersecting && direction === 'up') {
+            if (!entry.isIntersecting && entry.boundingClientRect.top >= mobileBoundary) {
               nextItems.delete(index);
             }
           });
