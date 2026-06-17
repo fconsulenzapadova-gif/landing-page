@@ -207,7 +207,7 @@ test('home services use responsive bidirectional reveal sequences', () => {
   );
   assert.match(
     servicesObserverEffect,
-    /if \(desktopQuery\.matches\)[\s\S]*setHasDesktopServicesRevealed\(true\)/,
+    /if \(desktopQuery\.matches\) \{\s*setHasDesktopServicesRevealed\(sectionIsVisible\)/,
   );
   assert.match(
     servicesObserverEffect,

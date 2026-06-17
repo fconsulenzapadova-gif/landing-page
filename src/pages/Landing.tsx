@@ -106,7 +106,7 @@ const Landing: React.FC = () => {
       const sectionIsVisible = sectionRect.top < window.innerHeight && sectionRect.bottom > 0;
 
       if (desktopQuery.matches) {
-        if (sectionIsVisible) setHasDesktopServicesRevealed(true);
+        setHasDesktopServicesRevealed(sectionIsVisible);
         return;
       }
 
