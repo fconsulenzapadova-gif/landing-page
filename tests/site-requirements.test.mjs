@@ -254,6 +254,10 @@ test('home services use responsive bidirectional reveal sequences', () => {
   assert.match(mobileObserverCallback, /if \(!mobileQuery\.matches\) return/);
   assert.match(
     mobileObserverCallback,
+    /\{ threshold: \[0, 0\.15\], rootMargin: '0px 0px -10% 0px' \}/,
+  );
+  assert.match(
+    mobileObserverCallback,
     /const mobileBoundary = window\.innerHeight \* 0\.9/,
   );
   assert.match(

@@ -184,7 +184,7 @@ const Landing: React.FC = () => {
           return hasChanged ? nextItems : currentItems;
         });
       },
-      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
+      { threshold: [0, 0.15], rootMargin: '0px 0px -10% 0px' },
     );
 
     desktopObserver.observe(servicesSection);
