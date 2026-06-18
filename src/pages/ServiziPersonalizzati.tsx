@@ -94,7 +94,7 @@ const ServiziPersonalizzati: React.FC = () => {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">I Nostri Servizi Personalizzati</h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Ogni cliente ha esigenze diverse. Ecco come posso aiutarti con soluzioni su misura
+                Ogni cliente ha esigenze diverse. Ecco come possiamo aiutarti con soluzioni su misura
               </p>
             </div>
 
@@ -192,7 +192,7 @@ const ServiziPersonalizzati: React.FC = () => {
         <div className="container mx-auto">
           <div className="bg-white/70 backdrop-blur-sm rounded-lg p-8 shadow-lg">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Come Lavoro sui Progetti Personalizzati</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Come Lavoriamo sui Progetti Personalizzati</h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
                 Un approccio metodico e su misura per ogni situazione
               </p>
@@ -207,7 +207,7 @@ const ServiziPersonalizzati: React.FC = () => {
                 <h3 className="text-lg font-semibold">Analisi Approfondita</h3>
               </div>
               <p className="text-gray-600">
-                Studio dettagliato delle tue esigenze specifiche e del contesto di mercato.
+                Studiamo nel dettaglio le tue esigenze specifiche e il contesto di mercato.
               </p>
             </div>
 
@@ -219,7 +219,7 @@ const ServiziPersonalizzati: React.FC = () => {
                 <h3 className="text-lg font-semibold">Strategia Personalizzata</h3>
               </div>
               <p className="text-gray-600">
-                Sviluppo di un piano d'azione specifico per raggiungere i tuoi obiettivi.
+                Sviluppiamo un piano d'azione specifico per raggiungere i tuoi obiettivi.
               </p>
             </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,12 +15,7 @@ export const useFavorites = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Load favorites on mount
-  useEffect(() => {
-    loadFavorites();
-  }, []);
-
-  const loadFavorites = async () => {
+  const loadFavorites = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -48,7 +43,12 @@ export const useFavorites = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  // Load favorites on mount
+  useEffect(() => {
+    loadFavorites();
+  }, [loadFavorites]);
 
   const toggleFavorite = async (clientId: string, clientType: 'buyer' | 'seller') => {
     try {

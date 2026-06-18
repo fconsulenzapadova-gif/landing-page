@@ -170,7 +170,7 @@ const PublicRequests: React.FC = () => {
     <div 
       className="min-h-screen bg-white relative"
       style={{
-        backgroundImage: 'url(/piazza-vicina.JPG)',
+        backgroundImage: 'url(/prato-padova.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -179,16 +179,8 @@ const PublicRequests: React.FC = () => {
     >
       {/* Overlay scuro per migliorare la leggibilità */}
       <div className="absolute inset-0 bg-black/40 z-0"></div>
-      {/* Hero Section with Background Image */}
-      <section 
-        className="py-20 px-4 relative min-h-[400px] bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-700" 
-        style={{ 
-          backgroundImage: 'url(/padova-test.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
+      {/* Hero Section */}
+      <section className="py-20 px-4 relative min-h-[400px]">
         <div className="absolute inset-0 bg-black/30"></div>
         <div className="container mx-auto text-center relative z-10 bg-emerald-600/80 backdrop-blur-sm rounded-xl border border-emerald-400/30 py-12 px-8 mx-4 sm:mx-auto max-w-4xl">
           <Badge variant="secondary" className="mb-4 animate-fade-in bg-white/90 text-emerald-700 border-emerald-200 font-medium">

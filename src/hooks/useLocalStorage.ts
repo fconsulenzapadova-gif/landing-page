@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { getAppStorage } from '@/utils/storage';
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
@@ -30,7 +30,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 export function useLocalStorageWithMigration<T>(
   key: string, 
   initialValue: T,
-  migrationFn?: (data: any) => T
+  migrationFn?: (data: unknown) => T
 ) {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {

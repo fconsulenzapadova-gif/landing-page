@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Contract } from '@/types/contract';
 
+type StoredContract = Omit<
+  Contract,
+  'createdAt' | 'updatedAt' | 'registrationDate' | 'registrationExpiryDate'
+> & {
+  createdAt: string;
+  updatedAt: string;
+  registrationDate?: string;
+  registrationExpiryDate?: string;
+};
+
 export const useContracts = () => {
   const [contracts, setContracts] = useState<Contract[]>([]);
 
@@ -8,7 +18,7 @@ export const useContracts = () => {
     const loadContracts = () => {
       const savedContracts = localStorage.getItem('crm-contracts');
       if (savedContracts) {
-        const parsedContracts = JSON.parse(savedContracts).map((c: any) => ({
+        const parsedContracts = (JSON.parse(savedContracts) as StoredContract[]).map((c) => ({
           ...c,
           createdAt: new Date(c.createdAt),
           updatedAt: new Date(c.updatedAt),

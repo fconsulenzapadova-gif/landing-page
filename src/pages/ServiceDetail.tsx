@@ -2,10 +2,10 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, BarChart3, Camera, CheckCircle, FileText, Phone, Plane } from 'lucide-react';
+import { ArrowRight, BarChart3, CheckCircle, FileText, Phone, Plane } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-type ServiceSlug = 'verifica-stato-tetto' | 'valorizzazione-book-fotografico' | 'valutazione-patrimonio';
+type ServiceSlug = 'verifica-stato-tetto' | 'valutazione-patrimonio';
 
 const serviceData = {
   'verifica-stato-tetto': {
@@ -29,29 +29,6 @@ const serviceData = {
       'Sopralluogo con drone e raccolta immagini',
       'Selezione delle evidenze principali',
       'Consegna del report e confronto operativo',
-    ],
-  },
-  'valorizzazione-book-fotografico': {
-    icon: Camera,
-    accent: 'purple',
-    badge: 'Immagine professionale',
-    title: 'Valorizzazione con Book Fotografico',
-    description:
-      "Servizio fotografico professionale per massimizzare l'appeal del tuo immobile. Immagini di qualità superiore che fanno la differenza nelle vendite e locazioni.",
-    cta: 'Richiedi Book Fotografico',
-    sectionTitle: 'Perché le foto professionali fanno la differenza',
-    image: '/piazza-vicina.JPG',
-    benefits: [
-      'Fotografie professionali degli ambienti principali',
-      'Riprese aeree e dettagli di contesto quando utili',
-      'Materiale pronto per portali, social e presentazioni',
-      'Supporto alla strategia di posizionamento dell’annuncio',
-    ],
-    process: [
-      'Preparazione degli ambienti e definizione degli scatti',
-      'Servizio fotografico in loco',
-      'Selezione e ottimizzazione delle immagini',
-      'Consegna del book per la promozione commerciale',
     ],
   },
   'valutazione-patrimonio': {
@@ -79,7 +56,7 @@ const serviceData = {
   },
 } satisfies Record<ServiceSlug, {
   icon: React.ComponentType<{ className?: string }>;
-  accent: 'indigo' | 'purple' | 'green';
+  accent: 'indigo' | 'green';
   badge: string;
   title: string;
   description: string;
@@ -96,12 +73,6 @@ const colorClasses = {
     icon: 'bg-indigo-100 text-indigo-700',
     button: 'bg-indigo-600 hover:bg-indigo-700',
     text: 'text-indigo-700',
-  },
-  purple: {
-    hero: 'from-purple-700 to-purple-900',
-    icon: 'bg-purple-100 text-purple-700',
-    button: 'bg-purple-600 hover:bg-purple-700',
-    text: 'text-purple-700',
   },
   green: {
     hero: 'from-green-700 to-green-900',
@@ -178,7 +149,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({ service }) => {
         <section className="mt-16 bg-gray-900 text-white rounded-lg p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h2 className="text-2xl font-bold mb-2">Vuoi valutare questo servizio?</h2>
-            <p className="text-gray-300">Raccontami l’immobile e l’obiettivo: ti indico il percorso più adatto.</p>
+            <p className="text-gray-300">Raccontaci l’immobile e l’obiettivo: ti indichiamo il percorso più adatto.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Button asChild size="lg" className={`${colors.button} text-white`}>

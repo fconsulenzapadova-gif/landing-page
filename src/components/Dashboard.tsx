@@ -49,7 +49,7 @@ export interface SellerClient {
   phone: string;
   birthday?: string;
   status?: string;
-  properties?: any[];
+  properties?: Property[];
   property_id?: string;
   asking_price?: string;
   notes?: string;

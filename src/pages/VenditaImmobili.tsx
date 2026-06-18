@@ -211,7 +211,7 @@ const VenditaImmobili: React.FC = () => {
       <section className="py-16 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">La Mia Strategia di Marketing</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">La Nostra Strategia di Marketing</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Utilizziamo tutti i canali disponibili per garantire la massima visibilità al tuo immobile
             </p>
@@ -284,7 +284,7 @@ const VenditaImmobili: React.FC = () => {
       <section className="py-16 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Perché Affidarti a Me</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Perché Affidarti a Noi</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               La nostra esperienza e dedizione per ottenere il miglior risultato dalla vendita del tuo immobile
             </p>
@@ -322,7 +322,7 @@ const VenditaImmobili: React.FC = () => {
               <div>
                 <h3 className="font-semibold mb-2">Gestione Completa</h3>
                 <p className="text-gray-600">
-                  Mi occupo di tutto: dalle visite alla documentazione, fino alla firma del contratto definitivo.
+                  Ci occupiamo di tutto: dalle visite alla documentazione, fino alla firma del contratto definitivo.
                 </p>
               </div>
             </div>

@@ -17,14 +17,156 @@ import {
   ChevronDown,
   ChevronUp,
   Plane,
-  Camera,
   BarChart3
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Landing: React.FC = () => {
   const [showAboutSection, setShowAboutSection] = useState(false);
+  const [isGemutDefinitionOpen, setIsGemutDefinitionOpen] = useState(false);
+  const [hasMobileClaimRevealed, setHasMobileClaimRevealed] = useState(false);
+  const [hasDesktopServicesRevealed, setHasDesktopServicesRevealed] = useState(false);
+  const [revealedMobileServiceItems, setRevealedMobileServiceItems] = useState<Set<number>>(
+    new Set(),
+  );
+  const [revealedMobileWhyChooseItems, setRevealedMobileWhyChooseItems] = useState<Set<number>>(
+    new Set(),
+  );
   const aboutTextRef = useRef<HTMLDivElement>(null);
+  const lastScrollYRef = useRef(0);
+  const servicesSectionRef = useRef<HTMLElement>(null);
+  const serviceRevealRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const whyChooseRevealRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const handleGemutPointerEnter = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType !== 'touch') setIsGemutDefinitionOpen(true);
+  };
+
+  const handleGemutDisclosurePointerLeave = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'touch') setIsGemutDefinitionOpen(false);
+  };
+
+  const handleGemutPointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'touch') setIsGemutDefinitionOpen((isOpen) => !isOpen);
+  };
+
+  const handleGemutFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
+    if (event.currentTarget.matches(':focus-visible')) setIsGemutDefinitionOpen(true);
+  };
+
+  const handleGemutBlur = () => setIsGemutDefinitionOpen(false);
+
+  useEffect(() => {
+    if (hasMobileClaimRevealed) return;
+
+    lastScrollYRef.current = window.scrollY;
+    const mobileQuery = window.matchMedia('(max-width: 767px)');
+
+    const revealMobileClaim = () => {
+      const currentScrollY = window.scrollY;
+      const isScrollingDown = currentScrollY > lastScrollYRef.current;
+      lastScrollYRef.current = currentScrollY;
+
+      if (mobileQuery.matches && isScrollingDown && currentScrollY > 24) {
+        setHasMobileClaimRevealed(true);
+      }
+    };
+
+    window.addEventListener('scroll', revealMobileClaim, { passive: true });
+    return () => window.removeEventListener('scroll', revealMobileClaim);
+  }, [hasMobileClaimRevealed]);
+
+  useEffect(() => {
+    const servicesSection = servicesSectionRef.current;
+    const serviceItems = serviceRevealRefs.current.filter(
+      (item): item is HTMLDivElement => item !== null,
+    );
+
+    if (!servicesSection || serviceItems.length !== 4) return;
+
+    if (!('IntersectionObserver' in window)) {
+      setHasDesktopServicesRevealed(true);
+      setRevealedMobileServiceItems(new Set([0, 1, 2, 3]));
+      return;
+    }
+
+    const desktopObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setHasDesktopServicesRevealed(true);
+        desktopObserver.unobserve(entry.target);
+      },
+      { threshold: 0.15 },
+    );
+
+    const mobileObserver = new IntersectionObserver(
+      (entries) => {
+        const revealedIndexes = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => Number((entry.target as HTMLElement).dataset.serviceRevealIndex));
+
+        if (revealedIndexes.length === 0) return;
+
+        setRevealedMobileServiceItems((currentItems) => {
+          const nextItems = new Set(currentItems);
+          revealedIndexes.forEach((index) => nextItems.add(index));
+          return nextItems;
+        });
+
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) mobileObserver.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
+    );
+
+    desktopObserver.observe(servicesSection);
+    serviceItems.forEach((item) => mobileObserver.observe(item));
+
+    return () => {
+      desktopObserver.disconnect();
+      mobileObserver.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const whyChooseItems = whyChooseRevealRefs.current.filter(
+      (item): item is HTMLDivElement => item !== null,
+    );
+
+    if (whyChooseItems.length !== 5) return;
+
+    if (!('IntersectionObserver' in window)) {
+      setRevealedMobileWhyChooseItems(new Set([0, 1, 2, 3, 4]));
+      return;
+    }
+
+    const whyChooseObserver = new IntersectionObserver(
+      (entries) => {
+        const revealedIndexes = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) =>
+            Number((entry.target as HTMLElement).dataset.whyChooseRevealIndex),
+          );
+
+        if (revealedIndexes.length === 0) return;
+
+        setRevealedMobileWhyChooseItems((currentItems) => {
+          const nextItems = new Set(currentItems);
+          revealedIndexes.forEach((index) => nextItems.add(index));
+          return nextItems;
+        });
+
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) whyChooseObserver.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
+    );
+
+    whyChooseItems.forEach((item) => whyChooseObserver.observe(item));
+    return () => whyChooseObserver.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!showAboutSection) return;
@@ -41,17 +183,9 @@ const Landing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <header className="relative z-40 border-b border-gray-200 bg-white/90 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-center">
-            <h1 className="text-2xl font-bold text-gray-900">Gemüt Capital</h1>
-          </div>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section 
-        className="py-20 px-4 relative min-h-[500px]" 
+        className="relative min-h-[500px] px-4 py-16 sm:py-20"
         style={{ 
           backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/prato-padova.jpg")',
           backgroundSize: 'cover',
@@ -59,90 +193,184 @@ const Landing: React.FC = () => {
           backgroundRepeat: 'no-repeat'
         }}
       >
-        <div className="container mx-auto text-center relative z-10">
-          <Badge variant="secondary" className="mb-4 animate-fade-in">
+        <div className="container relative z-10 mx-auto text-center">
+          <Badge variant="secondary" className="mb-8 animate-fade-in">
             agenzia di mediazione immobiliare
           </Badge>
-          <h2 className="text-4xl font-bold text-white mb-6 animate-slide-up drop-shadow-lg sm:text-5xl">
-            Il Tuo Partner Immobiliare di Fiducia
-          </h2>
-          <p className="text-xl text-gray-100 mb-8 max-w-3xl mx-auto animate-fade-in drop-shadow-md">
+          <div onPointerLeave={handleGemutDisclosurePointerLeave}>
+            <div
+              id="gemut-definition"
+              aria-hidden={!isGemutDefinitionOpen}
+              className={`grid transition-[grid-template-rows,opacity,transform,margin] duration-300 ease-out ${
+                isGemutDefinitionOpen
+                  ? 'mb-5 grid-rows-[1fr] translate-y-0 opacity-100'
+                  : 'mb-0 grid-rows-[0fr] -translate-y-2 opacity-0'
+              }`}
+            >
+              <div className="overflow-hidden">
+                <p className="mx-auto max-w-3xl text-sm leading-relaxed text-blue-50 drop-shadow-md sm:text-base">
+                  Il termine tedesco Gemüt indica l'animo, lo spirito o l'indole di una persona,
+                  rappresenta la sfera emotiva, il cuore o il temperamento intesi come sede dei
+                  sentimenti.
+                </p>
+              </div>
+            </div>
+            <h2 className="mx-auto mb-5 max-w-5xl animate-slide-up text-4xl font-bold text-white drop-shadow-lg sm:text-5xl">
+              <button
+                type="button"
+                className="rounded-sm text-sky-200 underline decoration-sky-200/50 decoration-2 underline-offset-4 transition-colors hover:text-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                aria-expanded={isGemutDefinitionOpen}
+                aria-controls="gemut-definition"
+                onPointerEnter={handleGemutPointerEnter}
+                onPointerUp={handleGemutPointerUp}
+                onFocus={handleGemutFocus}
+                onBlur={handleGemutBlur}
+              >
+                Gemüt Capital
+              </button>
+              , il tuo partner immobiliare{' '}
+              <span className="text-sky-200">di fiducia</span>.
+            </h2>
+          </div>
+          <p
+            className={`mx-auto mb-8 max-w-3xl text-xl text-gray-100 drop-shadow-md transition-all duration-500 ease-out motion-reduce:transition-none md:translate-y-0 md:opacity-100 ${
+              hasMobileClaimRevealed
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0'
+            }`}
+          >
             Esperienza, professionalità e tecnologia al servizio delle tue esigenze immobiliari.
             Trova la casa dei tuoi sogni o vendi al miglior prezzo con il supporto di un esperto.
           </p>
-
         </div>
       </section>
 
       {/* Services Section */}
-      <section className="py-16 px-4 bg-white">
+      <section ref={servicesSectionRef} className="py-16 px-4 bg-white">
         <div className="container mx-auto">
-          <div className="text-center mb-12">
+          <div
+            ref={(element) => {
+              serviceRevealRefs.current[0] = element;
+            }}
+            data-service-reveal-index="0"
+            className={`mb-12 text-center transition-all duration-700 ease-out motion-reduce:transition-none md:delay-0 ${
+              revealedMobileServiceItems.has(0)
+                ? 'translate-x-0 opacity-100'
+                : '-translate-x-8 opacity-0'
+            } ${
+              hasDesktopServicesRevealed
+                ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
+                : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
+            }`}
+          >
             <h3 className="text-3xl font-bold text-gray-900 mb-4">I Nostri Servizi</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Un servizio completo e personalizzato per ogni esigenza immobiliare
             </p>
-            <div className="mx-auto mt-6 max-w-3xl rounded-2xl border border-sky-100 bg-sky-50/80 px-6 py-5 text-left text-sm leading-relaxed text-slate-700 shadow-sm backdrop-blur-sm sm:text-center">
-              Il termine tedesco Gemüt indica l'animo, lo spirito o l'indole di una persona. Più
-              nello specifico, rappresenta la sfera emotiva, il cuore o il temperamento intesi come
-              sede dei sentimenti.
-            </div>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <Link to="/acquisto-casa" className="block">
-              <Card className="hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-blue-50/50 active:scale-100 active:bg-blue-100/30 translucent-button cursor-pointer h-full border-2 hover:border-blue-200 active:border-blue-300 flex flex-col">
-                <CardHeader className="items-center text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 hover:bg-blue-200 transition-colors duration-200">
-                    <Search className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <CardTitle className="text-center whitespace-nowrap">
-                    Acquisto Casa
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-1 items-start justify-center text-center">
-                  <p className="text-gray-600">
-                    Ti aiuto a trovare la casa perfetta per le tue esigenze, gestendo ogni aspetto della trattativa.
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+            <div
+              ref={(element) => {
+                serviceRevealRefs.current[1] = element;
+              }}
+              data-service-reveal-index="1"
+              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none md:[transition-delay:450ms] ${
+                revealedMobileServiceItems.has(1)
+                  ? 'translate-x-0 opacity-100'
+                  : '-translate-x-8 opacity-0'
+              } ${
+                hasDesktopServicesRevealed
+                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
+                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
+              }`}
+            >
+              <Link to="/acquisto-casa" className="block h-full">
+                <Card className="bg-gray-100/[0.35] shadow-none hover:shadow-none transition-all duration-300 hover:scale-[1.02] hover:bg-gray-100/[0.45] active:scale-100 active:bg-gray-100/[0.45] cursor-pointer h-full border-2 border-gray-200/60 hover:border-gray-200 active:border-gray-200 flex flex-col">
+                  <CardHeader className="items-center text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 hover:bg-blue-200 transition-colors duration-200">
+                      <Search className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <CardTitle className="text-center">
+                      Sto cercando un immobile
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-1 items-start justify-center text-center">
+                    <p className="text-gray-600">
+                      Ti aiutiamo a trovare la casa perfetta per le tue esigenze, gestendo ogni aspetto della trattativa.
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
 
-            <Link to="/vendita-immobili" className="block">
-              <Card className="hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-green-50/50 active:scale-100 active:bg-green-100/30 translucent-button cursor-pointer h-full border-2 hover:border-green-200 active:border-green-300 flex flex-col">
-                <CardHeader className="items-center text-center">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 hover:bg-green-200 transition-colors duration-200">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
-                  <CardTitle className="text-center">
-                    Vendita Immobili
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-1 items-start justify-center text-center">
-                  <p className="text-gray-600">
-                    Massimizza il valore della tua proprietà con strategie di marketing innovative.
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+            <div
+              ref={(element) => {
+                serviceRevealRefs.current[2] = element;
+              }}
+              data-service-reveal-index="2"
+              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none md:[transition-delay:600ms] ${
+                revealedMobileServiceItems.has(2)
+                  ? 'translate-x-0 opacity-100'
+                  : '-translate-x-8 opacity-0'
+              } ${
+                hasDesktopServicesRevealed
+                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
+                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
+              }`}
+            >
+              <Link to="/vendita-immobili" className="block h-full">
+                <Card className="bg-gray-100/[0.35] shadow-none hover:shadow-none transition-all duration-300 hover:scale-[1.02] hover:bg-gray-100/[0.45] active:scale-100 active:bg-gray-100/[0.45] cursor-pointer h-full border-2 border-gray-200/60 hover:border-gray-200 active:border-gray-200 flex flex-col">
+                  <CardHeader className="items-center text-center">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 hover:bg-green-200 transition-colors duration-200">
+                      <TrendingUp className="h-6 w-6 text-green-600" />
+                    </div>
+                    <CardTitle className="text-center">
+                      Vorrei sapere quanto vale il mio immobile
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-1 items-start justify-center text-center">
+                    <p className="text-gray-600">
+                      Massimizza il valore della tua proprietà con strategie di marketing innovative.
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
 
-            <Link to="/locazioni" className="block">
-              <Card className="hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-purple-50/50 active:scale-100 active:bg-purple-100/30 translucent-button cursor-pointer h-full border-2 hover:border-purple-200 active:border-purple-300 flex flex-col">
-                <CardHeader className="items-center text-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 hover:bg-purple-200 transition-colors duration-200">
-                    <Key className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <CardTitle className="text-center">
-                    Locazioni
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-1 items-start justify-center text-center">
-                  <p className="text-gray-600">
-                    Servizi completi per affitti, sia per proprietari che per inquilini.
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+            <div
+              ref={(element) => {
+                serviceRevealRefs.current[3] = element;
+              }}
+              data-service-reveal-index="3"
+              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none md:[transition-delay:750ms] ${
+                revealedMobileServiceItems.has(3)
+                  ? 'translate-x-0 opacity-100'
+                  : '-translate-x-8 opacity-0'
+              } ${
+                hasDesktopServicesRevealed
+                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
+                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
+              }`}
+            >
+              <Link to="/locazioni" className="block h-full">
+                <Card className="bg-gray-100/[0.35] shadow-none hover:shadow-none transition-all duration-300 hover:scale-[1.02] hover:bg-gray-100/[0.45] active:scale-100 active:bg-gray-100/[0.45] cursor-pointer h-full border-2 border-gray-200/60 hover:border-gray-200 active:border-gray-200 flex flex-col">
+                  <CardHeader className="items-center text-center">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 hover:bg-purple-200 transition-colors duration-200">
+                      <Key className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <CardTitle className="text-center">
+                      Servizi per l'affitto
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-1 items-start justify-center text-center">
+                    <p className="text-gray-600">
+                      Servizi completi per affitti, sia per proprietari che per inquilini.
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -247,15 +475,31 @@ const Landing: React.FC = () => {
       {/* Why Choose Me Section */}
       <section className="py-16 px-4 bg-gray-50">
         <div className="container mx-auto">
-          <div className="text-center mb-12">
+          <div
+            ref={(element) => {
+              whyChooseRevealRefs.current[0] = element;
+            }}
+            data-why-choose-reveal-index="0"
+            className={`mb-12 text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
+              revealedMobileWhyChooseItems.has(0) ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Perché Sceglierci</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              La mia esperienza e dedizione fanno la differenza nel tuo percorso immobiliare
+              La nostra esperienza e dedizione fanno la differenza nel tuo percorso immobiliare
             </p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
+            <div
+              ref={(element) => {
+                whyChooseRevealRefs.current[1] = element;
+              }}
+              data-why-choose-reveal-index="1"
+              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
+                revealedMobileWhyChooseItems.has(1) ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="h-8 w-8 text-blue-600" />
               </div>
@@ -263,7 +507,15 @@ const Landing: React.FC = () => {
               <p className="text-sm text-gray-600">Anni di esperienza nel settore immobiliare</p>
             </div>
             
-            <div className="text-center">
+            <div
+              ref={(element) => {
+                whyChooseRevealRefs.current[2] = element;
+              }}
+              data-why-choose-reveal-index="2"
+              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
+                revealedMobileWhyChooseItems.has(2) ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-8 w-8 text-green-600" />
               </div>
@@ -271,7 +523,15 @@ const Landing: React.FC = () => {
               <p className="text-sm text-gray-600">Comunicazione chiara e onesta in ogni fase</p>
             </div>
             
-            <div className="text-center">
+            <div
+              ref={(element) => {
+                whyChooseRevealRefs.current[3] = element;
+              }}
+              data-why-choose-reveal-index="3"
+              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
+                revealedMobileWhyChooseItems.has(3) ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="h-8 w-8 text-purple-600" />
               </div>
@@ -279,7 +539,15 @@ const Landing: React.FC = () => {
               <p className="text-sm text-gray-600">Ogni cliente è unico e merita attenzione dedicata</p>
             </div>
             
-            <div className="text-center">
+            <div
+              ref={(element) => {
+                whyChooseRevealRefs.current[4] = element;
+              }}
+              data-why-choose-reveal-index="4"
+              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
+                revealedMobileWhyChooseItems.has(4) ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
               <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="h-8 w-8 text-indigo-600" />
               </div>
@@ -300,65 +568,48 @@ const Landing: React.FC = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="mx-auto grid max-w-[44rem] gap-5 md:grid-cols-2">
             {/* UAV Roof Inspection */}
-            <Card className="hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 hover:border-indigo-200 bg-white/80 backdrop-blur-sm h-full flex flex-col">
-              <CardHeader className="text-center">
-                <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 hover:bg-indigo-200 transition-colors duration-200">
-                  <Plane className="h-8 w-8 text-indigo-600" />
+            <Card className="flex h-full min-h-[18rem] flex-col border-2 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-indigo-200 hover:shadow-xl md:min-h-0">
+              <CardHeader className="p-4 text-center">
+                <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-indigo-100 transition-colors duration-200 hover:bg-indigo-200">
+                  <Plane className="h-[1.375rem] w-[1.375rem] text-indigo-600" />
                 </div>
-                <CardTitle className="text-xl text-gray-900">Verifica Stato Tetto tramite UAV</CardTitle>
+                <CardTitle className="text-[0.875rem] leading-tight text-gray-900">
+                  Verifica Stato Tetto tramite UAV
+                </CardTitle>
               </CardHeader>
-              <CardContent className="text-center flex flex-col flex-1">
-                <p className="text-gray-600 mb-6 flex-1">
+              <CardContent className="flex flex-1 flex-col p-4 pt-0 text-center">
+                <p className="mb-4 flex-1 text-[0.875rem] leading-snug text-gray-600">
                   Ispezione professionale del tetto utilizzando droni di ultima generazione per una valutazione accurata e sicura.
                 </p>
                 <Link to="/verifica-stato-tetto/" className="mt-auto">
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+                  <Button className="h-7 w-full bg-indigo-600 px-3 text-[0.7rem] text-white hover:bg-indigo-700">
                     Scopri di Più
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            {/* Property Valorization with Photo Book */}
-            <Card className="hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 hover:border-purple-200 bg-white/80 backdrop-blur-sm h-full flex flex-col">
-              <CardHeader className="text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 hover:bg-purple-200 transition-colors duration-200">
-                  <Camera className="h-8 w-8 text-purple-600" />
-                </div>
-                <CardTitle className="text-xl text-gray-900">Valorizzazione con Book Fotografico</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center flex flex-col flex-1">
-                <p className="text-gray-600 mb-6 flex-1">
-                  Servizio fotografico professionale per valorizzare al massimo il tuo immobile e aumentarne l'appeal commerciale.
-                </p>
-                <Link to="/valorizzazione-book-fotografico/" className="mt-auto">
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
-                    Scopri di Più
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-1.5 h-[0.6875rem] w-[0.6875rem]" />
                   </Button>
                 </Link>
               </CardContent>
             </Card>
 
             {/* Patrimony Evaluation */}
-            <Card className="hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 hover:border-green-200 bg-white/80 backdrop-blur-sm h-full flex flex-col">
-              <CardHeader className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 hover:bg-green-200 transition-colors duration-200">
-                  <BarChart3 className="h-8 w-8 text-green-600" />
+            <Card className="flex h-full min-h-[18rem] flex-col border-2 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-green-200 hover:shadow-xl md:min-h-0">
+              <CardHeader className="p-4 text-center">
+                <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-green-100 transition-colors duration-200 hover:bg-green-200">
+                  <BarChart3 className="h-[1.375rem] w-[1.375rem] text-green-600" />
                 </div>
-                <CardTitle className="text-xl text-gray-900">Valutazione per Patrimonio</CardTitle>
+                <CardTitle className="text-[0.875rem] leading-tight text-gray-900">
+                  Valutazione per Patrimonio
+                </CardTitle>
               </CardHeader>
-              <CardContent className="text-center flex flex-col flex-1">
-                <p className="text-gray-600 mb-6 flex-1">
+              <CardContent className="flex flex-1 flex-col p-4 pt-0 text-center">
+                <p className="mb-4 flex-1 text-[0.875rem] leading-snug text-gray-600">
                   Analisi approfondita del valore del tuo patrimonio immobiliare per decisioni di investimento consapevoli.
                 </p>
                 <Link to="/valutazione-patrimonio/" className="mt-auto">
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+                  <Button className="h-7 w-full bg-indigo-600 px-3 text-[0.7rem] text-white hover:bg-indigo-700">
                     Scopri di Più
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-1.5 h-[0.6875rem] w-[0.6875rem]" />
                   </Button>
                 </Link>
               </CardContent>
@@ -383,7 +634,7 @@ const Landing: React.FC = () => {
         <div className="container mx-auto text-center">
           <h3 className="text-3xl font-bold mb-4">Pronto a Iniziare?</h3>
           <p className="text-xl mb-8 text-blue-100">
-            Contattami oggi stesso per una consulenza gratuita e personalizzata
+            Contattaci oggi stesso per una consulenza gratuita e personalizzata
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/richieste?type=acquisto">
@@ -406,7 +657,7 @@ const Landing: React.FC = () => {
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Contatti</h3>
-            <p className="text-gray-600">Sono sempre disponibile per rispondere alle tue domande</p>
+            <p className="text-gray-600">Siamo sempre disponibili per rispondere alle tue domande</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -415,7 +666,7 @@ const Landing: React.FC = () => {
               target="_blank" 
               rel="noopener noreferrer"
               className="block text-center hover:scale-105 transition-all duration-300 cursor-pointer" 
-              aria-label="Contattami su WhatsApp"
+              aria-label="Contattaci su WhatsApp"
             >
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4 translucent-button">
                 <Phone className="h-6 w-6 text-blue-600" />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,17 +23,7 @@ export const useSupabaseProfile = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Load profile from Supabase when user changes
-  useEffect(() => {
-    if (user) {
-      loadProfile();
-    } else {
-      setProfile(null);
-      setLoading(false);
-    }
-  }, [user]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -93,7 +83,17 @@ export const useSupabaseProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, user]);
+
+  // Load profile from Supabase when user changes
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+    } else {
+      setProfile(null);
+      setLoading(false);
+    }
+  }, [loadProfile, user]);
 
   const updateProfile = async (updates: Partial<SupabaseProfile>) => {
     if (!user || !profile) return false;

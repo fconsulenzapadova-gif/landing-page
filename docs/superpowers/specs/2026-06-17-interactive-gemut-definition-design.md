@@ -27,8 +27,10 @@ when a visitor interacts with the `Gemüt Capital` name.
 
 - Keep behavior inside `src/pages/Landing.tsx`; do not add a shared component for one
   home-only interaction.
-- Use React state only for persistent touch toggle state. Use hover and focus styling
-  for transient desktop and keyboard interaction.
+- Keep visible state in React for hover, focus, and touch so `aria-expanded` always
+  matches the rendered disclosure.
+- Close desktop hover only when the pointer leaves the wrapper containing both the
+  moving title and definition, preventing the animation from cancelling itself.
 - Update `tests/site-requirements.test.mjs` with static requirements for hidden-default
   disclosure, supported interactions, accessibility attributes, and definition order.
 - Update the home behavior documented in `PRD.md`.

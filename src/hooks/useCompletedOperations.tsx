@@ -52,7 +52,7 @@ export const useAddCompletedOperation = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const createContractFromOperation = (operation: any): Contract => {
+  const createContractFromOperation = (operation: CompletedOperation): Contract => {
     // Map operation type to contract type
     const contractType: ContractType = operation.type === 'Vendita eseguita' ? 'vendita' : 'affitto';
     
@@ -109,7 +109,7 @@ export const useAddCompletedOperation = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as CompletedOperation;
     },
     onSuccess: (completedOperation) => {
       queryClient.invalidateQueries({ queryKey: ["completed-operations", user?.id] });
