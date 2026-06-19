@@ -1,4 +1,4 @@
-import { Building2, FileText, Mail, Phone } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function SiteFooter() {
@@ -9,29 +9,27 @@ export default function SiteFooter() {
         <p className="text-xl font-bold">Gemüt Capital SRL</p>
         <p className="mt-1 text-sm text-slate-300">Mediazione immobiliare</p>
 
-        <div className="mt-7 grid w-full max-w-3xl gap-4 text-sm text-slate-200 sm:grid-cols-2">
-          <a
-            href="tel:+393792606775"
-            className="flex items-center justify-center gap-2 rounded-lg bg-white/5 px-4 py-3 hover:bg-white/10"
-          >
-            <Phone className="h-4 w-4" aria-hidden="true" />
-            Tel: 379 260 6775
-          </a>
-          <a
-            href="mailto:info@gemutcapital.com"
-            className="flex items-center justify-center gap-2 rounded-lg bg-white/5 px-4 py-3 hover:bg-white/10"
-          >
-            <Mail className="h-4 w-4" aria-hidden="true" />
-            info@gemutcapital.com
-          </a>
-          <div className="flex items-center justify-center gap-2 rounded-lg bg-white/5 px-4 py-3">
-            <FileText className="h-4 w-4" aria-hidden="true" />
-            P.IVA: 0555 8150 289
-          </div>
-          <div className="flex items-center justify-center gap-2 rounded-lg bg-white/5 px-4 py-3">
-            <FileText className="h-4 w-4" aria-hidden="true" />
-            REA: da comunicare
-          </div>
+        <div className="mt-7 space-y-2 text-sm text-slate-200">
+          <p>
+            Tel:{' '}
+            <a href="tel:+393792606775" className="hover:text-blue-300">
+              379 260 6775
+            </a>
+          </p>
+          <p>
+            Email:{' '}
+            <a href="mailto:info@gemutcapital.com" className="hover:text-blue-300">
+              info@gemutcapital.com
+            </a>
+          </p>
+          <p>Partita IVA: 05791060287</p>
+          <p>REA: PD - 492863</p>
+          <p>
+            PEC:{' '}
+            <a href="mailto:gemutcapital@pec.it" className="hover:text-blue-300">
+              gemutcapital@pec.it
+            </a>
+          </p>
         </div>
 
         <Link
@@ -41,7 +39,7 @@ export default function SiteFooter() {
           Informativa Privacy
         </Link>
         <p className="mt-5 text-sm leading-relaxed text-slate-400">
-          © 2025 Gemüt Capital SRL - Mediazione immobiliare. Tutti i diritti riservati.
+          © 2026 Gemüt Capital SRL - Mediazione immobiliare. Tutti i diritti riservati.
         </p>
       </div>
     </footer>

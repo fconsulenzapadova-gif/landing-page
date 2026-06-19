@@ -1,6 +1,6 @@
 # PRD e mappa della repository - Gemüt Capital
 
-Ultimo aggiornamento: 18 giugno 2026
+Ultimo aggiornamento: 19 giugno 2026
 
 ## 1. Scopo del documento
 
@@ -110,6 +110,7 @@ index.html
       -> QueryClientProvider
         -> AuthProvider
           -> BrowserRouter
+            -> ScrollToTop
             -> GlobalNavigation
             -> Routes lazy-loaded
             -> SiteFooter
@@ -117,7 +118,7 @@ index.html
             -> CookieConsent
 ```
 
-`LandingApp` monta navigazione, footer e servizi globali fuori dalle singole route. Le pagine sono caricate con `React.lazy` e mostrate dentro `Suspense`.
+`LandingApp` monta reset scroll, navigazione, footer e servizi globali fuori dalle singole route. `ScrollToTop` riporta immediatamente il viewport all'inizio a ogni cambio di pathname, così le nuove pagine mostrano sempre la propria hero/header. Le pagine sono caricate con `React.lazy` e mostrate dentro `Suspense`.
 
 ### 5.3 Alias
 
@@ -153,6 +154,8 @@ L'alias `@` punta a `src`, configurato in `vite.config.ts` e nei file TypeScript
 
 Vercel reindirizza ogni URL a `index.html`, permettendo apertura diretta delle route SPA.
 
+Ogni navigazione verso un pathname diverso azzera la posizione verticale. In particolare, le card home di acquisto, vendita e locazioni aprono le rispettive pagine mostrando la hero/header dall'inizio invece di conservare lo scroll della home.
+
 ## 7. Esperienza pubblica
 
 ### 7.1 Navigazione globale
@@ -160,12 +163,15 @@ Vercel reindirizza ogni URL a `index.html`, permettendo apertura diretta delle r
 `GlobalNavigation` fornisce:
 
 - pulsante menu fisso in alto a sinistra su tutte le route pubbliche;
+- il pulsante menu resta nascosto mentre la hero fullscreen della home occupa la prima schermata, sia mobile sia desktop, poi ricompare scorrendo verso i contenuti;
 - apertura del pannello laterale al passaggio mouse/penna e al focus tastiera;
+- chiusura automatica su desktop quando il puntatore lascia sia il pulsante sia il pannello, con una breve tolleranza per consentire il passaggio tra i due;
 - click desktop sul pulsante che porta direttamente alla route `/`;
 - tap touch/mobile sul pulsante che apre il menu, dato che non esiste hover;
 - icona menu che diventa casa al passaggio del mouse;
 - pannello laterale;
-- evidenza della route corrente;
+- destinazioni organizzate in tre gruppi visivamente separati e titolati: `Principale`, `Servizi immobiliari` e `Servizi su misura`; il gruppo immobiliare usa le voci `Sto cercando un immobile`, `Quanto vale il mio immobile` e `Locazioni`, mentre i servizi su misura includono anche la route attiva `/servizi-personalizzati`;
+- evidenza della route corrente con testo bianco su sfondo blu;
 - chiusura su navigazione, click overlay o tasto `Escape`;
 - blocco scroll pagina durante apertura;
 - CTA verso `/prenotazione`.
@@ -178,21 +184,21 @@ Il copy pubblico usa la prima persona plurale per la voce di Gemüt Capital e ma
 
 `Landing.tsx` contiene:
 
-- hero con immagine di Padova come primo blocco visibile della pagina, sotto il solo pulsante menu globale;
-- badge hero `agenzia di mediazione immobiliare`;
-- titolo hero `Gemüt Capital, il tuo partner immobiliare di fiducia.`, con `Gemüt Capital` e `di fiducia` in azzurro chiaro;
-- definizione del termine tedesco Gemüt nascosta per default e mostrata sopra il titolo su hover/focus di `Gemüt Capital` o tap mobile, con espansione animata che sposta titolo e claim;
-- claim operativo su esperienza, professionalita e tecnologia, visibile subito da `md` in su e rivelato una sola volta su mobile con fade/slide dopo il primo scroll verso il basso oltre 24 px;
-- sezione `I Nostri Servizi` con titolo/sottotitolo e card `Sto cercando un immobile`, `Vorrei sapere quanto vale il mio immobile` e `Servizi per l'affitto`; su desktop la sezione compare dall'alto in sequenza titolo → tre card da sinistra a destra, mentre su mobile ogni blocco compare da sinistra quando entra nel viewport durante lo scroll;
-- biografia espandibile di Filippo Marcuzzo;
-- smooth scroll verso la biografia;
-- sezione `Perché Sceglierci` con vantaggi e rete professionale; su mobile titolo e
-  sottotitolo compaiono per primi con una dissolvenza statica, poi i quattro motivi
-  sfumano individualmente quando entrano nel viewport durante lo scroll; la comparsa
-  avviene una sola volta, senza movimento, mentre su desktop la sezione resta statica;
+- hero con immagine ottimizzata di Padova caricata ad alta priorita come primo blocco visibile della pagina; su mobile e desktop la hero occupa l'intera finestra visibile con foto e titolo centrato, facendo iniziare i servizi sotto il primo viewport;
+- titolo hero `Gemüt Capital, il tuo partner immobiliare di fiducia.`, con sequenza iniziale: per il primo secondo mostra solo `Gemüt Capital` centrato, poi il brand si sposta leggermente verso sinistra e il resto del titolo compare parola per parola con ritmo progressivo e spaziatura esplicita tra le parole; `Gemüt Capital` e, completata la comparsa, `di fiducia` usano lo stesso blu `blue-600` della parola `Immobiliare` nella sezione `Scopri Chi Sono Io`, con animazione di colore in senso di lettura per `di fiducia`;
+- `Gemüt Capital` nel titolo hero e interattivo ma non sottolineato;
+- definizione del termine tedesco Gemüt nascosta per default e mostrata sopra il titolo su hover/focus di `Gemüt Capital` o tap mobile, con espansione animata che sposta il titolo;
+- sezione `I Nostri Servizi` con sottotitolo `Esperienza, professionalita e tecnologia al servizio delle tue esigenze immobiliari. Trova la casa dei tuoi sogni o vendi al miglior prezzo con il supporto di un esperto.` e card `Sto cercando un immobile`, `Vorrei sapere quanto vale il mio immobile` e `Servizi per l'affitto`; su mobile e desktop ogni blocco compare da sinistra quando entra nel viewport e riscompare con la transizione specchiata quando esce dal viewport;
+- biografia espandibile di Filippo Marcuzzo con foto profilo ottimizzata, dimensioni dichiarate, decoding asincrono e lazy loading;
+- click su `Scopri Chi Sono Io` con apertura animata e scroll fluido che porta la foto profilo al centro del viewport; con `prefers-reduced-motion` lo spostamento avviene senza animazione;
+- sezione `Perché Sceglierci` con vantaggi e rete professionale; su mobile e desktop
+  titolo, sottotitolo e quattro motivi sfumano individualmente quando entrano nel viewport
+  durante lo scroll; la transizione e reversibile e gli elementi tornano nascosti quando
+  escono dal viewport;
 - card UAV e valutazione patrimonio in formato compatto, ridotte di circa il 30% con testi, icone e CTA proporzionati;
 - accesso ai servizi personalizzati;
-- CTA verso form richieste e contatti.
+- CTA verso form richieste e contatti;
+- blocchi finali `Servizi su Misura`, CTA conclusiva e `Contatti` con comparsa da sinistra e scomparsa specchiata su mobile e desktop quando entrano o escono dal viewport.
 
 ### 7.3 Servizi principali
 
@@ -200,16 +206,17 @@ Il copy pubblico usa la prima persona plurale per la voce di Gemüt Capital e ma
 
 - hero fotografica;
 - CTA verso `/richieste` con query `type`;
+- i pulsanti `Contattaci Ora` presenti nelle pagine acquisto e vendita aprono direttamente una chat WhatsApp con messaggio contestuale precompilato, senza mostrare o copiare l'email;
 - descrizione dei servizi;
 - metodo/processo;
 - vantaggi;
 - contatti finali.
 
-Le immagini iniziali sono:
+Le immagini iniziali attive sono copie JPEG ottimizzate a massimo 1920 px. L'asset di vendita viene convertito tramite un passaggio SDR compatibile, per evitare che i metadati HDR dell'originale producano un'immagine nera nei browser:
 
-- acquisto: `/foto-cortina.JPG`;
-- vendita: `/sfondo-patrimoni.jpg`;
-- locazioni: `/Sfondo locazioni.JPG`.
+- acquisto: `/foto-cortina-optimized.jpg`;
+- vendita: `/sfondo-patrimoni-optimized.jpg`;
+- locazioni: `/sfondo-locazioni-optimized.jpg`.
 
 ### 7.4 Servizi specialistici
 
@@ -261,7 +268,7 @@ Stato: UI attiva, integrazioni cookie **simulate/non collegate**.
 
 Il flusso principale parte da `PublicRequests.tsx`.
 
-La pagina usa `/prato-padova.jpg` come unico sfondo continuo, incluso dietro la hero e il form. La hero mantiene overlay scuro e pannello verde traslucido per la leggibilita.
+La pagina usa `/prato-padova-optimized.jpg` come unico sfondo continuo, incluso dietro la hero e il form. La hero mantiene overlay scuro e pannello verde traslucido per la leggibilita.
 
 Campi:
 
@@ -465,7 +472,7 @@ Parte del codice usa storage namespaced, parte usa `localStorage` direttamente. 
 ### 13.1 Componenti applicativi
 
 - `GlobalNavigation`: menu pubblico globale;
-- `SiteFooter`: footer societario;
+- `SiteFooter`: footer societario con telefono, email, Partita IVA `05791060287`, REA `PD - 492863`, PEC `gemutcapital@pec.it` e copyright 2026 presentati come dati testuali senza riquadri;
 - `CookieConsent`: banner e dialog cookie;
 - `LoadingSpinner`: fallback caricamento;
 - `WhatsAppButton`: apertura chat;
@@ -498,6 +505,16 @@ Prima di modificare un componente UI condiviso, cercare tutti gli import con `rg
 ## 14. Asset pubblici
 
 Asset prodotto principali:
+
+- `public/prato-padova-optimized.jpg`;
+- `public/sfondo-patrimoni-optimized.jpg`;
+- `public/foto-cortina-optimized.jpg`;
+- `public/sfondo-locazioni-optimized.jpg`;
+- `public/tetto-uav-optimized.jpg`;
+- `public/strada-verde-optimized.jpg`;
+- `public/profile-optimized.jpg`.
+
+Queste copie sono gli asset runtime attivi: gli sfondi hanno lato massimo 1920 px e la foto profilo 768 px, tutti sotto 900 KB. Gli originali seguenti restano nel repository come sorgenti/fallback e non sono caricati dalle pagine pubbliche:
 
 - `public/prato-padova.jpg`;
 - `public/sfondo-patrimoni.jpg`;
@@ -551,6 +568,8 @@ Non inserire segreti reali nel repository. Le variabili `VITE_*` sono esposte al
 - `CI=false npm run build`;
 - output `dist`;
 - rewrite globale verso `/index.html`.
+
+`.vercelignore` esclude dipendenze, output locali, Git e i metadata macOS `._*`/`.DS_Store`, che sul volume esterno non devono essere analizzati o caricati durante il deploy.
 
 `public/CNAME` gestisce il dominio custom.
 
@@ -629,8 +648,6 @@ Nell'ambiente analizzato il comando `npm` non era disponibile nel `PATH` locale.
 - Auth disabilita persistenza e refresh automatico Supabase.
 - Alcuni import/dependency dei componenti UI possono non essere necessari al bundle pubblico.
 - `favicon.svg` e referenziato ma non presente nello stato corrente.
-- Anno footer fissato a `2025`.
-- REA indicato come `da comunicare`.
 - Working tree osservata con file marcati contemporaneamente rimossi e non tracciati; non normalizzare Git senza richiesta esplicita.
 
 ## 19. Regole per modifiche future

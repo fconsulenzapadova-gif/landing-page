@@ -21,22 +21,37 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+const isInRevealRange = (element: HTMLElement) => {
+  const rect = element.getBoundingClientRect();
+  return rect.top < window.innerHeight * 0.9 && rect.bottom > window.innerHeight * 0.05;
+};
+
+const heroTitleWords = [
+  { text: ', il', delay: '0ms' },
+  { text: 'tuo', delay: '320ms' },
+  { text: 'partner', delay: '640ms' },
+  { text: 'immobiliare', delay: '960ms' },
+  { text: 'di', delay: '1280ms', isTrusted: true },
+  { text: 'fiducia', delay: '1600ms', isTrusted: true, suffix: '.' },
+];
+
 const Landing: React.FC = () => {
   const [showAboutSection, setShowAboutSection] = useState(false);
   const [isGemutDefinitionOpen, setIsGemutDefinitionOpen] = useState(false);
-  const [hasMobileClaimRevealed, setHasMobileClaimRevealed] = useState(false);
-  const [hasDesktopServicesRevealed, setHasDesktopServicesRevealed] = useState(false);
-  const [revealedMobileServiceItems, setRevealedMobileServiceItems] = useState<Set<number>>(
+  const [heroTitleStage, setHeroTitleStage] = useState<'brand' | 'full' | 'trusted'>('brand');
+  const [revealedServiceItems, setRevealedServiceItems] = useState<Set<number>>(
     new Set(),
   );
-  const [revealedMobileWhyChooseItems, setRevealedMobileWhyChooseItems] = useState<Set<number>>(
+  const [revealedWhyChooseItems, setRevealedWhyChooseItems] = useState<Set<number>>(
     new Set(),
   );
-  const aboutTextRef = useRef<HTMLDivElement>(null);
-  const lastScrollYRef = useRef(0);
-  const servicesSectionRef = useRef<HTMLElement>(null);
+  const [revealedLandingItems, setRevealedLandingItems] = useState<Set<number>>(
+    new Set(),
+  );
+  const aboutPhotoRef = useRef<HTMLDivElement>(null);
   const serviceRevealRefs = useRef<(HTMLDivElement | null)[]>([]);
   const whyChooseRevealRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const landingRevealRefs = useRef<(HTMLElement | HTMLDivElement | null)[]>([]);
 
   const handleGemutPointerEnter = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (event.pointerType !== 'touch') setIsGemutDefinitionOpen(true);
@@ -57,75 +72,48 @@ const Landing: React.FC = () => {
   const handleGemutBlur = () => setIsGemutDefinitionOpen(false);
 
   useEffect(() => {
-    if (hasMobileClaimRevealed) return;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    lastScrollYRef.current = window.scrollY;
-    const mobileQuery = window.matchMedia('(max-width: 767px)');
+    if (prefersReducedMotion) {
+      setHeroTitleStage('trusted');
+      return;
+    }
 
-    const revealMobileClaim = () => {
-      const currentScrollY = window.scrollY;
-      const isScrollingDown = currentScrollY > lastScrollYRef.current;
-      lastScrollYRef.current = currentScrollY;
+    const revealTitleTimer = window.setTimeout(() => setHeroTitleStage('full'), 1000);
+    const colorTrustTimer = window.setTimeout(() => setHeroTitleStage('trusted'), 3300);
 
-      if (mobileQuery.matches && isScrollingDown && currentScrollY > 24) {
-        setHasMobileClaimRevealed(true);
-      }
+    return () => {
+      window.clearTimeout(revealTitleTimer);
+      window.clearTimeout(colorTrustTimer);
     };
-
-    window.addEventListener('scroll', revealMobileClaim, { passive: true });
-    return () => window.removeEventListener('scroll', revealMobileClaim);
-  }, [hasMobileClaimRevealed]);
+  }, []);
 
   useEffect(() => {
-    const servicesSection = servicesSectionRef.current;
     const serviceItems = serviceRevealRefs.current.filter(
       (item): item is HTMLDivElement => item !== null,
     );
 
-    if (!servicesSection || serviceItems.length !== 4) return;
+    if (serviceItems.length !== 4) return;
 
-    if (!('IntersectionObserver' in window)) {
-      setHasDesktopServicesRevealed(true);
-      setRevealedMobileServiceItems(new Set([0, 1, 2, 3]));
-      return;
-    }
-
-    const desktopObserver = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setHasDesktopServicesRevealed(true);
-        desktopObserver.unobserve(entry.target);
-      },
-      { threshold: 0.15 },
-    );
-
-    const mobileObserver = new IntersectionObserver(
-      (entries) => {
-        const revealedIndexes = entries
-          .filter((entry) => entry.isIntersecting)
-          .map((entry) => Number((entry.target as HTMLElement).dataset.serviceRevealIndex));
-
-        if (revealedIndexes.length === 0) return;
-
-        setRevealedMobileServiceItems((currentItems) => {
-          const nextItems = new Set(currentItems);
-          revealedIndexes.forEach((index) => nextItems.add(index));
-          return nextItems;
+    const syncServiceVisibility = () => {
+      setRevealedServiceItems(() => {
+        const nextItems = new Set<number>();
+        serviceItems.forEach((item) => {
+          if (isInRevealRange(item)) {
+            nextItems.add(Number(item.dataset.serviceRevealIndex));
+          }
         });
+        return nextItems;
+      });
+    };
 
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) mobileObserver.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
-    );
-
-    desktopObserver.observe(servicesSection);
-    serviceItems.forEach((item) => mobileObserver.observe(item));
+    syncServiceVisibility();
+    window.addEventListener('scroll', syncServiceVisibility, { passive: true });
+    window.addEventListener('resize', syncServiceVisibility);
 
     return () => {
-      desktopObserver.disconnect();
-      mobileObserver.disconnect();
+      window.removeEventListener('scroll', syncServiceVisibility);
+      window.removeEventListener('resize', syncServiceVisibility);
     };
   }, []);
 
@@ -136,45 +124,71 @@ const Landing: React.FC = () => {
 
     if (whyChooseItems.length !== 5) return;
 
-    if (!('IntersectionObserver' in window)) {
-      setRevealedMobileWhyChooseItems(new Set([0, 1, 2, 3, 4]));
-      return;
-    }
-
-    const whyChooseObserver = new IntersectionObserver(
-      (entries) => {
-        const revealedIndexes = entries
-          .filter((entry) => entry.isIntersecting)
-          .map((entry) =>
-            Number((entry.target as HTMLElement).dataset.whyChooseRevealIndex),
-          );
-
-        if (revealedIndexes.length === 0) return;
-
-        setRevealedMobileWhyChooseItems((currentItems) => {
-          const nextItems = new Set(currentItems);
-          revealedIndexes.forEach((index) => nextItems.add(index));
-          return nextItems;
+    const syncWhyChooseVisibility = () => {
+      setRevealedWhyChooseItems(() => {
+        const nextItems = new Set<number>();
+        whyChooseItems.forEach((item) => {
+          if (isInRevealRange(item)) {
+            nextItems.add(Number(item.dataset.whyChooseRevealIndex));
+          }
         });
+        return nextItems;
+      });
+    };
 
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) whyChooseObserver.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
+    syncWhyChooseVisibility();
+    window.addEventListener('scroll', syncWhyChooseVisibility, { passive: true });
+    window.addEventListener('resize', syncWhyChooseVisibility);
+
+    return () => {
+      window.removeEventListener('scroll', syncWhyChooseVisibility);
+      window.removeEventListener('resize', syncWhyChooseVisibility);
+    };
+  }, []);
+
+  useEffect(() => {
+    const landingItems = landingRevealRefs.current.filter(
+      (item): item is HTMLElement | HTMLDivElement => item !== null,
     );
 
-    whyChooseItems.forEach((item) => whyChooseObserver.observe(item));
-    return () => whyChooseObserver.disconnect();
+    if (landingItems.length !== 6) return;
+
+    const syncLandingVisibility = () => {
+      setRevealedLandingItems(() => {
+        const nextItems = new Set<number>();
+        landingItems.forEach((item) => {
+          if (isInRevealRange(item)) {
+            nextItems.add(Number(item.dataset.landingRevealIndex));
+          }
+        });
+        return nextItems;
+      });
+    };
+
+    syncLandingVisibility();
+    window.addEventListener('scroll', syncLandingVisibility, { passive: true });
+    window.addEventListener('resize', syncLandingVisibility);
+
+    return () => {
+      window.removeEventListener('scroll', syncLandingVisibility);
+      window.removeEventListener('resize', syncLandingVisibility);
+    };
+  }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('mobile-fullscreen-hero-ready'));
   }, []);
 
   useEffect(() => {
     if (!showAboutSection) return;
 
     const scrollTimer = window.setTimeout(() => {
-      aboutTextRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      aboutPhotoRef.current?.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'center',
+        inline: 'nearest',
       });
     }, 120);
 
@@ -185,18 +199,19 @@ const Landing: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Hero Section */}
       <section 
-        className="relative min-h-[500px] px-4 py-16 sm:py-20"
-        style={{ 
-          backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/prato-padova.jpg")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
+        data-mobile-fullscreen-hero="true"
+        className="relative flex min-h-[100svh] items-center px-4 py-16"
       >
-        <div className="container relative z-10 mx-auto text-center">
-          <Badge variant="secondary" className="mb-8 animate-fade-in">
-            agenzia di mediazione immobiliare
-          </Badge>
+        <img
+          src="/prato-padova-optimized.jpg"
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="container relative z-10 mx-auto flex min-h-[calc(100svh-8rem)] items-center justify-center text-center">
           <div onPointerLeave={handleGemutDisclosurePointerLeave}>
             <div
               id="gemut-definition"
@@ -215,10 +230,12 @@ const Landing: React.FC = () => {
                 </p>
               </div>
             </div>
-            <h2 className="mx-auto mb-5 max-w-5xl animate-slide-up text-4xl font-bold text-white drop-shadow-lg sm:text-5xl">
+            <h2 className="mx-auto mb-0 max-w-5xl text-4xl font-bold text-white drop-shadow-lg sm:text-5xl">
               <button
                 type="button"
-                className="rounded-sm text-sky-200 underline decoration-sky-200/50 decoration-2 underline-offset-4 transition-colors hover:text-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                className={`brand-blue-text rounded-sm transition-[color,transform] duration-700 ease-out hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent motion-reduce:transition-none ${
+                  heroTitleStage === 'brand' ? 'translate-x-0' : '-translate-x-1 sm:-translate-x-2'
+                }`}
                 aria-expanded={isGemutDefinitionOpen}
                 aria-controls="gemut-definition"
                 onPointerEnter={handleGemutPointerEnter}
@@ -228,44 +245,54 @@ const Landing: React.FC = () => {
               >
                 Gemüt Capital
               </button>
-              , il tuo partner immobiliare{' '}
-              <span className="text-sky-200">di fiducia</span>.
+              {heroTitleStage !== 'brand' && (
+                <span className="hero-title-copy" aria-label=", il tuo partner immobiliare di fiducia.">
+                  {heroTitleWords.map((word, index) => (
+                    <React.Fragment key={`${word.text}-${word.delay}`}>
+                      {index > 0 && ' '}
+                      <span
+                        className={`hero-title-word ${
+                          word.isTrusted ? 'hero-title-trust-wipe' : ''
+                        } ${
+                          word.isTrusted && heroTitleStage === 'trusted'
+                            ? 'hero-title-trust-wipe--active'
+                            : ''
+                        }`}
+                        style={{
+                          animationDelay: word.delay,
+                          backgroundPosition: heroTitleStage === 'trusted' ? '0 0' : '100% 0',
+                        }}
+                      >
+                        {word.text}
+                        {word.suffix ?? ''}
+                      </span>
+                    </React.Fragment>
+                  ))}
+                </span>
+              )}
             </h2>
           </div>
-          <p
-            className={`mx-auto mb-8 max-w-3xl text-xl text-gray-100 drop-shadow-md transition-all duration-500 ease-out motion-reduce:transition-none md:translate-y-0 md:opacity-100 ${
-              hasMobileClaimRevealed
-                ? 'translate-y-0 opacity-100'
-                : 'translate-y-4 opacity-0'
-            }`}
-          >
-            Esperienza, professionalità e tecnologia al servizio delle tue esigenze immobiliari.
-            Trova la casa dei tuoi sogni o vendi al miglior prezzo con il supporto di un esperto.
-          </p>
         </div>
       </section>
 
       {/* Services Section */}
-      <section ref={servicesSectionRef} className="py-16 px-4 bg-white">
+      <section className="py-16 px-4 bg-white">
         <div className="container mx-auto">
           <div
             ref={(element) => {
               serviceRevealRefs.current[0] = element;
             }}
             data-service-reveal-index="0"
-            className={`mb-12 text-center transition-all duration-700 ease-out motion-reduce:transition-none md:delay-0 ${
-              revealedMobileServiceItems.has(0)
+            className={`mb-12 text-center transition-all duration-700 ease-out motion-reduce:transition-none ${
+              revealedServiceItems.has(0)
                 ? 'translate-x-0 opacity-100'
                 : '-translate-x-8 opacity-0'
-            } ${
-              hasDesktopServicesRevealed
-                ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
-                : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
             }`}
           >
             <h3 className="text-3xl font-bold text-gray-900 mb-4">I Nostri Servizi</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Un servizio completo e personalizzato per ogni esigenza immobiliare
+              Esperienza, professionalità e tecnologia al servizio delle tue esigenze immobiliari.
+              Trova la casa dei tuoi sogni o vendi al miglior prezzo con il supporto di un esperto.
             </p>
           </div>
           
@@ -275,14 +302,10 @@ const Landing: React.FC = () => {
                 serviceRevealRefs.current[1] = element;
               }}
               data-service-reveal-index="1"
-              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none md:[transition-delay:450ms] ${
-                revealedMobileServiceItems.has(1)
+              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none ${
+                revealedServiceItems.has(1)
                   ? 'translate-x-0 opacity-100'
                   : '-translate-x-8 opacity-0'
-              } ${
-                hasDesktopServicesRevealed
-                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
-                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
               }`}
             >
               <Link to="/acquisto-casa" className="block h-full">
@@ -309,14 +332,10 @@ const Landing: React.FC = () => {
                 serviceRevealRefs.current[2] = element;
               }}
               data-service-reveal-index="2"
-              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none md:[transition-delay:600ms] ${
-                revealedMobileServiceItems.has(2)
+              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none ${
+                revealedServiceItems.has(2)
                   ? 'translate-x-0 opacity-100'
                   : '-translate-x-8 opacity-0'
-              } ${
-                hasDesktopServicesRevealed
-                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
-                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
               }`}
             >
               <Link to="/vendita-immobili" className="block h-full">
@@ -343,14 +362,10 @@ const Landing: React.FC = () => {
                 serviceRevealRefs.current[3] = element;
               }}
               data-service-reveal-index="3"
-              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none md:[transition-delay:750ms] ${
-                revealedMobileServiceItems.has(3)
+              className={`h-full transition-all duration-700 ease-out motion-reduce:transition-none ${
+                revealedServiceItems.has(3)
                   ? 'translate-x-0 opacity-100'
                   : '-translate-x-8 opacity-0'
-              } ${
-                hasDesktopServicesRevealed
-                  ? 'md:translate-x-0 md:translate-y-0 md:opacity-100'
-                  : 'md:translate-x-0 md:-translate-y-8 md:opacity-0'
               }`}
             >
               <Link to="/locazioni" className="block h-full">
@@ -404,28 +419,32 @@ const Landing: React.FC = () => {
                 {/* Left Column - Image and Stats */}
                 <div className="relative">
                   <div className="relative">
-                    <div className="w-full h-96 flex items-center justify-center">
+                    <div
+                      ref={aboutPhotoRef}
+                      className="w-full h-96 flex items-center justify-center"
+                    >
                       <img 
-                        src="/profile.jpg" 
+                        src="/profile-optimized.jpg"
                         alt="Filippo Marcuzzo" 
-                        className="h-full w-auto max-w-full rounded-2xl shadow-lg object-contain transition-transform duration-500 hover:scale-105" 
+                        width="512"
+                        height="768"
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-auto max-w-full rounded-2xl shadow-lg object-contain transition-transform duration-500 hover:scale-105"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Right Column - About Content */}
-                <div
-                  ref={aboutTextRef}
-                  className="space-y-6 scroll-mt-24 transition-all duration-700 ease-out"
-                >
+                <div className="space-y-6 transition-all duration-700 ease-out">
                   <div>
                     <Badge variant="secondary" className="mb-4">
                       Chi Sono Io
                     </Badge>
                     <h3 className="text-4xl font-bold text-gray-900 mb-6">
                       La Tua Guida nel Mondo
-                      <span className="text-blue-600"> Immobiliare</span>
+                      <span className="brand-blue-text"> Immobiliare</span>
                     </h3>
                   </div>
 
@@ -480,8 +499,8 @@ const Landing: React.FC = () => {
               whyChooseRevealRefs.current[0] = element;
             }}
             data-why-choose-reveal-index="0"
-            className={`mb-12 text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
-              revealedMobileWhyChooseItems.has(0) ? 'opacity-100' : 'opacity-0'
+            className={`mb-12 text-center transition-opacity duration-700 ease-out motion-reduce:transition-none ${
+              revealedWhyChooseItems.has(0) ? 'opacity-100' : 'opacity-0'
             }`}
           >
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Perché Sceglierci</h3>
@@ -496,8 +515,8 @@ const Landing: React.FC = () => {
                 whyChooseRevealRefs.current[1] = element;
               }}
               data-why-choose-reveal-index="1"
-              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
-                revealedMobileWhyChooseItems.has(1) ? 'opacity-100' : 'opacity-0'
+              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none ${
+                revealedWhyChooseItems.has(1) ? 'opacity-100' : 'opacity-0'
               }`}
             >
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -512,8 +531,8 @@ const Landing: React.FC = () => {
                 whyChooseRevealRefs.current[2] = element;
               }}
               data-why-choose-reveal-index="2"
-              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
-                revealedMobileWhyChooseItems.has(2) ? 'opacity-100' : 'opacity-0'
+              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none ${
+                revealedWhyChooseItems.has(2) ? 'opacity-100' : 'opacity-0'
               }`}
             >
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -528,8 +547,8 @@ const Landing: React.FC = () => {
                 whyChooseRevealRefs.current[3] = element;
               }}
               data-why-choose-reveal-index="3"
-              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
-                revealedMobileWhyChooseItems.has(3) ? 'opacity-100' : 'opacity-0'
+              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none ${
+                revealedWhyChooseItems.has(3) ? 'opacity-100' : 'opacity-0'
               }`}
             >
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -544,8 +563,8 @@ const Landing: React.FC = () => {
                 whyChooseRevealRefs.current[4] = element;
               }}
               data-why-choose-reveal-index="4"
-              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none md:opacity-100 ${
-                revealedMobileWhyChooseItems.has(4) ? 'opacity-100' : 'opacity-0'
+              className={`text-center transition-opacity duration-700 ease-out motion-reduce:transition-none ${
+                revealedWhyChooseItems.has(4) ? 'opacity-100' : 'opacity-0'
               }`}
             >
               <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -561,7 +580,17 @@ const Landing: React.FC = () => {
       {/* Servizi su Misura Section */}
       <section className="py-16 px-4 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
         <div className="container mx-auto">
-          <div className="text-center mb-12">
+          <div
+            ref={(element) => {
+              landingRevealRefs.current[0] = element;
+            }}
+            data-landing-reveal-index="0"
+            className={`mb-12 text-center transition-all duration-700 ease-out motion-reduce:transition-none ${
+              revealedLandingItems.has(0)
+                ? 'translate-x-0 opacity-100'
+                : '-translate-x-8 opacity-0'
+            }`}
+          >
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Servizi su Misura</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Soluzioni innovative e personalizzate per valorizzare al meglio il tuo patrimonio immobiliare
@@ -570,7 +599,17 @@ const Landing: React.FC = () => {
           
           <div className="mx-auto grid max-w-[44rem] gap-5 md:grid-cols-2">
             {/* UAV Roof Inspection */}
-            <Card className="flex h-full min-h-[18rem] flex-col border-2 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-indigo-200 hover:shadow-xl md:min-h-0">
+            <Card
+              ref={(element) => {
+                landingRevealRefs.current[1] = element;
+              }}
+              data-landing-reveal-index="1"
+              className={`flex h-full min-h-[18rem] flex-col border-2 bg-white/80 backdrop-blur-sm transition-all duration-700 ease-out hover:scale-105 hover:border-indigo-200 hover:shadow-xl motion-reduce:transition-none md:min-h-0 ${
+                revealedLandingItems.has(1)
+                  ? 'translate-x-0 opacity-100'
+                  : '-translate-x-8 opacity-0'
+              }`}
+            >
               <CardHeader className="p-4 text-center">
                 <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-indigo-100 transition-colors duration-200 hover:bg-indigo-200">
                   <Plane className="h-[1.375rem] w-[1.375rem] text-indigo-600" />
@@ -593,7 +632,17 @@ const Landing: React.FC = () => {
             </Card>
 
             {/* Patrimony Evaluation */}
-            <Card className="flex h-full min-h-[18rem] flex-col border-2 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-green-200 hover:shadow-xl md:min-h-0">
+            <Card
+              ref={(element) => {
+                landingRevealRefs.current[2] = element;
+              }}
+              data-landing-reveal-index="2"
+              className={`flex h-full min-h-[18rem] flex-col border-2 bg-white/80 backdrop-blur-sm transition-all duration-700 ease-out hover:scale-105 hover:border-green-200 hover:shadow-xl motion-reduce:transition-none md:min-h-0 ${
+                revealedLandingItems.has(2)
+                  ? 'translate-x-0 opacity-100'
+                  : '-translate-x-8 opacity-0'
+              }`}
+            >
               <CardHeader className="p-4 text-center">
                 <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-green-100 transition-colors duration-200 hover:bg-green-200">
                   <BarChart3 className="h-[1.375rem] w-[1.375rem] text-green-600" />
@@ -617,7 +666,17 @@ const Landing: React.FC = () => {
           </div>
 
           {/* CTA for Custom Services */}
-          <div className="text-center mt-12">
+          <div
+            ref={(element) => {
+              landingRevealRefs.current[3] = element;
+            }}
+            data-landing-reveal-index="3"
+            className={`mt-12 text-center transition-all duration-700 ease-out motion-reduce:transition-none ${
+              revealedLandingItems.has(3)
+                ? 'translate-x-0 opacity-100'
+                : '-translate-x-8 opacity-0'
+            }`}
+          >
             <Link to="/servizi-personalizzati" className="inline-flex max-w-full">
               <Button size="lg" className="h-auto max-w-full whitespace-normal bg-indigo-600 py-3 text-white shadow-lg transition-all duration-300 hover:bg-indigo-700 hover:shadow-xl">
                 <FileText className="mr-2 h-5 w-5" />
@@ -630,7 +689,17 @@ const Landing: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 bg-blue-600 text-white">
+      <section
+        ref={(element) => {
+          landingRevealRefs.current[4] = element;
+        }}
+        data-landing-reveal-index="4"
+        className={`py-16 px-4 bg-blue-600 text-white transition-all duration-700 ease-out motion-reduce:transition-none ${
+          revealedLandingItems.has(4)
+            ? 'translate-x-0 opacity-100'
+            : '-translate-x-8 opacity-0'
+        }`}
+      >
         <div className="container mx-auto text-center">
           <h3 className="text-3xl font-bold mb-4">Pronto a Iniziare?</h3>
           <p className="text-xl mb-8 text-blue-100">
@@ -653,7 +722,17 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-16 px-4 bg-white">
+      <section
+        ref={(element) => {
+          landingRevealRefs.current[5] = element;
+        }}
+        data-landing-reveal-index="5"
+        className={`py-16 px-4 bg-white transition-all duration-700 ease-out motion-reduce:transition-none ${
+          revealedLandingItems.has(5)
+            ? 'translate-x-0 opacity-100'
+            : '-translate-x-8 opacity-0'
+        }`}
+      >
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Contatti</h3>

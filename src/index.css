@@ -8,6 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    --brand-accent-blue: #2563eb;
     --background: 210 20% 98%;
     --foreground: 215 25% 15%;
 
@@ -322,6 +323,35 @@ All colors MUST be HSL.
     animation: slideUp 0.4s ease-out;
   }
 
+  .hero-title-copy {
+    display: inline;
+  }
+
+  .brand-blue-text {
+    color: var(--brand-accent-blue);
+  }
+
+  .hero-title-word {
+    animation: heroTitleCopyIn 0.72s ease-out forwards;
+    display: inline-block;
+    opacity: 0;
+    transform: translateX(0.35em);
+  }
+
+  .hero-title-trust-wipe {
+    background-clip: text;
+    background-image: linear-gradient(90deg, var(--brand-accent-blue) 0 50%, #ffffff 50% 100%);
+    background-position: 100% 0;
+    background-size: 200% 100%;
+    color: transparent;
+    transition: background-position 0.95s ease-out;
+    -webkit-background-clip: text;
+  }
+
+  .hero-title-trust-wipe--active {
+    background-position: 0 0;
+  }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -333,6 +363,17 @@ All colors MUST be HSL.
   }
 }
 
+@keyframes heroTitleCopyIn {
+  from {
+    opacity: 0;
+    transform: translateX(0.35em);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -341,6 +382,15 @@ All colors MUST be HSL.
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .hero-title-copy {
+    display: inline;
+  }
+
+  .hero-title-word {
+    opacity: 1;
+    transform: none;
   }
 }
 

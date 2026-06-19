@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import test from 'node:test';
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -44,6 +44,7 @@ test('global navigation exposes every required destination', () => {
     '/acquisto-casa',
     '/vendita-immobili',
     '/locazioni',
+    '/servizi-personalizzati',
     '/verifica-stato-tetto/',
     '/valutazione-patrimonio/',
     '/prenotazione',
@@ -51,10 +52,62 @@ test('global navigation exposes every required destination', () => {
   assert.match(navigation, /Apri menu di navigazione/);
 });
 
+test('global navigation separates destinations into titled visual sections', () => {
+  const navigation = read('src/components/GlobalNavigation.tsx');
+
+  assert.match(navigation, /const navigationSections = \[/);
+  ['Principale', 'Servizi immobiliari', 'Servizi su misura'].forEach((title) => {
+    assert.match(navigation, new RegExp(`title: '${title}'`));
+  });
+  [
+    'Home',
+    'Sto cercando un immobile',
+    'Quanto vale il mio immobile',
+    'Locazioni',
+    'Servizi personalizzati',
+  ].forEach((label) => assert.match(navigation, new RegExp(`label: '${label}'`)));
+  assert.match(navigation, /space-y-6/);
+  assert.match(navigation, /aria-labelledby=/);
+  assert.match(navigation, /<h2/);
+});
+
+test('desktop navigation closes after hover and highlights the current route', () => {
+  const navigation = read('src/components/GlobalNavigation.tsx');
+
+  assert.match(navigation, /const closeMenuTimer = useRef<number \| null>\(null\)/);
+  assert.match(navigation, /const scheduleMenuClose = \(\) =>/);
+  assert.match(navigation, /window\.setTimeout\(\(\) => \{/);
+  assert.match(navigation, /onPointerLeave=\{\(event\) =>/);
+  assert.match(navigation, /onPointerEnter=\{\(event\) =>/);
+  assert.match(navigation, /if \(event\.pointerType !== 'touch'\) scheduleMenuClose\(\)/);
+  assert.match(navigation, /if \(event\.pointerType !== 'touch'\) cancelScheduledClose\(\)/);
+  assert.match(navigation, /aria-current=\{isCurrent \? 'page' : undefined\}/);
+  assert.match(navigation, /bg-blue-700 text-white/);
+});
+
+test('route changes reset scroll so destination headers open from the top', () => {
+  const app = read('src/LandingApp.tsx');
+
+  assert.match(app, /function ScrollToTop\(\)/);
+  assert.match(app, /const \{ pathname \} = useLocation\(\)/);
+  assert.match(app, /useLayoutEffect\(\(\) => \{/);
+  assert.match(app, /window\.scrollTo\(\{ top: 0, left: 0, behavior: 'auto' \}\)/);
+  assert.match(app, /\}, \[pathname\]\)/);
+  assert.match(app, /<ScrollToTop \/>/);
+  assert.ok(app.indexOf('<ScrollToTop />') < app.indexOf('<Routes>'));
+});
+
 test('global navigation keeps the menu button fixed without measuring a home header', () => {
   const navigation = read('src/components/GlobalNavigation.tsx');
 
   assert.match(navigation, /top-4/);
+  assert.match(navigation, /isHiddenByFullscreenHero/);
+  assert.match(navigation, /data-mobile-fullscreen-hero/);
+  assert.match(navigation, /window\.scrollY < Math\.max\(24, window\.innerHeight \* 0\.75\)/);
+  assert.match(navigation, /window\.setTimeout\(syncFullscreenHeroVisibility, 150\)/);
+  assert.match(navigation, /mobile-fullscreen-hero-ready/);
+  assert.match(navigation, /pointer-events-none opacity-0/);
+  assert.doesNotMatch(navigation, /md:pointer-events-auto/);
   assert.doesNotMatch(navigation, /document\.querySelector\('header'\)/);
   assert.doesNotMatch(navigation, /ResizeObserver/);
   assert.doesNotMatch(navigation, /getBoundingClientRect\(\)\.height/);
@@ -80,13 +133,39 @@ test('global navigation opens on hover or focus and routes home on desktop click
 
 test('home contains the approved hero and service copy', () => {
   const landing = read('src/pages/Landing.tsx');
+  const css = read('src/index.css');
   const hero = landing.slice(
     landing.indexOf('{/* Hero Section */}'),
     landing.indexOf('{/* Services Section */}'),
   );
   const definition = "Il termine tedesco Gemüt indica l'animo";
 
-  assert.match(hero, />\s*agenzia di mediazione immobiliare\s*</);
+  assert.match(hero, /min-h-\[100svh\]/);
+  assert.match(hero, /items-center/);
+  assert.match(hero, /data-mobile-fullscreen-hero="true"/);
+  assert.match(landing, /mobile-fullscreen-hero-ready/);
+  assert.match(hero, /min-h-\[calc\(100svh-8rem\)\]/);
+  assert.match(hero, /justify-center/);
+  assert.doesNotMatch(hero, /md:min-h-\[500px\]/);
+  assert.doesNotMatch(hero, /md:block/);
+  assert.doesNotMatch(hero, /md:min-h-0/);
+  assert.doesNotMatch(hero, /Agenzia di mediazione immobiliare/);
+  assert.match(landing, /const \[heroTitleStage, setHeroTitleStage\]/);
+  assert.match(landing, /setHeroTitleStage\('full'\), 1000/);
+  assert.match(landing, /setHeroTitleStage\('trusted'\), 3300/);
+  assert.match(landing, /const heroTitleWords = \[/);
+  assert.match(landing, /delay: '1600ms'/);
+  assert.match(hero, /heroTitleStage === 'brand'/);
+  assert.match(hero, /hero-title-copy/);
+  assert.match(hero, /hero-title-word/);
+  assert.match(hero, /hero-title-trust-wipe/);
+  assert.match(css, /\.hero-title-copy/);
+  assert.match(css, /\.hero-title-word/);
+  assert.match(hero, /index > 0 && ' '/);
+  assert.match(css, /@keyframes heroTitleCopyIn/);
+  assert.match(css, /\.hero-title-trust-wipe--active/);
+  assert.match(css, /background-position: 100% 0/);
+  assert.match(css, /background-position: 0 0/);
   assert.ok(hero.indexOf(definition) < hero.indexOf('<h2'));
   assert.match(
     landing,
@@ -107,27 +186,19 @@ test('home contains the approved hero and service copy', () => {
   assert.match(hero, /grid-rows-\[0fr\]/);
   assert.match(hero, /grid-rows-\[1fr\]/);
   assert.match(hero, /transition-\[grid-template-rows,opacity,transform,margin\]/);
-  assert.match(
-    landing,
-    /const \[hasMobileClaimRevealed, setHasMobileClaimRevealed\] = useState\(false\)/,
-  );
-  assert.match(landing, /const lastScrollYRef = useRef\(0\)/);
-  assert.match(landing, /window\.matchMedia\('\(max-width: 767px\)'\)/);
-  assert.match(landing, /currentScrollY > lastScrollYRef\.current/);
-  assert.match(landing, /currentScrollY > 24/);
-  assert.match(
-    landing,
-    /window\.addEventListener\('scroll', revealMobileClaim, \{ passive: true \}\)/,
-  );
-  assert.match(landing, /window\.removeEventListener\('scroll', revealMobileClaim\)/);
-  assert.match(hero, /hasMobileClaimRevealed/);
-  assert.match(hero, /translate-y-4 opacity-0/);
-  assert.match(hero, /md:translate-y-0 md:opacity-100/);
-  assert.match(hero, /motion-reduce:transition-none/);
+  assert.doesNotMatch(landing, /hasMobileClaimRevealed/);
+  assert.doesNotMatch(landing, /syncMobileClaimVisibility/);
+  assert.doesNotMatch(hero, /Esperienza, professionalità e tecnologia/);
+  assert.doesNotMatch(hero, /underline/);
+  assert.doesNotMatch(hero, /decoration-sky/);
   assert.match(hero, /Gemüt Capital/);
   assert.match(hero, /il tuo partner immobiliare/);
   assert.match(hero, /di fiducia/);
-  assert.match(hero, /text-sky-200/);
+  assert.match(css, /--brand-accent-blue: #2563eb/);
+  assert.match(css, /\.brand-blue-text/);
+  assert.match(css, /var\(--brand-accent-blue\) 0 50%/);
+  assert.match(hero, /className={`brand-blue-text rounded-sm/);
+  assert.match(landing, /<span className="brand-blue-text"> Immobiliare<\/span>/);
   assert.match(
     hero,
     /Il termine tedesco Gemüt indica l'animo, lo spirito o l'indole di una persona,\s+rappresenta la sfera emotiva, il cuore o il temperamento intesi come sede dei\s+sentimenti\./,
@@ -135,6 +206,10 @@ test('home contains the approved hero and service copy', () => {
   assert.doesNotMatch(hero, /Il Tuo Partner Immobiliare di Fiducia/);
   assert.doesNotMatch(landing, /Agenzia di mediazione immobiliare Gemüt Capital/);
   assert.doesNotMatch(landing, /Più\s+nello specifico/);
+  assert.match(
+    landing,
+    /Esperienza, professionalità e tecnologia al servizio delle tue esigenze immobiliari\.\s+Trova la casa dei tuoi sogni o vendi al miglior prezzo con il supporto di un esperto\./,
+  );
   assert.match(landing, /Sto cercando un immobile/);
   assert.match(landing, /Vorrei sapere quanto vale il mio immobile/);
   assert.match(landing, /Servizi per l'affitto/);
@@ -143,67 +218,98 @@ test('home contains the approved hero and service copy', () => {
   assert.doesNotMatch(landing, /sto cercando un immobile in affitto o ho un immobile da affittare/);
 });
 
-test('home services use responsive one-shot reveal sequences', () => {
+test('home services use the same reversible reveal on mobile and desktop', () => {
   const landing = read('src/pages/Landing.tsx');
   const services = landing.slice(
     landing.indexOf('{/* Services Section */}'),
     landing.indexOf('{/* Chi Sono Io Toggle Button */}'),
   );
 
-  assert.match(
-    landing,
-    /const \[hasDesktopServicesRevealed, setHasDesktopServicesRevealed\] = useState\(false\)/,
-  );
-  assert.match(
-    landing,
-    /const \[revealedMobileServiceItems, setRevealedMobileServiceItems\]/,
-  );
-  assert.match(landing, /const servicesSectionRef = useRef<HTMLElement>\(null\)/);
-  assert.match(landing, /new IntersectionObserver/);
-  assert.match(landing, /'IntersectionObserver' in window/);
-  assert.match(
-    landing,
-    /setRevealedMobileServiceItems\(new Set\(\[0, 1, 2, 3\]\)\)/,
-  );
+  assert.match(landing, /const \[revealedServiceItems, setRevealedServiceItems\]/);
+  assert.match(landing, /const isInRevealRange = \(element: HTMLElement\)/);
+  assert.match(landing, /window\.addEventListener\('scroll', syncServiceVisibility/);
+  assert.match(landing, /window\.removeEventListener\('scroll', syncServiceVisibility\)/);
   assert.match(services, /data-service-reveal-index="0"/);
   assert.match(services, /data-service-reveal-index="1"/);
   assert.match(services, /data-service-reveal-index="2"/);
   assert.match(services, /data-service-reveal-index="3"/);
   assert.match(services, /-translate-x-8 opacity-0/);
-  assert.match(services, /md:-translate-y-8 md:opacity-0/);
-  assert.match(services, /md:\[transition-delay:450ms\]/);
-  assert.match(services, /md:\[transition-delay:600ms\]/);
-  assert.match(services, /md:\[transition-delay:750ms\]/);
   assert.match(services, /motion-reduce:transition-none/);
+  assert.doesNotMatch(services, /md:(?:translate|opacity|\[transition-delay)/);
+  assert.doesNotMatch(landing, /hasDesktopServicesRevealed|mobileQuery/);
 });
 
-test('why choose uses mobile one-shot fade-only reveals', () => {
+test('about disclosure centers the profile photo with an accessible motion fallback', () => {
+  const landing = read('src/pages/Landing.tsx');
+
+  assert.match(landing, /const aboutPhotoRef = useRef<HTMLDivElement>\(null\)/);
+  assert.match(landing, /ref=\{aboutPhotoRef\}/);
+  assert.match(landing, /aboutPhotoRef\.current\?\.scrollIntoView/);
+  assert.match(landing, /behavior: prefersReducedMotion \? 'auto' : 'smooth'/);
+  assert.match(landing, /block: 'center'/);
+  assert.match(landing, /inline: 'nearest'/);
+  assert.doesNotMatch(landing, /aboutTextRef/);
+});
+
+test('why choose and final sections reveal reversibly on mobile and desktop', () => {
   const landing = read('src/pages/Landing.tsx');
   const whyChoose = landing.slice(
     landing.indexOf('{/* Why Choose Me Section */}'),
     landing.indexOf('{/* Servizi su Misura Section */}'),
   );
+  const finalSections = landing.slice(
+    landing.indexOf('{/* Servizi su Misura Section */}'),
+    landing.indexOf('{/* Contact Section */}') + '{/* Contact Section */}'.length + 1200,
+  );
 
   assert.match(
     landing,
-    /const \[revealedMobileWhyChooseItems, setRevealedMobileWhyChooseItems\]/,
+    /const \[revealedWhyChooseItems, setRevealedWhyChooseItems\]/,
   );
-  assert.match(landing, /const whyChooseRevealRefs = useRef/);
   assert.match(
     landing,
-    /setRevealedMobileWhyChooseItems\(new Set\(\[0, 1, 2, 3, 4\]\)\)/,
+    /const \[revealedLandingItems, setRevealedLandingItems\]/,
   );
-  assert.match(landing, /whyChooseObserver\.unobserve\(entry\.target\)/);
+  assert.match(landing, /const whyChooseRevealRefs = useRef/);
+  assert.match(landing, /const landingRevealRefs = useRef/);
+  assert.match(landing, /window\.addEventListener\('scroll', syncWhyChooseVisibility/);
+  assert.match(landing, /window\.addEventListener\('scroll', syncLandingVisibility/);
 
   for (let index = 0; index < 5; index += 1) {
     assert.match(whyChoose, new RegExp(`data-why-choose-reveal-index="${index}"`));
   }
 
+  for (let index = 0; index < 6; index += 1) {
+    assert.match(landing, new RegExp(`data-landing-reveal-index="${index}"`));
+  }
+
   assert.match(whyChoose, /transition-opacity/);
   assert.match(whyChoose, /opacity-0/);
-  assert.match(whyChoose, /md:opacity-100/);
   assert.match(whyChoose, /motion-reduce:transition-none/);
+  assert.match(finalSections, /-translate-x-8 opacity-0/);
+  assert.doesNotMatch(whyChoose, /md:opacity-100/);
+  assert.doesNotMatch(finalSections, /md:translate-x-0|md:opacity-100/);
   assert.doesNotMatch(whyChoose, /(?:^|\s)-?(?:translate|scale)-/);
+});
+
+test('every Contattaci Ora CTA opens WhatsApp directly without revealing email', () => {
+  const acquisition = read('src/pages/AcquistoCasa.tsx');
+  const sale = read('src/pages/VenditaImmobili.tsx');
+  const contactCtas = `${acquisition}\n${sale}`;
+
+  assert.equal(contactCtas.match(/Contattaci Ora/g)?.length, 2);
+  [acquisition, sale].forEach((page) => {
+    assert.match(page, /getWhatsAppUrl/);
+    assert.match(page, /target="_blank"/);
+    assert.match(page, /rel="noopener noreferrer"/);
+    assert.match(page, /MessageCircle/);
+  });
+  assert.match(acquisition, /informazioni per acquistare un immobile/);
+  assert.match(sale, /informazioni per vendere il mio immobile/);
+  assert.doesNotMatch(
+    contactCtas,
+    /showEmail|emailCopied|handleContactClick|handleCopyEmail|navigator\.clipboard/,
+  );
 });
 
 test('public company copy uses representative plural voice', () => {
@@ -243,7 +349,7 @@ test('public company copy uses representative plural voice', () => {
 test('personal biography and customer voice remain singular', () => {
   assert.equal(
     createHash('sha256').update(aboutBlock).digest('hex'),
-    '5aae75fcc81af0e2d45bb1b13e7e82c49229615986b3e1ff4386f6719f8d0553',
+    'fcde29a1955fe7350ccc4af5461aec25bd1bcfc4bdbe9a147357445ac9849819',
   );
   assert.match(aboutBlock, /Sono <strong/);
   assert.match(aboutBlock, /La mia attività nasce/);
@@ -334,7 +440,7 @@ test('home specialist cards use the compact sizing contract', () => {
 test('public request page uses one Prato della Valle background', () => {
   const requests = read('src/pages/PublicRequests.tsx');
 
-  assert.match(requests, /url\(\/prato-padova\.jpg\)/);
+  assert.match(requests, /url\(\/prato-padova-optimized\.jpg\)/);
   assert.doesNotMatch(requests, /piazza-vicina\.JPG/);
   assert.doesNotMatch(requests, /padova-test\.jpg/);
 });
@@ -387,15 +493,63 @@ test('required local assets and restored pages exist', () => {
   ].forEach((path) => assert.equal(existsSync(new URL(`../${path}`, import.meta.url)), true, path));
 });
 
+test('active pages use optimized images with bounded file sizes', () => {
+  const optimizedAssets = [
+    'public/prato-padova-optimized.jpg',
+    'public/sfondo-patrimoni-optimized.jpg',
+    'public/foto-cortina-optimized.jpg',
+    'public/sfondo-locazioni-optimized.jpg',
+    'public/tetto-uav-optimized.jpg',
+    'public/strada-verde-optimized.jpg',
+    'public/profile-optimized.jpg',
+  ];
+  const optimizedSources = [
+    read('src/pages/Landing.tsx'),
+    read('src/pages/PublicRequests.tsx'),
+    read('src/pages/AcquistoCasa.tsx'),
+    read('src/pages/VenditaImmobili.tsx'),
+    read('src/pages/Locazioni.tsx'),
+    read('src/pages/ServiziPersonalizzati.tsx'),
+    read('src/pages/ServiceDetail.tsx'),
+  ].join('\n');
+
+  optimizedAssets.forEach((path) => {
+    const url = new URL(`../${path}`, import.meta.url);
+    assert.equal(existsSync(url), true, path);
+    assert.ok(statSync(url).size < 900_000, `${path} must stay below 900 KB`);
+    assert.match(optimizedSources, new RegExp(path.replace('public/', '').replace('.', '\\.')));
+  });
+  assert.ok(
+    statSync(new URL('../public/sfondo-patrimoni-optimized.jpg', import.meta.url)).size > 100_000,
+    'the SDR sale image must contain visible photographic data',
+  );
+  assert.match(landingSource, /fetchPriority="high"/);
+  assert.match(landingSource, /loading="lazy"/);
+  assert.match(landingSource, /decoding="async"/);
+  assert.match(landingSource, /width="512"/);
+  assert.match(landingSource, /height="768"/);
+});
+
 test('footer contains approved company details', () => {
   const footer = read('src/components/SiteFooter.tsx');
+  const publicPages = [
+    read('src/pages/PublicRequests.tsx'),
+    read('src/pages/ClientAccess.tsx'),
+  ].join('\n');
   [
     'Gemüt Capital SRL',
     'Mediazione immobiliare',
     '379 260 6775',
     'info@gemutcapital.com',
-    '0555 8150 289',
-    'da comunicare',
+    'Partita IVA: 05791060287',
+    'REA: PD - 492863',
+    'gemutcapital@pec.it',
     'Informativa Privacy',
+    '© 2026 Gemüt Capital SRL',
   ].forEach((text) => assert.match(footer, new RegExp(text)));
+
+  assert.doesNotMatch(footer, /© 2025/);
+
+  assert.doesNotMatch(footer, /FileText|rounded-lg bg-white\/5/);
+  assert.doesNotMatch(publicPages, /0555 8150 289/);
 });
