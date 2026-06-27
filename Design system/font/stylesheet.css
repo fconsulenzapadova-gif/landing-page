@@ -1,0 +1,48 @@
+@font-face {
+    font-family: 'De Fonte Plus Demi Gras';
+    src: url('DeFontePlus-DemiGras.eot');
+    src: local('De Fonte Plus Demi Gras'), local('DeFontePlus-DemiGras'),
+        url('DeFontePlus-DemiGras.eot?#iefix') format('embedded-opentype'),
+        url('DeFontePlus-DemiGras.woff2') format('woff2'),
+        url('DeFontePlus-DemiGras.woff') format('woff'),
+        url('DeFontePlus-DemiGras.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'De Fonte Plus Gros';
+    src: url('DeFontePlus-Gros.eot');
+    src: local('De Fonte Plus Gros'), local('DeFontePlus-Gros'),
+        url('DeFontePlus-Gros.eot?#iefix') format('embedded-opentype'),
+        url('DeFontePlus-Gros.woff2') format('woff2'),
+        url('DeFontePlus-Gros.woff') format('woff'),
+        url('DeFontePlus-Gros.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'De Fonte Plus Leger';
+    src: url('DeFontePlus-Leger.eot');
+    src: local('De Fonte Plus Leger'), local('DeFontePlus-Leger'),
+        url('DeFontePlus-Leger.eot?#iefix') format('embedded-opentype'),
+        url('DeFontePlus-Leger.woff2') format('woff2'),
+        url('DeFontePlus-Leger.woff') format('woff'),
+        url('DeFontePlus-Leger.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'De Fonte Plus Normale';
+    src: url('DeFontePlus-Normale.eot');
+    src: local('De Fonte Plus Normale'), local('DeFontePlus-Normale'),
+        url('DeFontePlus-Normale.eot?#iefix') format('embedded-opentype'),
+        url('DeFontePlus-Normale.woff2') format('woff2'),
+        url('DeFontePlus-Normale.woff') format('woff'),
+        url('DeFontePlus-Normale.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+

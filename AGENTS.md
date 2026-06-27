@@ -2,21 +2,29 @@
 
 ## Avvio di ogni task
 
-1. Attivare e usare sempre [`$caveman`](/Users/filippomarcuzzo/.codex/skills/caveman/SKILL.md) con intensita `ultra`.
+1. Attivare e usare sempre [`$caveman`](/Users/filippomarcuzzo/.codex/skills/caveman/SKILL.md) con intensita `ultra`. Se il file skill non esiste nell'ambiente corrente, dichiararlo e continuare con comunicazione sintetica, diretta e operativa.
 2. Leggere completamente `PRD.md` prima di analizzare o modificare il progetto.
 3. Usare la sezione "Mappa rapida: dove modificare" del PRD per trovare i file rilevanti.
 4. Verificare sempre il codice reale prima di assumere che una funzione sia attiva.
 5. Distinguere feature attive, parziali, legacy/dormienti e simulate.
 6. Controllare `git status`; non sovrascrivere o ripristinare modifiche non proprie.
 
+## Regola di manutenzione documentazione
+
+- `PRD.md` va letto all'inizio di ogni task e aggiornato alla fine quando cambia il prodotto o la struttura.
+- `AGENTS.md` va letto all'inizio di ogni task e aggiornato quando cambiano regole operative, struttura del progetto o verifiche obbligatorie.
+- Non lasciare PRD o AGENTS in stato incoerente con il codice reale.
+
 ## Durante il lavoro
 
-- Conservare stack, pattern e componenti condivisi esistenti.
+- Conservare stack e pattern della nuova app pubblica: React, Vite, TypeScript, Tailwind, contenuti centralizzati in `src/content/site.ts`.
+- Mantenere la landing public-only: non reintrodurre AuthProvider, React Query, dashboard CRM o componenti shadcn se non sono richiesti da una feature reale.
 - Cercare riferimenti e dipendenze con `rg` prima di spostare, rinominare o eliminare codice.
 - Non descrivere codice legacy o simulato come feature di produzione.
 - Non inventare route, API, tabelle, variabili ambiente o dati societari.
-- Mantenere modifiche focalizzate e verificabili.
-- Proteggere compatibilita route, responsive, accessibilita e flussi dati.
+- Mantenere modifiche focalizzate, verificabili e coerenti con route pubbliche, responsive, accessibilita e flussi dati.
+- Il form pubblico deve restare un unico flusso in `src/pages/RequestsPage.tsx` + `src/lib/leads.ts`.
+- Se cambia lo schema lead, aggiornare `database_schema.sql`, `fix_rls_policies.sql` e PRD nello stesso task.
 
 ## Aggiornamento PRD obbligatorio
 
@@ -29,7 +37,7 @@ Aggiornare `PRD.md` nello stesso task quando cambia almeno uno di questi element
 - flusso utente;
 - schema DB, tabella, RLS o tipo dati;
 - API o integrazione esterna;
-- localStorage o gestione auth;
+- localStorage o gestione cookie;
 - asset, configurazione, build o deploy;
 - stato di una feature: attiva, parziale, legacy o simulata;
 - limite noto, requisito o criterio di verifica.
@@ -38,7 +46,7 @@ Se la modifica non richiede aggiornamento PRD, verificarlo esplicitamente prima 
 
 ## Chiusura di ogni task
 
-1. Eseguire test, lint, build e verifiche pertinenti quando disponibili.
+1. Eseguire test, lint, typecheck, build e verifiche pertinenti quando disponibili.
 2. Controllare il diff per modifiche accidentali.
 3. Confermare che `PRD.md` descriva ancora lo stato reale del repository.
 4. Comunicare in modalita `$caveman ultra`: risultato, file cambiati, verifiche, limiti residui.

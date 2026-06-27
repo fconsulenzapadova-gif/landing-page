@@ -1,5 +1,11 @@
-import { createRoot } from "react-dom/client";
-import LandingApp from "./LandingApp.tsx";
-import "./index.css";
+import { createRoot } from 'react-dom/client';
+import LandingApp from './LandingApp';
+import './index.css';
 
-createRoot(document.getElementById("root")!).render(<LandingApp />);
+const root = document.getElementById('root');
+
+if (!root) {
+  throw new Error('Root element #root not found');
+}
+
+createRoot(root).render(<LandingApp />);

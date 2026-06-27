@@ -1,274 +1,286 @@
-# PRD e mappa della repository - Gemüt Capital
+# PRD - Gemut Capital
 
-Ultimo aggiornamento: 19 giugno 2026
+Ultimo aggiornamento: 27 giugno 2026
 
-## 1. Scopo del documento
+## 1. Scopo
 
-Questo file e la fonte iniziale per capire:
+Questo documento descrive lo stato reale del sito Gemut Capital dopo la
+riscrittura public-only. Va letto prima di ogni task insieme ad `AGENTS.md`.
+Se codice e PRD divergono, il codice reale prevale e questo file deve essere
+aggiornato nello stesso task.
 
-- che cosa fa il prodotto;
-- come e strutturata la repository;
-- dove cercare prima di fare una modifica;
-- quali parti sono attive, parziali, legacy o simulate;
-- quali flussi coinvolgono frontend, Supabase, CRM esterno e localStorage;
-- quali requisiti non devono regredire.
+Obiettivi della riscrittura:
 
-Prima di modificare il progetto, leggere questo documento e verificare i file indicati. Dopo modifiche funzionali, architetturali, di routing, dati, integrazioni o configurazione, aggiornare anche questo file.
+- eliminare la vecchia struttura CRM/dormiente dalla build pubblica;
+- rendere il sito semplice da leggere, modificare e verificare;
+- centralizzare contenuti, route e dati societari;
+- mantenere compatibilita con le route pubbliche principali;
+- usare un unico form lead reale;
+- documentare chiaramente feature attive, parziali e simulate;
+- applicare un design system editoriale ispirato alla reference Tandem, con
+  logo ufficiale, azzurro cielo brand `#b3e5fc`, font De Fonte Plus e
+  animazioni GSAP.
 
-## 2. Sintesi del prodotto
+## 2. Sintesi prodotto
 
-La repository contiene una SPA pubblica per **Gemüt Capital SRL**, societa di mediazione immobiliare focalizzata su Padova e provincia.
+Il progetto e una SPA pubblica per **Gemut Capital SRL**, societa di mediazione
+immobiliare a Padova e provincia.
 
-Il prodotto pubblico presenta:
+Il sito presenta:
 
-- servizi di acquisto, vendita e locazione;
-- servizi immobiliari personalizzati;
-- ispezione tetti tramite UAV;
+- servizi di acquisto casa;
+- vendita immobili;
+- locazioni;
 - valutazione del patrimonio immobiliare;
-- profilo professionale di Filippo Marcuzzo;
-- form per acquisizione lead e richieste immobiliari;
-- contatti, prenotazione consulenza, privacy e preferenze cookie.
+- form richiesta lead;
+- prenotazione consulenza tramite contatto diretto;
+- privacy page sintetica;
+- cookie banner locale.
+- UI dinamica con hero full-screen fotografica, headline animata, preview
+  servizi interattiva, navigazione misurata sullo spazio reale, reveal on
+  scroll, parallax leggero, transizione curve swipe dalla hero al contenuto e
+  gallery orizzontale di immobili placeholder.
 
-La repository contiene inoltre codice CRM storico o condiviso per clienti, immobili, operazioni concluse, contratti, notifiche, preferiti, profili e pubblicazione sui portali. Gran parte di questo codice non e raggiungibile dalle route pubbliche correnti.
+La nuova app non monta piu dashboard CRM, AuthProvider, React Query, hook CRM o
+componenti shadcn/Radix nel runtime pubblico.
 
 ## 3. Legenda stato
 
 | Stato | Significato |
 | --- | --- |
-| Attivo | Montato o raggiungibile nell'app pubblica corrente |
-| Parziale | Visibile, ma flusso incompleto o implementazione minima |
-| Legacy/dormiente | Presente nel repository, ma non raggiungibile dal router corrente |
-| Simulato | Comportamento fittizio, casuale, locale o non collegato a servizio reale |
-| Infrastrutturale | Configurazione, libreria UI, tipi o supporto tecnico |
+| Attivo | Raggiungibile nel router pubblico corrente |
+| Parziale | Raggiungibile, ma senza integrazione completa |
+| Legacy compatibile | URL storico mantenuto solo come redirect |
+| Simulato | UI o preferenza senza servizio esterno reale |
+| Infrastrutturale | Configurazione, utility, test o supporto tecnico |
 
 ## 4. Mappa rapida: dove modificare
 
-| Esigenza | File principali |
+| Esigenza | File |
 | --- | --- |
-| Avvio app e provider globali | `src/main-landing.tsx`, `src/LandingApp.tsx` |
-| Route, redirect, lazy loading | `src/LandingApp.tsx` |
-| Menu globale | `src/components/GlobalNavigation.tsx` |
-| Footer e dati societari | `src/components/SiteFooter.tsx` |
-| Cookie consent | `src/components/CookieConsent.tsx` |
-| Home, brand, biografia, servizi | `src/pages/Landing.tsx` |
-| Acquisto | `src/pages/AcquistoCasa.tsx` |
-| Vendita | `src/pages/VenditaImmobili.tsx` |
-| Locazioni | `src/pages/Locazioni.tsx` |
-| Servizi personalizzati | `src/pages/ServiziPersonalizzati.tsx` |
-| Due servizi specialistici | `src/pages/ServiceDetail.tsx` |
-| Form pubblico lead | `src/pages/PublicRequests.tsx` |
-| Elaborazione e invio lead | `src/utils/clientRequestProcessor.ts` |
-| Prenotazione consulenza | `src/pages/Prenotazione.tsx` |
-| Privacy | `src/pages/Privacy.tsx` |
-| Accesso clienti storico | `src/pages/ClientAccess.tsx` |
-| Supabase client | `src/integrations/supabase/client.ts` |
-| Tipi Supabase generati | `src/integrations/supabase/types.ts` |
-| Schema lead pubblico e RLS | `database_schema.sql`, `fix_rls_policies.sql` |
-| Auth condivisa | `src/contexts/AuthContext.tsx` |
-| Clienti CRM | `src/hooks/useSupabaseClients.ts` |
-| Operazioni concluse | `src/hooks/useCompletedOperations.tsx` |
-| Contratti locali | `src/hooks/useContracts.tsx`, `src/types/contract.ts` |
-| Match clienti/immobili | `src/hooks/useMatchCalculator.ts` |
-| Notifiche CRM | `src/hooks/useNotifications.tsx` |
-| Preferiti CRM | `src/hooks/useFavorites.tsx` |
-| Profilo utente | `src/hooks/useSupabaseProfile.tsx`, `src/hooks/useProfile.tsx` |
-| Pubblicazione portali simulata | `src/utils/portalIntegration.ts` |
-| Dati demo e seed | `src/utils/sampleData.ts`, `src/utils/seedDatabase.ts` |
-| Storage separato landing/CRM | `src/utils/storage.ts`, `src/hooks/useLocalStorage.ts` |
-| WhatsApp | `src/utils/whatsapp.ts`, `src/components/WhatsAppButton.tsx` |
-| Design system e CSS globale | `src/index.css`, `tailwind.config.js` |
-| Componenti UI | `src/components/ui/` |
-| Build Vite | `vite.config.ts`, `tsconfig*.json`, `package.json` |
-| Deploy e fallback SPA | `vercel.json`, `public/CNAME` |
-| Test requisiti pubblici | `tests/site-requirements.test.mjs` |
-| Specifica di riallineamento sito | `prompt.md` |
-| Piano storico di implementazione | `docs/superpowers/plans/2026-06-14-gemut-capital-final-site.md` |
+| Entry point React | `src/main-landing.tsx` |
+| Router e redirect | `src/LandingApp.tsx` |
+| Layout globale | `src/components/AppLayout.tsx` |
+| Navigazione | `src/components/Navigation.tsx` |
+| Footer | `src/components/Footer.tsx` |
+| Cookie banner | `src/components/CookieConsent.tsx` |
+| Dati societari, route, servizi, copy centrale | `src/content/site.ts` |
+| Animazioni GSAP di pagina | `src/lib/usePageAnimations.ts` |
+| Home | `src/pages/HomePage.tsx` |
+| Dettaglio immobile placeholder | `src/pages/ListingPage.tsx`, `src/content/site.ts` |
+| Pagine acquisto/vendita/locazioni | `src/pages/ServicePage.tsx`, `src/content/site.ts` |
+| Pagina valutazione patrimonio | `src/pages/SpecialistPage.tsx`, `src/content/site.ts` |
+| Form richieste | `src/pages/RequestsPage.tsx` |
+| Invio lead Supabase/CRM | `src/lib/leads.ts`, `src/lib/supabase.ts` |
+| WhatsApp | `src/lib/whatsapp.ts` |
+| Prenotazione | `src/pages/BookingPage.tsx` |
+| Privacy | `src/pages/PrivacyPage.tsx` |
+| Hero pagina | `src/components/PageHero.tsx` |
+| CTA link | `src/components/ButtonLink.tsx` |
+| Icone centralizzate | `src/components/Icon.tsx` |
+| Sezioni layout | `src/components/Section.tsx` |
+| CSS globale | `src/index.css`, `tailwind.config.js` |
+| Design system e reference | `Design system/design.md`, `Design system/Logo`, `Design system/font`, `Design system/Referance` |
+| Asset runtime design system | `public/design-system` |
+| Schema lead | `database_schema.sql`, `fix_rls_policies.sql` |
+| Test statici | `tests/site-requirements.test.mjs` |
+| HTML base e SEO | `index.html` |
+| Config Vite | `vite.config.ts` |
+| Deploy Vercel | `vercel.json`, `.vercelignore`, `public/CNAME` |
+| Istruzioni agenti | `AGENTS.md` |
 
-## 5. Stack e architettura
-
-### 5.1 Stack
+## 5. Stack
 
 - React 18;
 - TypeScript;
-- Vite 8 con SWC;
+- Vite 8 con React SWC;
 - React Router 6;
 - Tailwind CSS;
-- componenti shadcn/Radix;
 - Lucide React;
-- TanStack React Query;
+- GSAP con `@gsap/react` e `ScrollTrigger`;
 - Supabase JS;
-- React Hook Form presente come dipendenza;
-- Node test runner per test statici;
-- Vercel per build, hosting e rewrite SPA.
+- Node test runner;
+- Vercel.
 
-### 5.2 Struttura runtime
+Dipendenze runtime dichiarate dopo la pulizia:
+
+- `@gsap/react`;
+- `@supabase/supabase-js`;
+- `gsap`;
+- `lucide-react`;
+- `react`;
+- `react-dom`;
+- `react-router-dom`;
+- `tailwindcss-animate`.
+
+Nota: `package-lock.json` e stato rigenerato con `npm install --package-lock-only`
+tramite npm temporaneo eseguito da `pnpm dlx`, per includere GSAP senza cambiare
+il package manager del progetto.
+
+## 6. Architettura runtime
 
 ```text
 index.html
   -> src/main-landing.tsx
     -> LandingApp
-      -> QueryClientProvider
-        -> AuthProvider
-          -> BrowserRouter
-            -> ScrollToTop
-            -> GlobalNavigation
-            -> Routes lazy-loaded
-            -> SiteFooter
-            -> Toaster
-            -> CookieConsent
+      -> BrowserRouter
+      -> ScrollToTop
+      -> Suspense
+      -> Routes
+        -> AppLayout
+          -> Navigation
+          -> Outlet pagina
+            -> pagine con usePageAnimations
+          -> Footer
+          -> CookieConsent
 ```
 
-`LandingApp` monta reset scroll, navigazione, footer e servizi globali fuori dalle singole route. `ScrollToTop` riporta immediatamente il viewport all'inizio a ogni cambio di pathname, così le nuove pagine mostrano sempre la propria hero/header. Le pagine sono caricate con `React.lazy` e mostrate dentro `Suspense`.
+Scelte architetturali:
 
-### 5.3 Alias
+- nessun provider auth globale;
+- nessun provider React Query;
+- route lazy-loaded;
+- contenuti e dati societari in `src/content/site.ts`;
+- pagine principali data-driven;
+- componenti condivisi piccoli e senza dipendenze shadcn;
+- unico flusso form in `RequestsPage` + `submitLeadRequest`;
+- animazioni create nelle pagine tramite `usePageAnimations`, con `useGSAP`,
+  scope locale, `ScrollTrigger` e rispetto di `prefers-reduced-motion`;
+- asset del design system serviti da `public/design-system`.
 
-L'alias `@` punta a `src`, configurato in `vite.config.ts` e nei file TypeScript.
-
-## 6. Routing pubblico
+## 7. Routing
 
 | Route | Componente/comportamento | Stato |
 | --- | --- | --- |
-| `/` | `Landing` | Attivo |
-| `/privacy` | `Privacy` | Attivo, contenuto minimo |
-| `/richieste` | `PublicRequests` | Attivo |
-| `/richieste?type=acquisto` | Form preimpostato su acquisto | Attivo |
-| `/richieste?type=vendita` | Form preimpostato su vendita | Attivo |
-| `/richieste?type=locazione` | Form preimpostato su locazione | Attivo |
-| `/accesso-clienti` | `ClientAccess` | Attivo nel router, ma non nel menu globale; contenuto storico CRM |
-| `/acquisto-casa` | `AcquistoCasa` | Attivo |
-| `/vendita-immobili` | `VenditaImmobili` | Attivo |
-| `/locazioni` | `Locazioni` | Attivo |
-| `/servizi-personalizzati` | `ServiziPersonalizzati` | Attivo, invio form simulato |
-| `/prenotazione` | `Prenotazione` | Attivo |
-| `/verifica-stato-tetto` | `ServiceDetail` con slug UAV | Attivo |
-| `/valorizzazione-book-fotografico` | Redirect a `/` | Rimosso/legacy |
-| `/valutazione-patrimonio` | `ServiceDetail` con slug patrimonio | Attivo |
-| `/servizi-premium` | Redirect a `/` | Legacy |
-| `/dettaglio-verifica-tetto` | Redirect alla route UAV | Legacy |
-| `/dettaglio-valorizzazione-book` | Redirect a `/` | Rimosso/legacy |
-| `/dettaglio-valutazione-patrimonio` | Redirect alla route patrimonio | Legacy |
-| `/dashboard` | Redirect a `http://localhost:8081` | Sviluppo/legacy |
-| `/crm/*` | Redirect a `http://localhost:8081` | Sviluppo/legacy |
-| `/login`, `/auth` | Redirect a `http://localhost:8081/auth` | Sviluppo/legacy |
+| `/` | `HomePage` | Attivo |
+| `/acquisto-casa` | `ServicePage` con servizio acquisto | Attivo |
+| `/vendita-immobili` | `ServicePage` con servizio vendita | Attivo |
+| `/locazioni` | `ServicePage` con servizio locazione | Attivo |
+| `/valutazione-patrimonio` | `SpecialistPage` patrimonio | Attivo |
+| `/richieste` | `RequestsPage` | Attivo |
+| `/richieste?type=acquisto` | Form con tipo acquisto | Attivo |
+| `/richieste?type=vendita` | Form con tipo vendita | Attivo |
+| `/richieste?type=locazione` | Form con tipo locazione | Attivo |
+| `/prenotazione` | `BookingPage` | Parziale |
+| `/privacy` | `PrivacyPage` | Parziale |
+| `/immobili/:slug` | `ListingPage` con dati placeholder da `featuredListings` | Simulato |
+| `/accesso-clienti` | Redirect a `/richieste` | Legacy compatibile |
+| `/valorizzazione-book-fotografico` | Redirect a `/` | Legacy compatibile |
+| `/servizi-premium` | Redirect a `/` | Legacy compatibile |
+| `/dettaglio-valorizzazione-book` | Redirect a `/` | Legacy compatibile |
+| `/dettaglio-valutazione-patrimonio` | Redirect a `/valutazione-patrimonio` | Legacy compatibile |
+| `/dashboard` | Redirect a `/` | Legacy compatibile |
+| `/crm/*` | Redirect a `/` | Legacy compatibile |
+| `/login` | Redirect a `/` | Legacy compatibile |
+| `/auth` | Redirect a `/` | Legacy compatibile |
 | Qualsiasi altra route | Redirect a `/` | Attivo |
 
-Vercel reindirizza ogni URL a `index.html`, permettendo apertura diretta delle route SPA.
+I vecchi redirect verso `localhost:8081` sono stati rimossi.
 
-Ogni navigazione verso un pathname diverso azzera la posizione verticale. In particolare, le card home di acquisto, vendita e locazioni aprono le rispettive pagine mostrando la hero/header dall'inizio invece di conservare lo scroll della home.
+## 8. Esperienza pubblica
 
-## 7. Esperienza pubblica
+### Home
 
-### 7.1 Navigazione globale
+`HomePage` contiene:
 
-`GlobalNavigation` fornisce:
+- hero iniziale sempre full-screen con immagine `/images/Home.webp` full-bleed
+  e variante verticale `/images/Home-mobile.jpg` sotto i 768px; navigazione
+  sticky con fondo chiaro traslucido senza backdrop blur e headline centrale
+  "Casa nuova, stesso GEMÜT"; la headline usa una scala ridotta e resta su una
+  riga da `sm` in su, mentre su telefono puo andare a capo;
+- headline hero animata con GSAP core (`gsap.fromTo`, `gsap.matchMedia`) e
+  fallback per `prefers-reduced-motion`;
+- transizione scroll iniziale con curve swipe SVG: la hero viene pinnata
+  brevemente senza spazio aggiuntivo da pin e una curva color carta sale dal
+  basso con `ScrollTrigger`; la curva mantiene il morph dinamico del path tra
+  stato nascosto, onda e copertura completa;
+- gallery orizzontale di immobili placeholder subito dopo la curve swipe, con
+  sezione `sticky` CSS centrata verticalmente sulle card, senza titolo o
+  descrizione introduttiva; la prima card parte centrata nel viewport e resta
+  ferma durante il reveal, poi lo scrub GSAP avvia il movimento orizzontale
+  dopo circa il 72% della transizione hero; le card sono gia
+  renderizzate/cliccabili verso `/immobili/:slug`; la sezione gallery risale in
+  overlap sotto la hero e il viewport delle card viene rivelato nella seconda
+  meta della curve swipe, cosi le card compaiono mentre la curva sta ancora
+  chiudendo ed evitano una schermata interamente carta; hero e gallery non
+  applicano divisori propri durante l'overlap e anche la sezione servizi
+  immediatamente successiva resta senza bordo superiore, evitando linee
+  transitorie che scorrono verticalmente sullo sfondo; un fondale color carta
+  dentro la sticky gallery diventa opaco subito prima dello sgancio del pin e
+  copre il limite inferiore della hero mentre questa riprende a scorrere; il viewport
+  mantiene lo scroll orizzontale nativo ma ne nasconde la barra overlay, che
+  altrimenti apparirebbe temporaneamente come una linea durante lo scroll; su
+  viewport mobile usa immagini JPEG ridimensionate a massimo 1280px per
+  limitare memoria di decodifica e texture GPU;
+- sezione servizi principali con preview immagine interattiva su hover/focus;
+- CTA verso `/richieste` e `/prenotazione`;
+- sezione chi siamo con `/images/profile.webp`;
+- quattro value proposition;
+- card scura per valutazione patrimonio;
+- CTA finale verso il form.
 
-- pulsante menu fisso in alto a sinistra su tutte le route pubbliche;
-- il pulsante menu resta nascosto mentre la hero fullscreen della home occupa la prima schermata, sia mobile sia desktop, poi ricompare scorrendo verso i contenuti;
-- apertura del pannello laterale al passaggio mouse/penna e al focus tastiera;
-- chiusura automatica su desktop quando il puntatore lascia sia il pulsante sia il pannello, con una breve tolleranza per consentire il passaggio tra i due;
-- click desktop sul pulsante che porta direttamente alla route `/`;
-- tap touch/mobile sul pulsante che apre il menu, dato che non esiste hover;
-- icona menu che diventa casa al passaggio del mouse;
-- pannello laterale;
-- destinazioni organizzate in tre gruppi visivamente separati e titolati: `Principale`, `Servizi immobiliari` e `Servizi su misura`; il gruppo immobiliare usa le voci `Sto cercando un immobile`, `Quanto vale il mio immobile` e `Locazioni`, mentre i servizi su misura includono anche la route attiva `/servizi-personalizzati`;
-- evidenza della route corrente con testo bianco su sfondo blu;
-- chiusura su navigazione, click overlay o tasto `Escape`;
-- blocco scroll pagina durante apertura;
-- CTA verso `/prenotazione`.
+Le animazioni della home sono attive tramite `usePageAnimations`: reveal on
+scroll basati su transform/opacity e parallax leggero solo su dispositivi con
+puntatore fine. Su touch il parallax continuo viene disattivato. Con
+`prefers-reduced-motion` le animazioni vengono neutralizzate.
 
-Le destinazioni principali devono restare disponibili da ogni pagina.
+### Immobili placeholder
 
-Il copy pubblico usa la prima persona plurale per la voce di Gemüt Capital e mantiene il cliente come interlocutore singolare. La sezione espandibile `Scopri Chi Sono Io` conserva la voce personale di Filippo Marcuzzo in prima persona singolare.
+`featuredListings` in `src/content/site.ts` contiene una lista dimostrativa di
+case in vendita e in locazione. Non sono annunci reali e servono a validare UX,
+routing e layout.
 
-### 7.2 Home
+`ListingPage` renderizza la scheda dettaglio placeholder per `/immobili/:slug`.
+Le CTA portano al form richieste con `type=vendita` o `type=locazione` in base
+alla card selezionata.
 
-`Landing.tsx` contiene:
+### Servizi principali
 
-- hero con immagine ottimizzata di Padova caricata ad alta priorita come primo blocco visibile della pagina; su mobile e desktop la hero occupa l'intera finestra visibile con foto e titolo centrato, facendo iniziare i servizi sotto il primo viewport;
-- titolo hero `Gemüt Capital, il tuo partner immobiliare di fiducia.`, con sequenza iniziale: per il primo secondo mostra solo `Gemüt Capital` centrato, poi il brand si sposta leggermente verso sinistra e il resto del titolo compare parola per parola con ritmo progressivo e spaziatura esplicita tra le parole; `Gemüt Capital` e, completata la comparsa, `di fiducia` usano lo stesso blu `blue-600` della parola `Immobiliare` nella sezione `Scopri Chi Sono Io`, con animazione di colore in senso di lettura per `di fiducia`;
-- `Gemüt Capital` nel titolo hero e interattivo ma non sottolineato;
-- definizione del termine tedesco Gemüt nascosta per default e mostrata sopra il titolo su hover/focus di `Gemüt Capital` o tap mobile, con espansione animata che sposta il titolo;
-- sezione `I Nostri Servizi` con sottotitolo `Esperienza, professionalita e tecnologia al servizio delle tue esigenze immobiliari. Trova la casa dei tuoi sogni o vendi al miglior prezzo con il supporto di un esperto.` e card `Sto cercando un immobile`, `Vorrei sapere quanto vale il mio immobile` e `Servizi per l'affitto`; su mobile e desktop ogni blocco compare da sinistra quando entra nel viewport e riscompare con la transizione specchiata quando esce dal viewport;
-- biografia espandibile di Filippo Marcuzzo con foto profilo ottimizzata, dimensioni dichiarate, decoding asincrono e lazy loading;
-- click su `Scopri Chi Sono Io` con apertura animata e scroll fluido che porta la foto profilo al centro del viewport; con `prefers-reduced-motion` lo spostamento avviene senza animazione;
-- sezione `Perché Sceglierci` con vantaggi e rete professionale; su mobile e desktop
-  titolo, sottotitolo e quattro motivi sfumano individualmente quando entrano nel viewport
-  durante lo scroll; la transizione e reversibile e gli elementi tornano nascosti quando
-  escono dal viewport;
-- card UAV e valutazione patrimonio in formato compatto, ridotte di circa il 30% con testi, icone e CTA proporzionati;
-- accesso ai servizi personalizzati;
-- CTA verso form richieste e contatti;
-- blocchi finali `Servizi su Misura`, CTA conclusiva e `Contatti` con comparsa da sinistra e scomparsa specchiata su mobile e desktop quando entrano o escono dal viewport.
+`ServicePage` renderizza acquisto, vendita e locazioni partendo dai dati in
+`site.ts`. Ogni servizio definisce:
 
-### 7.3 Servizi principali
+- route;
+- immagine hero;
+- icona;
+- testo summary;
+- highlight;
+- metodo di lavoro;
+- benefici;
+- CTA verso form;
+- link WhatsApp con messaggio precompilato.
 
-`AcquistoCasa`, `VenditaImmobili` e `Locazioni` usano pagine editoriali con:
+La UI usa hero chiaro con titolo serif e immagine, highlight in card leggere,
+metodo a righe numerate, benefici e CTA finale scura.
 
-- hero fotografica;
-- CTA verso `/richieste` con query `type`;
-- i pulsanti `Contattaci Ora` presenti nelle pagine acquisto e vendita aprono direttamente una chat WhatsApp con messaggio contestuale precompilato, senza mostrare o copiare l'email;
-- descrizione dei servizi;
-- metodo/processo;
-- vantaggi;
-- contatti finali.
+### Valutazione patrimonio
 
-Le immagini iniziali attive sono copie JPEG ottimizzate a massimo 1920 px. L'asset di vendita viene convertito tramite un passaggio SDR compatibile, per evitare che i metadati HDR dell'originale producano un'immagine nera nei browser:
+`SpecialistPage` renderizza solo la valutazione del patrimonio immobiliare.
 
-- acquisto: `/foto-cortina-optimized.jpg`;
-- vendita: `/sfondo-patrimoni-optimized.jpg`;
-- locazioni: `/sfondo-locazioni-optimized.jpg`.
+Le CTA portano a `/prenotazione` e WhatsApp.
 
-### 7.4 Servizi specialistici
+La UI usa lo stesso sistema hero/section del resto del sito e mantiene lo stato
+di prenotazione parziale.
 
-`ServiceDetail.tsx` usa una configurazione dati unica per due varianti:
+### Prenotazione
 
-- verifica tetto tramite UAV;
-- valutazione del patrimonio.
+`BookingPage` e parziale: non integra calendario. Offre:
 
-Ogni variante definisce icona, colori, badge, titolo, descrizione, CTA, immagine, vantaggi e processo. Le CTA portano a prenotazione e WhatsApp.
-
-La precedente feature "Valorizzazione con Book Fotografico" e stata rimossa dalla home, dal menu e dalla configurazione runtime. I suoi URL pubblico e legacy reindirizzano alla home.
-
-### 7.5 Servizi personalizzati
-
-`ServiziPersonalizzati.tsx` presenta:
-
-- ricerca mirata;
-- analisi investimenti;
-- verifica tetto UAV;
-- due diligence;
-- strategie di vendita;
-- consulenza familiare;
-- metodo in quattro fasi;
-- form modale.
-
-Il form modale e **simulato**: stampa dati in console, mostra `alert`, resetta il form. Non salva su Supabase e non invia al CRM.
-
-### 7.6 Prenotazione
-
-`Prenotazione.tsx` non integra un calendario reale. Offre:
-
-- link al form richieste;
-- chiamata telefonica;
+- link a `/richieste`;
+- telefono;
 - email.
 
-Stato: **parziale**.
+### Privacy
 
-### 7.7 Privacy e cookie
+`PrivacyPage` e parziale: contiene informativa sintetica, non una privacy policy
+legale completa.
 
-`Privacy.tsx` contiene una breve informativa generale e contatto email. Non e una privacy policy legale completa.
+## 9. Form lead
 
-`CookieConsent.tsx` salva preferenze in `localStorage` con chiave `cookie-consent`. Le opzioni analytics e marketing non caricano script reali: producono solo log.
+File:
 
-Stato: UI attiva, integrazioni cookie **simulate/non collegate**.
-
-## 8. Flusso lead pubblico
-
-### 8.1 Origine
-
-Il flusso principale parte da `PublicRequests.tsx`.
-
-La pagina usa `/prato-padova-optimized.jpg` come unico sfondo continuo, incluso dietro la hero e il form. La hero mantiene overlay scuro e pannello verde traslucido per la leggibilita.
+- `src/pages/RequestsPage.tsx`;
+- `src/lib/leads.ts`;
+- `src/lib/supabase.ts`.
 
 Campi:
 
@@ -280,36 +292,56 @@ Campi:
 - zona;
 - budget;
 - tempistiche;
-- caratteristiche;
+- caratteristiche/obiettivi;
 - note.
 
-Campi obbligatori applicativi:
+Validazione frontend:
 
-- nome;
-- telefono;
-- email valida;
-- zona.
+- nome obbligatorio;
+- telefono obbligatorio;
+- email obbligatoria e formato base valido;
+- zona obbligatoria.
 
-### 8.2 Elaborazione
+Il parametro query `type` accetta:
 
-`processClientRequest`:
+- `acquisto`;
+- `vendita`;
+- `locazione`.
 
-1. cerca il cliente in Supabase tramite email;
-2. aggiorna nome/telefono se esiste;
-3. crea il cliente se non esiste;
-4. crea una riga in `client_requests`;
-5. invia in modo non bloccante nome, email e telefono al CRM esterno;
-6. restituisce successo o errore alla UI.
+Altri valori ricadono su `acquisto`.
 
-### 8.3 CRM esterno
+UX corrente:
 
-Endpoint corrente:
+- hero editoriale chiaro con immagine;
+- tipo richiesta selezionato con controllo segmentato;
+- campi in griglia responsive;
+- stesso payload `LeadRequest` e stessa funzione `submitLeadRequest`.
+
+## 10. Supabase e CRM
+
+`src/lib/supabase.ts` crea un client Supabase solo con:
+
+- `VITE_SUPABASE_URL`;
+- `VITE_SUPABASE_PUBLISHABLE_KEY`;
+- `persistSession: false`;
+- `autoRefreshToken: false`.
+
+`src/lib/leads.ts` inserisce una riga in:
+
+```text
+lead_submissions
+```
+
+Non esegue `SELECT` o `UPDATE` anonimi. Questo sostituisce il vecchio flusso
+`clients` + `client_requests` e rimuove il precedente rischio RLS.
+
+Dopo l'inserimento Supabase, invia in modo non bloccante il lead al CRM esterno:
 
 ```text
 https://crm-pro-five.vercel.app/api/submit-lead
 ```
 
-Payload:
+Payload CRM:
 
 ```json
 {
@@ -320,366 +352,277 @@ Payload:
 }
 ```
 
-L'errore CRM non blocca il salvataggio Supabase. Il payload identifica la landing con il dominio Gemüt Capital.
-
-### 8.4 Vincolo RLS importante
-
-Il codice pubblico esegue una `SELECT` per email e, per clienti esistenti, una `UPDATE`. Lo schema SQL incluso consente agli utenti anonimi solo `INSERT`, mentre `SELECT` e `UPDATE` sono riservati agli autenticati.
-
-Con RLS applicata esattamente come nei file SQL, il flusso anonimo puo fallire prima dell'inserimento. Ogni intervento sul form deve verificare policy reali, schema deployato e comportamento anonimo end-to-end.
-
-## 9. Modello dati
-
-### 9.1 Tabelle descritte da `database_schema.sql`
-
-#### `clients`
-
-- `id`;
-- `name`;
-- `email` univoca;
-- `phone`;
-- `created_at`;
-- `updated_at`.
-
-#### `client_requests`
-
-- `id`;
-- `client_id`;
-- `request_type`: acquisto, vendita, locazione;
-- `property_type`;
-- `location`;
-- `budget`;
-- `timeframe`;
-- `features`;
-- `notes`;
-- `status`: pending, in_progress, completed, cancelled;
-- `processed_by`;
-- `processed_at`;
-- timestamp.
-
-### 9.2 Tabelle usate da codice legacy
-
-I tipi Supabase e gli hook fanno riferimento anche a:
-
-- `buyers`;
-- `sellers`;
-- `completed_operations`;
-- `client_favorites`;
-- `profiles`.
-
-Queste aree supportano il CRM storico, ma non sono descritte completamente da `database_schema.sql`. Prima di cambiarle, confrontare `src/integrations/supabase/types.ts` con lo schema Supabase effettivo.
-
-## 10. Auth e Supabase
-
-`AuthProvider`:
-
-- ascolta `onAuthStateChange`;
-- recupera sessione corrente;
-- espone `user`, `session`, `isAuthenticated`, `logout`;
-- prova a condividere token tramite storage namespaced.
-
-Il client Supabase configura:
-
-- `persistSession: false`;
-- `autoRefreshToken: false`;
-- storage browser standard.
-
-Il provider viene montato anche sul sito pubblico e puo ritardare il rendering finche il controllo sessione non termina.
-
-Esiste una possibile incoerenza tra storage Supabase standard e token salvato nello storage namespaced. Verificare auth reale prima di estendere flussi autenticati.
-
-## 11. Moduli CRM legacy/dormienti
-
-### 11.1 Clienti
-
-`useSupabaseClients.ts` gestisce CRUD per buyer e seller tramite Supabase.
-
-### 11.2 Operazioni concluse
-
-`useCompletedOperations.tsx`:
-
-- legge, crea ed elimina operazioni;
-- richiede utente autenticato;
-- dopo una creazione genera automaticamente un contratto locale;
-- salva il contratto in `localStorage`.
-
-### 11.3 Contratti
-
-`useContracts.tsx` legge `crm-contracts` da localStorage e calcola:
-
-- contratti da registrare;
-- scadenze prossime;
-- scadenze critiche.
-
-### 11.4 Matching
-
-`useMatchCalculator.ts` calcola compatibilita tra buyer e immobili seller tramite:
-
-- tipo operazione;
-- tipo immobile;
-- budget/prezzo;
-- zona;
-- caratteristiche.
-
-Produce liste separate per vendita e locazione.
-
-### 11.5 Notifiche
-
-`useNotifications.tsx` genera e persiste notifiche CRM usando dati buyer, seller e contratti in localStorage.
-
-### 11.6 Preferiti
-
-`useFavorites.tsx` salva preferiti buyer/seller in Supabase per utente autenticato.
-
-### 11.7 Profilo
-
-`useSupabaseProfile.tsx` legge, crea e aggiorna profili Supabase e permette cambio password.
-
-`useProfile.tsx` e un wrapper/fallback minimale.
-
-### 11.8 Pubblicazione portali
-
-`portalIntegration.ts` prepara dati per portali immobiliari e valida annunci, ma le operazioni di pubblicazione, aggiornamento, eliminazione e stato sono **simulate** con timeout e risultati casuali.
-
-Non considerare questo modulo una vera integrazione Immobiliare.it o Idealista.
-
-### 11.9 Dashboard
-
-`components/Dashboard.tsx` contiene soprattutto tipi condivisi (`Property`, `BuyerClient`, `SellerClient`) e una UI placeholder. Non e montata dal router pubblico.
-
-## 12. Storage browser
-
-`src/utils/storage.ts` separa chiavi:
-
-- `landing:<chiave>`;
-- `crm:<chiave>`.
-
-La scelta dipende da porta, path `/crm` o `VITE_APP=crm`.
-
-Chiavi note:
-
-- `cookie-consent`;
-- `landing:supabase.auth.token` o `crm:supabase.auth.token`;
-- `crm-contracts`;
-- `crm-buyers`;
-- `crm-sellers`;
-- `crm-notifications`.
-
-Parte del codice usa storage namespaced, parte usa `localStorage` direttamente. Questa incoerenza puo separare dati che dovrebbero essere condivisi.
-
-## 13. Componenti condivisi e UI
-
-### 13.1 Componenti applicativi
-
-- `GlobalNavigation`: menu pubblico globale;
-- `SiteFooter`: footer societario con telefono, email, Partita IVA `05791060287`, REA `PD - 492863`, PEC `gemutcapital@pec.it` e copyright 2026 presentati come dati testuali senza riquadri;
-- `CookieConsent`: banner e dialog cookie;
-- `LoadingSpinner`: fallback caricamento;
-- `WhatsAppButton`: apertura chat;
-- `BackButton`: componente storico, non usato nelle route specialistiche correnti;
-- `PageHeader`: header storico orientato dashboard;
-- `Dashboard`: placeholder e tipi CRM.
-
-### 13.2 Libreria UI
-
-`src/components/ui/` contiene componenti shadcn/Radix generici. Non rappresentano feature prodotto finche non vengono importati da pagine o componenti applicativi.
-
-Prima di modificare un componente UI condiviso, cercare tutti gli import con `rg`.
-
-### 13.3 Design system
-
-`src/index.css` definisce:
-
-- variabili HSL light/dark;
-- colori immobiliari;
-- gradienti e ombre;
-- stili glass/liquid glass;
-- focus globale;
-- animazioni;
-- supporto `prefers-reduced-motion`;
-- larghezza minima 320 px;
-- blocco overflow orizzontale.
-
-`tailwind.config.js` estende i token CSS e include `tailwindcss-animate`.
-
-## 14. Asset pubblici
-
-Asset prodotto principali:
-
-- `public/prato-padova-optimized.jpg`;
-- `public/sfondo-patrimoni-optimized.jpg`;
-- `public/foto-cortina-optimized.jpg`;
-- `public/sfondo-locazioni-optimized.jpg`;
-- `public/tetto-uav-optimized.jpg`;
-- `public/strada-verde-optimized.jpg`;
-- `public/profile-optimized.jpg`.
-
-Queste copie sono gli asset runtime attivi: gli sfondi hanno lato massimo 1920 px e la foto profilo 768 px, tutti sotto 900 KB. Gli originali seguenti restano nel repository come sorgenti/fallback e non sono caricati dalle pagine pubbliche:
-
-- `public/prato-padova.jpg`;
-- `public/sfondo-patrimoni.jpg`;
-- `public/foto-cortina.JPG`;
-- `public/Sfondo locazioni.JPG`;
-- `public/dji_fly_20250917_193124_297_1758130816590_photo.JPG`;
-- `public/piazza-vicina.JPG`;
-- `public/strada-verde.JPG`;
-- `public/profile.jpg`.
-
-Altri file:
-
-- `public/robots.txt`;
-- `public/CNAME`;
-- `public/placeholder.svg`;
-- `public/padova-test.jpg`.
-
-I nomi asset sono case-sensitive in produzione Linux. Conservare maiuscole, spazi ed estensioni esatte.
-
-`index.html` riferisce `/favicon.svg`, ma il file non risulta presente nello stato corrente della working tree.
+Se Supabase non e configurato, il form mostra errore e non invia dati.
+
+## 11. Schema database
+
+`database_schema.sql` definisce `lead_submissions` con:
+
+- dati contatto;
+- tipo richiesta;
+- dettagli immobile;
+- source;
+- status;
+- timestamp;
+- indici;
+- trigger `updated_at`;
+- RLS.
+
+Policy RLS:
+
+- anon: solo `INSERT`;
+- authenticated: `INSERT`, `SELECT`, `UPDATE`.
+
+`fix_rls_policies.sql` riallinea solo le policy RLS di `lead_submissions`.
+
+## 12. Cookie e localStorage
+
+`CookieConsent` usa localStorage con chiave:
+
+```text
+cookie-consent
+```
+
+Preferenze:
+
+- necessary;
+- analytics;
+- marketing.
+
+Stato: UI attiva, analytics/marketing simulati. Le preferenze vengono salvate
+ma non caricano script esterni.
+
+## 13. Asset pubblici
+
+Asset attivi:
+
+- `public/design-system/logo/logo-blue.svg`;
+- `public/design-system/logo/logo-white.svg`;
+- `public/design-system/font/DeFontePlus-DemiGras.woff2`;
+- `public/design-system/font/DeFontePlus-Gros.woff2`;
+- `public/design-system/font/DeFontePlus-Leger.woff2`;
+- `public/design-system/font/DeFontePlus-Normale.woff2`;
+- `public/design-system/reference/tandem-awwwards-reference.jpg`;
+- `public/images/Home.webp`;
+- `public/images/Home-mobile.jpg`;
+- `public/images/dji_fly_20250831_093124_158_1756625974281_photo.webp`;
+- `public/images/dji_fly_20250831_093124_158_1756625974281_photo-mobile.jpg`;
+- `public/images/dji_fly_20260118_083240_429_1768722357071_photo.webp`;
+- `public/images/dji_fly_20260118_083240_429_1768722357071_photo-mobile.jpg`;
+- `public/images/piazza-vicina.webp`;
+- `public/images/piazza-vicina-mobile.jpg`;
+- `public/images/prato-padova.webp`;
+- `public/images/prato-padova-mobile.jpg`;
+- `public/images/profile.webp`;
+- `public/images/sfondo-patrimoni.webp`;
+- `public/images/sfondo-patrimoni-mobile.jpg`;
+- `public/favicon.svg`.
+
+Asset sorgente o storici ancora presenti:
+
+- `Design system/design.md`;
+- `Design system/Logo/Logo blu.svg`;
+- `Design system/Logo/Logo bianco.svg`;
+- `Design system/font/*`;
+- `Design system/Referance/TANDEM - Awwwards Honorable Mention.jpg`;
+- `public/placeholder.svg`.
+
+I nomi sono case-sensitive in produzione Linux.
+
+## 14. Design system e motion
+
+File:
+
+- `Design system/design.md`;
+- `src/index.css`;
+- `src/lib/usePageAnimations.ts`;
+- asset runtime in `public/design-system`.
+
+Principi attivi:
+
+- azzurro cielo brand `#b3e5fc`, hover `#81d4fa` e variante forte accessibile
+  `#0277bd` per testi piccoli su superfici chiare;
+- wordmark azzurro cielo da `public/design-system/logo/logo-blue.svg` (filename
+  mantenuto per compatibilita) e variante da
+  `public/design-system/logo/logo-white.svg`;
+- font logo `De Fonte Plus` servito via `@font-face`;
+- titoli editoriali con stack `Minion Variable Concept`, `Minion 3 Variable`,
+  `Minion Pro`, `Georgia`, `serif`;
+- il repository non contiene un file font Minion distribuibile, quindi Minion
+  viene usato se disponibile nell'ambiente/browser e degrada sui fallback serif;
+- card con raggio massimo 8px;
+- sezioni full-width con bordi sottili e contenuto max `7xl`;
+- CTA primarie azzurro cielo con testo ink e secondarie outline.
+- navigazione con logo a sinistra, voci centrate quando entrano nella barra,
+  CTA richiesta a destra e menu a tendina centrato solo in modalita compatta;
+  il menu compatto si apre come tendina ad altezza contenuto sotto la barra,
+  con breve transizione fade/slide e griglia a tre colonne da `sm`; le
+  destinazioni sono link testuali da 1.05rem con peso medio, senza riquadri,
+  bordi o sfondi, con la route attiva semibold e blu; "Invia richiesta" e
+  separata da una linea sottile e usa un trattamento uppercase piu compatto;
+  sulla home resta sticky ed e sovrapposta alla hero con fondo chiaro
+  traslucido senza backdrop blur, mentre sulle altre route mantiene il fondo
+  chiaro piu coprente; l'assenza del blur evita repaint continui durante lo
+  scroll, soprattutto su Safari.
+- hero home con immagine WebP full-bleed, testo centrato senza card e parola
+  `GEMÜT` in font brand.
+
+Motion attivo:
+
+- `usePageAnimations` registra `@gsap/react` e `ScrollTrigger`;
+- `HomePage` usa GSAP core per animare headline e immagine della hero iniziale;
+- `HomePage` usa una timeline `ScrollTrigger` con `pin`, `pinSpacing: false` e
+  `scrub` per la transizione curve swipe dalla hero al contenuto sottostante; il
+  path SVG mantiene il morph dinamico originale, mentre immagine, testo e
+  oscuramento usano transform/opacity; il pin e tarato corto e non aggiunge
+  spacer, cosi la gallery puo salire sotto la curva invece di aspettare la fine
+  della hero;
+- `HomePage` usa `ScrollTrigger` senza `pin` GSAP per la gallery orizzontale
+  degli immobili placeholder: la sezione resta `sticky` via CSS, risale con
+  overlap di un viewport rispetto alla hero e il track si muove su asse `x` con
+  `ease: "none"` e `scrub` numerico; il track viene inizializzato con la prima
+  card centrata e il movimento parte con un ritardo pari a circa il 72% della
+  distanza della curve swipe, mentre il viewport delle card viene rivelato
+  prima dalla timeline hero per evitare comparse tardive o schermate vuote; i
+  contenitori hero, gallery e la sezione servizi immediatamente successiva sono
+  senza `section-line`, perche i loro bordi sovrapposti si separerebbero durante
+  pin e sticky scroll; prima del termine del pin, il fondale
+  `data-listings-backdrop` passa a opacita piena in base al progresso dello
+  `ScrollTrigger`, impedendo al bordo composito inferiore della hero di
+  attraversare verticalmente lo sfondo della gallery; la classe
+  `scrollbar-hidden` nasconde la barra nativa del viewport senza disabilitare lo
+  scorrimento orizzontale manuale;
+- gli elementi con `data-animate` fanno reveal on scroll usando transform e
+  opacity, con promozione temporanea del layer;
+- `data-animate="image"` usa scale reveal senza animare `clip-path`;
+- `data-parallax` applica parallax leggero legato allo scroll solo con
+  `(hover: hover) and (pointer: fine)`;
+- `ScrollTrigger.config({ ignoreMobileResize: true })` evita refresh durante le
+  variazioni verticali della viewport mobile causate dalle barre del browser;
+- hero, viewport e track della gallery hanno layer compositi mirati; il
+  viewport della gallery usa paint containment;
+- `prefers-reduced-motion: reduce` neutralizza reveal e parallax;
+- cleanup automatico tramite scope `useGSAP`.
 
 ## 15. Configurazione
 
-### 15.1 Variabili ambiente
+### `.env.example`
 
-Da `.env.example`:
+Variabili:
 
 - `VITE_SUPABASE_URL`;
 - `VITE_SUPABASE_PUBLISHABLE_KEY`;
 - `VITE_APP_DOMAIN`;
 - `VITE_APP_NAME`;
 - `VITE_SUPABASE_PROJECT_ID`;
-- `VITE_APP`, normalmente `landing`.
+- `VITE_APP`.
 
-Non inserire segreti reali nel repository. Le variabili `VITE_*` sono esposte al browser.
+Le variabili `VITE_*` sono esposte al browser.
 
-### 15.2 Vite
+### `index.html`
 
-- Vite 8 con plugin React SWC;
-- server dev su porta `8080`;
-- host `::`;
-- output `dist`;
+Contiene:
+
+- lingua `it`;
+- favicon `/favicon.svg`;
+- viewport;
+- meta description;
+- title `Gemüt Capital - Mediazione immobiliare a Padova`;
+- script `/src/main-landing.tsx`.
+
+### Vite
+
+`vite.config.ts`:
+
+- `base: "/"`;
+- dev server host `::`, porta `8080`;
+- plugin React SWC;
 - alias `@`;
-- filtro warning Rollup per `PLUGIN_WARNING` storico.
+- output `dist`;
+- filtro warning `PLUGIN_WARNING`.
 
-### 15.3 Vercel
+### Vercel
 
-`vercel.json` usa:
+`vercel.json`:
 
 - `npm install`;
 - `CI=false npm run build`;
 - output `dist`;
 - rewrite globale verso `/index.html`.
 
-`.vercelignore` esclude dipendenze, output locali, Git e i metadata macOS `._*`/`.DS_Store`, che sul volume esterno non devono essere analizzati o caricati durante il deploy.
+## 16. Test e verifiche
 
-`public/CNAME` gestisce il dominio custom.
-
-## 16. Test e verifica
-
-### 16.1 Test esistente
-
-`tests/site-requirements.test.mjs` esegue controlli statici su:
-
-- destinazioni del menu;
-- brand e copy home;
-- CTA servizi specialistici;
-- assenza di copy rimossi;
-- asset richiesti;
-- dati societari footer.
-
-Limite: il test cerca stringhe nei file. Non verifica rendering, interazioni, accessibilita runtime, API, Supabase o layout responsive.
-
-### 16.2 Comandi previsti
+Comandi previsti:
 
 ```bash
 npm test
 npm run lint
 npm run build
-npm run dev
-npm run preview
 ```
 
-Nell'ambiente analizzato il comando `npm` non era disponibile nel `PATH` locale. Il 16 giugno 2026 le verifiche sono state comunque eseguite direttamente con il runtime Node integrato e con `pnpm dlx npm@10` per audit/npm:
+In questo ambiente `npm` non era disponibile nel PATH. Le verifiche sono state
+eseguite con il runtime Node bundled:
 
-- test statici: 15 superati, 0 falliti;
-- lint globale: completato senza errori;
-- build Vite di produzione: completata con successo;
-- audit npm: 0 vulnerabilita;
-- warning non bloccanti: dati `baseline-browser-mapping` e `caniuse-lite` non aggiornati; `PLUGIN_TIMINGS` segnala tempo CSS post-processing in Vite/Rolldown.
+```bash
+/Users/filippomarcuzzo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node --test tests/site-requirements.test.mjs
+/Users/filippomarcuzzo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node node_modules/eslint/bin/eslint.js .
+/Users/filippomarcuzzo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node node_modules/typescript/bin/tsc -p tsconfig.app.json
+/Users/filippomarcuzzo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node node_modules/vite/bin/vite.js build
+```
 
-### 16.3 Checklist minima dopo modifiche
+Test statici coprono:
 
-1. Eseguire test, lint e build.
-2. Verificare route direttamente e tramite menu.
-3. Provare almeno mobile e desktop.
-4. Controllare console browser e richieste di rete.
-5. Verificare asset senza 404.
-6. Per form lead, verificare Supabase anonimo e CRM esterno.
-7. Per cambi schema, verificare tipi generati e RLS.
-8. Aggiornare questo PRD.
+- app shell public-only;
+- route e redirect;
+- contenuti centralizzati;
+- form su `lead_submissions`;
+- assenza di route e contenuti UAV o servizi personalizzati;
+- assenza degli asset pubblici rimossi per UAV e servizi personalizzati;
+- uso degli asset WebP attivi in `public/images`;
+- wiring della transizione curve swipe della home;
+- route e wiring della gallery immobili placeholder;
+- asset richiesti.
 
-## 17. Requisiti invarianti
+Limiti:
 
-- Brand pubblico: `Gemüt Capital`.
-- Focus: mediazione immobiliare e valorizzazione patrimoniale.
-- Menu globale disponibile su tutte le pagine pubbliche.
-- Footer globale centrato con dati societari.
-- Route interne compatibili con refresh diretto.
-- CTA principali collegate a richiesta, prenotazione o contatto.
-- Form richieste precompilabile tramite query `type`.
-- Asset locali preferiti alle immagini remote.
-- Accessibilita base: label, `aria-label`, focus visibile, tastiera.
-- Layout responsive da 320 px.
-- Nessuna regressione delle route coperte dai test.
-- Non presentare feature simulate come integrazioni reali.
+- non verificano rendering visuale;
+- non verificano invio Supabase reale;
+- non verificano CRM reale;
+- non verificano layout responsive in browser.
 
-## 18. Limiti e debito tecnico noto
+## 17. Debito e limiti noti
 
-- Form servizi personalizzati non invia dati.
-- Prenotazione non contiene calendario o booking reale.
-- Analytics e marketing cookie non attivano script.
-- Privacy page minimale.
-- Redirect CRM puntano a `localhost:8081`, quindi non sono validi in produzione pubblica.
-- `ClientAccess` duplica il flusso richieste ed espone copy CRM storico.
-- RLS SQL e flusso anonimo `saveOrGetClient` possono essere incompatibili.
-- Moduli portali immobiliari sono simulati.
-- Dashboard e diversi hook CRM sono dormienti.
-- Storage namespaced e storage diretto sono mescolati.
-- Tipi condivisi CRM vivono in un componente placeholder.
-- Auth disabilita persistenza e refresh automatico Supabase.
-- Alcuni import/dependency dei componenti UI possono non essere necessari al bundle pubblico.
-- `favicon.svg` e referenziato ma non presente nello stato corrente.
-- Working tree osservata con file marcati contemporaneamente rimossi e non tracciati; non normalizzare Git senza richiesta esplicita.
+- `BookingPage` non ha calendario reale.
+- `PrivacyPage` e sintetica.
+- Cookie analytics/marketing sono solo preferenze locali.
+- La gallery immobili e le relative pagine dettaglio usano placeholder, non
+  annunci immobiliari reali.
+- Il CRM esterno e hardcoded in `src/lib/leads.ts`.
+- Il form richiede che la tabella `lead_submissions` sia creata su Supabase reale.
+- Il font Minion Variable Concept e richiamato nello stack CSS ma non e incluso
+  come file nel repository.
+- La working tree iniziale conteneva molte modifiche e molti metadata macOS
+  `._*`; non ripristinare modifiche non proprie senza richiesta esplicita.
+- Il percorso skill `$caveman` indicato in `AGENTS.md` non risultava presente
+  nell'ambiente il 24 giugno 2026; seguire il fallback descritto in `AGENTS.md`.
 
-## 19. Regole per modifiche future
+## 18. Regole future
 
-Prima della modifica:
+Prima di modificare:
 
 1. leggere `AGENTS.md`;
 2. leggere questo PRD;
-3. usare la mappa rapida per trovare i file;
-4. cercare import, route, stringhe e dipendenze con `rg`;
-5. distinguere comportamento attivo da codice legacy o simulato;
-6. controllare lo stato Git senza cancellare modifiche esistenti.
+3. usare la mappa rapida;
+4. controllare `git status`;
+5. cercare riferimenti con `rg`;
+6. verificare il codice reale.
 
-Dopo la modifica:
+Dopo modifiche:
 
-1. aggiornare sezioni coinvolte del PRD;
-2. aggiornare tabella route se necessario;
-3. aggiornare mappa file se responsabilita o path cambiano;
-4. aggiornare modello dati e integrazioni se cambiano;
-5. segnare feature nuove come attive, parziali o simulate;
-6. aggiornare limiti noti;
-7. eseguire verifiche proporzionate al rischio.
+1. aggiornare PRD se cambia prodotto, route, dati, schema, asset, build o stato feature;
+2. aggiornare AGENTS se cambiano regole operative;
+3. eseguire test/lint/typecheck/build pertinenti;
+4. controllare il diff.
 
-## 20. Criteri di completamento del prodotto
-
-Una modifica e completa quando:
-
-- requisito utente e implementato;
-- route e flussi coinvolti funzionano;
-- errori e stati di caricamento sono gestiti;
-- dati sono salvati nel sistema previsto;
-- copy non promette funzioni simulate;
-- accessibilita e responsive non regrediscono;
-- test/build pertinenti passano;
-- PRD riflette lo stato reale della repository.
+Una modifica e completa solo quando codice, PRD e verifiche raccontano lo stesso
+stato reale del repository.
