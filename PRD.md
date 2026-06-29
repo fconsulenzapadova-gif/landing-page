@@ -1,6 +1,6 @@
 # PRD - Gemut Capital
 
-Ultimo aggiornamento: 27 giugno 2026
+Ultimo aggiornamento: 29 giugno 2026
 
 ## 1. Scopo
 
@@ -219,7 +219,11 @@ I vecchi redirect verso `localhost:8081` sono stati rimossi.
   altrimenti apparirebbe temporaneamente come una linea durante lo scroll; su
   viewport mobile usa immagini JPEG ridimensionate a massimo 1280px per
   limitare memoria di decodifica e texture GPU;
-- sezione servizi principali con preview immagine interattiva su hover/focus;
+- sezione servizi principali con preview immagine interattiva su hover/focus e
+  reveal bidirezionale: su desktop intro e righe entrano in sequenza scorrendo
+  verso il basso e si richiudono in ordine inverso scorrendo verso l'alto; su
+  mobile ogni blocco entra da sinistra e torna nascosto quando si risale sopra
+  il relativo trigger;
 - CTA verso `/richieste` e `/prenotazione`;
 - sezione chi siamo con `/images/profile.webp`;
 - quattro value proposition;
@@ -510,6 +514,10 @@ Motion attivo:
 
 - `usePageAnimations` registra `@gsap/react` e `ScrollTrigger`;
 - `HomePage` usa GSAP core per animare headline e immagine della hero iniziale;
+- `HomePage` gestisce la sezione servizi con un `ScrollTrigger` desktop che
+  riproduce o inverte la timeline in base alla direzione di scroll; su mobile
+  assegna un trigger a ogni blocco, con ingresso da sinistra e reverse in
+  risalita; `prefers-reduced-motion` rende subito visibili tutti i blocchi;
 - `HomePage` usa una timeline `ScrollTrigger` con `pin`, `pinSpacing: false` e
   `scrub` per la transizione curve swipe dalla hero al contenuto sottostante; il
   path SVG mantiene il morph dinamico originale, mentre immagine, testo e

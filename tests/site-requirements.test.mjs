@@ -202,6 +202,10 @@ test('design system assets and GSAP motion are wired', () => {
   assert.match(home, /data-curve-path/);
   assert.match(home, /home-curve-swipe/);
   assert.match(home, /featured-listings-gallery/);
+  assert.match(home, /home-services-bidirectional/);
+  assert.match(home, /data-service-reveal-index=\{index \+ 1\}/);
+  assert.match(home, /self\.direction === 1/);
+  assert.match(home, /onLeaveBack: \(\) => tween\.reverse\(\)/);
   assert.match(home, /data-listings-backdrop/);
   assert.match(home, /data-listings-track/);
   assert.match(home, /data-listing-card/);
@@ -220,7 +224,7 @@ test('design system assets and GSAP motion are wired', () => {
   assert.match(home, /min-h-\[260svh\]/);
   assert.doesNotMatch(home, /ref=\{heroRef\} className="section-line/);
   assert.doesNotMatch(home, /ref=\{listingsRef\} className="section-line/);
-  assert.match(home, /\) : null\}\s+<Section>\s+<div className="grid gap-12/);
+  assert.match(home, /\) : null\}\s+<Section>\s+<div ref=\{servicesSectionRef\} className="grid gap-12/);
   assert.match(home, /ease: 'none'/);
   assert.doesNotMatch(home, /fromTo\(\s*cards/);
   assert.doesNotMatch(home, /data-listings-track[^\n]+mx-auto/);

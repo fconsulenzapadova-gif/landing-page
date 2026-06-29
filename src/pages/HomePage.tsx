@@ -30,6 +30,7 @@ export default function HomePage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
   const listingsRef = useRef<HTMLElement>(null);
+  const servicesSectionRef = useRef<HTMLDivElement>(null);
   const [activeServiceId, setActiveServiceId] = useState<RequestType>('acquisto');
   const { listings } = useListings();
 
@@ -201,6 +202,77 @@ export default function HomePage() {
     { scope: listingsRef, dependencies: [listings.length], revertOnUpdate: true },
   );
 
+  useGSAP(
+    () => {
+      const section = servicesSectionRef.current;
+      if (!section) return;
+
+      const revealItems = gsap.utils.toArray<HTMLElement>('[data-service-reveal]');
+      const media = gsap.matchMedia();
+
+      media.add(
+        {
+          reduceMotion: '(prefers-reduced-motion: reduce)',
+          desktop: '(min-width: 768px) and (prefers-reduced-motion: no-preference)',
+          mobile: '(max-width: 767px) and (prefers-reduced-motion: no-preference)',
+        },
+        (context) => {
+          if (context.conditions?.reduceMotion) {
+            gsap.set(revealItems, { autoAlpha: 1, x: 0, y: 0, clearProps: 'transform,visibility' });
+            return;
+          }
+
+          if (context.conditions?.desktop) {
+            const timeline = gsap
+              .timeline({ paused: true })
+              .fromTo(
+                revealItems,
+                { autoAlpha: 0, y: -32, force3D: true },
+                { autoAlpha: 1, y: 0, force3D: true, duration: 0.7, stagger: 0.15, ease: 'power3.out' },
+              );
+
+            ScrollTrigger.create({
+              id: 'home-services-bidirectional',
+              trigger: section,
+              start: 'top 82%',
+              end: 'bottom 18%',
+              onEnter: () => timeline.play(),
+              onEnterBack: () => timeline.reverse(),
+              onLeaveBack: () => timeline.reverse(),
+              onUpdate: (self) => {
+                if (!self.isActive) return;
+                if (self.direction === 1) timeline.play();
+                else timeline.reverse();
+              },
+            });
+            return;
+          }
+
+          if (context.conditions?.mobile) {
+            revealItems.forEach((item) => {
+              const tween = gsap.fromTo(
+                item,
+                { autoAlpha: 0, x: -32, force3D: true },
+                { autoAlpha: 1, x: 0, force3D: true, duration: 0.7, ease: 'power3.out', paused: true },
+              );
+
+              ScrollTrigger.create({
+                trigger: item,
+                start: 'top 90%',
+                onEnter: () => tween.play(),
+                onEnterBack: () => tween.play(),
+                onLeaveBack: () => tween.reverse(),
+              });
+            });
+          }
+        },
+      );
+
+      return () => media.revert();
+    },
+    { scope: servicesSectionRef },
+  );
+
   usePageAnimations(pageRef);
 
   const activeService = useMemo(() => primaryServices[activeServiceId], [activeServiceId]);
@@ -265,15 +337,15 @@ export default function HomePage() {
       ) : null}
 
       <Section>
-        <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <div className="lg:sticky lg:top-24">
-            <p data-animate className="eyebrow">
+        <div ref={servicesSectionRef} className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+          <div data-service-reveal data-service-reveal-index="0" className="lg:sticky lg:top-24">
+            <p className="eyebrow">
               Servizi principali
             </p>
-            <h2 data-animate className="font-display mt-4 max-w-2xl text-4xl leading-tight text-[var(--ink)] sm:text-6xl">
+            <h2 className="font-display mt-4 max-w-2xl text-4xl leading-tight text-[var(--ink)] sm:text-6xl">
               Ogni servizio ha un percorso chiaro, non una promessa generica.
             </h2>
-            <div data-animate="image" className="media-frame mt-8 h-[28rem] rounded-lg">
+            <div className="media-frame mt-8 h-[28rem] rounded-lg">
               <img src={activeService.heroImage} alt="" className="h-full w-full object-cover" data-parallax />
             </div>
           </div>
@@ -285,7 +357,8 @@ export default function HomePage() {
                 <Link
                   key={service.id}
                   to={service.route}
-                  data-animate
+                  data-service-reveal
+                  data-service-reveal-index={index + 1}
                   onMouseEnter={() => setActiveServiceId(service.id)}
                   onFocus={() => setActiveServiceId(service.id)}
                   className={`group grid gap-5 border-b border-[var(--line)] py-7 transition lg:grid-cols-[4rem_1fr_auto] ${
