@@ -5,8 +5,10 @@ import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ButtonLink from '../components/ButtonLink';
 import Icon from '../components/Icon';
+import ListingCard from '../components/ListingCard';
 import Section from '../components/Section';
-import { featuredListings, primaryServices, specialistServices, valueProps, type RequestType } from '../content/site';
+import { primaryServices, specialistServices, valueProps, type RequestType } from '../content/site';
+import { useListings } from '../lib/useListings';
 import { usePageAnimations } from '../lib/usePageAnimations';
 
 const services = Object.values(primaryServices);
@@ -29,6 +31,7 @@ export default function HomePage() {
   const heroRef = useRef<HTMLElement>(null);
   const listingsRef = useRef<HTMLElement>(null);
   const [activeServiceId, setActiveServiceId] = useState<RequestType>('acquisto');
+  const { listings } = useListings();
 
   useGSAP(
     () => {
@@ -136,7 +139,7 @@ export default function HomePage() {
         listingsBackdrop?.style.removeProperty('opacity');
       };
     },
-    { scope: heroRef },
+    { scope: heroRef, dependencies: [listings.length], revertOnUpdate: true },
   );
 
   useGSAP(
@@ -195,7 +198,7 @@ export default function HomePage() {
 
       return () => mm.revert();
     },
-    { scope: listingsRef },
+    { scope: listingsRef, dependencies: [listings.length], revertOnUpdate: true },
   );
 
   usePageAnimations(pageRef);
@@ -239,43 +242,27 @@ export default function HomePage() {
         </svg>
       </header>
 
-      <section ref={listingsRef} className="relative z-30 min-h-[260svh] bg-transparent [margin-top:-100svh]">
-        <div className="sticky top-0 flex min-h-[100svh] items-center overflow-hidden py-10 sm:py-14">
-          <div data-listings-backdrop className="pointer-events-none absolute inset-0 bg-[var(--paper)] opacity-0" aria-hidden />
-          <div data-listings-viewport className="motion-transform-layer motion-paint-boundary scrollbar-hidden relative z-10 w-full overflow-x-auto overflow-y-hidden px-4 py-6 sm:px-6" aria-label="Immobili disponibili">
-            <div data-listings-track className="motion-transform-layer flex w-max items-center gap-4 pr-4 sm:gap-6 sm:pr-6">
-              {featuredListings.map((listing) => (
-                <Link
-                  key={listing.slug}
-                  to={`/immobili/${listing.slug}`}
-                  data-listing-card
-                  className="group block w-[78vw] max-w-[25rem] shrink-0 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] transition hover:-translate-y-1 hover:border-[var(--brand-blue)] focus-ring"
-                >
-                  <span className="media-frame block aspect-[4/3] border-0">
-                    <picture className="contents">
-                      <source media="(max-width: 767px)" srcSet={listing.mobileImage} />
-                      <img src={listing.image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async" />
-                    </picture>
-                  </span>
-                  <span className="block p-5">
-                    <span className="flex items-center justify-between gap-3 text-xs font-bold uppercase">
-                      <span className="text-[var(--brand-blue-strong)]">{listing.status}</span>
-                      <span className="text-[var(--graphite)]">Placeholder</span>
-                    </span>
-                    <span className="mt-4 block text-2xl font-semibold leading-tight text-[var(--ink)]">{listing.title}</span>
-                    <span className="mt-2 block text-sm text-[var(--graphite)]">{listing.location}</span>
-                    <span className="mt-5 flex items-end justify-between gap-4">
-                      <span className="font-display text-2xl leading-none text-[var(--ink)]">{listing.price}</span>
-                      <span className="text-sm font-semibold uppercase text-[var(--brand-blue-strong)]">Dettaglio</span>
-                    </span>
-                  </span>
-                </Link>
-              ))}
-              <span aria-hidden="true" className="block w-[20vw] shrink-0" />
+      {listings.length > 0 ? (
+        <section ref={listingsRef} className="relative z-30 min-h-[260svh] bg-transparent [margin-top:-100svh]">
+          <div className="sticky top-0 flex min-h-[100svh] items-center overflow-hidden py-10 sm:py-14">
+            <div data-listings-backdrop className="pointer-events-none absolute inset-0 bg-[var(--paper)] opacity-0" aria-hidden />
+            <div data-listings-viewport className="motion-transform-layer motion-paint-boundary scrollbar-hidden relative z-10 w-full overflow-x-auto overflow-y-hidden px-4 py-6 sm:px-6" aria-label="Immobili disponibili">
+              <div data-listings-track className="motion-transform-layer flex w-max items-center gap-4 pr-4 sm:gap-6 sm:pr-6">
+                {listings.map((listing) => (
+                  <div
+                    key={listing.slug}
+                    data-listing-card
+                    className="w-[78vw] max-w-[25rem] shrink-0"
+                  >
+                    <ListingCard listing={listing} loading="eager" />
+                  </div>
+                ))}
+                <span aria-hidden="true" className="block w-[20vw] shrink-0" />
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <Section>
         <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">

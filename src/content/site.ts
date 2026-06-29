@@ -50,15 +50,35 @@ export interface SpecialistServiceContent {
 }
 
 export interface FeaturedListing {
+  code: string;
   slug: string;
   title: string;
   status: 'In vendita' | 'In locazione';
   requestType: Extract<RequestType, 'vendita' | 'locazione'>;
+  propertyType: string;
+  municipality: string;
+  zone: string;
+  address: string;
+  postalCode: string;
   location: string;
   price: string;
+  priceValue?: number;
+  surface?: string;
+  rooms?: string;
+  bedrooms?: string;
+  bathrooms?: string;
+  floor?: string;
+  elevator?: string;
+  condition?: string;
+  energyClass?: string;
+  availableFrom?: string;
   image: string;
   mobileImage: string;
+  images: string[];
+  imageFolderUrl: string;
+  imageAlt: string;
   summary: string;
+  description: string;
   details: string[];
   highlights: string[];
 }
@@ -263,78 +283,6 @@ export const specialistServices = {
     cta: 'Richiedi valutazione',
   },
 } satisfies Record<string, SpecialistServiceContent>;
-
-export const featuredListings: FeaturedListing[] = [
-  {
-    slug: 'attico-prato-della-valle',
-    title: 'Attico con terrazza',
-    status: 'In vendita',
-    requestType: 'vendita',
-    location: 'Padova centro',
-    price: 'Prezzo su richiesta',
-    image: '/images/piazza-vicina.webp',
-    mobileImage: '/images/piazza-vicina-mobile.jpg',
-    summary: 'Placeholder per una scheda vendita con spazi luminosi, terrazza abitabile e affacci urbani.',
-    details: ['4 locali', '2 bagni', 'Terrazza', 'Garage'],
-    highlights: ['Ultimo piano', 'Zona centrale', 'Materiali da verificare'],
-  },
-  {
-    slug: 'villa-verde-arcella',
-    title: 'Villa con giardino',
-    status: 'In vendita',
-    requestType: 'vendita',
-    location: 'Padova nord',
-    price: 'Da definire',
-    image: '/images/prato-padova.webp',
-    mobileImage: '/images/prato-padova-mobile.jpg',
-    summary: 'Placeholder per villa familiare con giardino privato e potenziale di personalizzazione.',
-    details: ['5 locali', '3 bagni', 'Giardino', 'Posti auto'],
-    highlights: ['Spazi indipendenti', 'Area verde', 'Scheda dimostrativa'],
-  },
-  {
-    slug: 'loft-portello',
-    title: 'Loft vicino ai servizi',
-    status: 'In locazione',
-    requestType: 'locazione',
-    location: 'Zona Portello',
-    price: 'Canone su richiesta',
-    image: '/images/sfondo-patrimoni.webp',
-    mobileImage: '/images/sfondo-patrimoni-mobile.jpg',
-    summary: 'Placeholder per una locazione urbana pensata per chi cerca una soluzione pronta e ben collegata.',
-    details: ['2 locali', '1 bagno', 'Arredato', 'Contratto da valutare'],
-    highlights: ['Soluzione compatta', 'Servizi vicini', 'Disponibilita da confermare'],
-  },
-  {
-    slug: 'appartamento-colli',
-    title: 'Appartamento panoramico',
-    status: 'In vendita',
-    requestType: 'vendita',
-    location: 'Colli Euganei',
-    price: 'Trattativa riservata',
-    image: '/images/dji_fly_20250831_093124_158_1756625974281_photo.webp',
-    mobileImage: '/images/dji_fly_20250831_093124_158_1756625974281_photo-mobile.jpg',
-    summary: 'Placeholder per immobile con vista aperta, taglio razionale e contesto residenziale tranquillo.',
-    details: ['3 locali', '2 bagni', 'Vista aperta', 'Cantina'],
-    highlights: ['Contesto quieto', 'Vista naturale', 'Dati non definitivi'],
-  },
-  {
-    slug: 'casa-corte-storica',
-    title: 'Casa in corte storica',
-    status: 'In locazione',
-    requestType: 'locazione',
-    location: 'Padova provincia',
-    price: 'Canone da definire',
-    image: '/images/dji_fly_20260118_083240_429_1768722357071_photo.webp',
-    mobileImage: '/images/dji_fly_20260118_083240_429_1768722357071_photo-mobile.jpg',
-    summary: 'Placeholder per casa in locazione con carattere, spazi indipendenti e contesto riservato.',
-    details: ['4 locali', '2 bagni', 'Corte interna', 'Non arredato'],
-    highlights: ['Ingresso autonomo', 'Contesto storico', 'Placeholder operativo'],
-  },
-];
-
-export function getFeaturedListing(slug: string | undefined) {
-  return featuredListings.find((listing) => listing.slug === slug);
-}
 
 export const valueProps = [
   {

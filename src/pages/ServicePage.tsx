@@ -1,9 +1,11 @@
 import { useRef } from 'react';
 import ButtonLink from '../components/ButtonLink';
 import Icon from '../components/Icon';
+import ListingCard from '../components/ListingCard';
 import PageHero from '../components/PageHero';
 import Section from '../components/Section';
 import { company, type ServiceContent } from '../content/site';
+import { useListings } from '../lib/useListings';
 import { getWhatsAppUrl } from '../lib/whatsapp';
 import { usePageAnimations } from '../lib/usePageAnimations';
 
@@ -13,6 +15,11 @@ interface ServicePageProps {
 
 export default function ServicePage({ service }: ServicePageProps) {
   const pageRef = useRef<HTMLDivElement>(null);
+  const { listings } = useListings();
+  const serviceListings =
+    service.id === 'vendita' || service.id === 'locazione'
+      ? listings.filter((listing) => listing.requestType === service.id)
+      : [];
   usePageAnimations(pageRef);
 
   return (
@@ -26,6 +33,26 @@ export default function ServicePage({ service }: ServicePageProps) {
         primaryCta={{ label: 'Richiedi consulenza', to: service.requestPath }}
         secondaryCta={{ label: 'WhatsApp', href: getWhatsAppUrl(company.phoneHref, service.whatsappMessage) }}
       />
+
+      {(service.id === 'vendita' || service.id === 'locazione') && serviceListings.length > 0 ? (
+        <Section className="section-line bg-white">
+          <div className="mb-8 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+            <div>
+              <p data-animate className="eyebrow">
+                Disponibilità
+              </p>
+              <h2 data-animate className="font-display mt-4 text-4xl leading-tight text-[var(--ink)] sm:text-5xl">
+                {service.id === 'vendita' ? 'Immobili in vendita' : 'Immobili in locazione'}
+              </h2>
+            </div>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {serviceListings.map((listing) => (
+              <ListingCard key={listing.slug} listing={listing} animated />
+            ))}
+          </div>
+        </Section>
+      ) : null}
 
       <Section className="section-line">
         <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">

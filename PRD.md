@@ -39,7 +39,7 @@ Il sito presenta:
 - UI dinamica con hero full-screen fotografica, headline animata, preview
   servizi interattiva, navigazione misurata sullo spazio reale, reveal on
   scroll, parallax leggero, transizione curve swipe dalla hero al contenuto e
-  gallery orizzontale di immobili placeholder.
+  gallery orizzontale di immobili letti dal foglio Google Sheets pubblico.
 
 La nuova app non monta piu dashboard CRM, AuthProvider, React Query, hook CRM o
 componenti shadcn/Radix nel runtime pubblico.
@@ -67,7 +67,10 @@ componenti shadcn/Radix nel runtime pubblico.
 | Dati societari, route, servizi, copy centrale | `src/content/site.ts` |
 | Animazioni GSAP di pagina | `src/lib/usePageAnimations.ts` |
 | Home | `src/pages/HomePage.tsx` |
-| Dettaglio immobile placeholder | `src/pages/ListingPage.tsx`, `src/content/site.ts` |
+| Dati immobili da Google Sheets | `src/lib/listings.ts`, `src/lib/useListings.ts` |
+| Immagini da cartelle Drive pubbliche | `api/drive-images.ts` |
+| Card immobile condivisa | `src/components/ListingCard.tsx` |
+| Dettaglio immobile | `src/pages/ListingPage.tsx` |
 | Pagine acquisto/vendita/locazioni | `src/pages/ServicePage.tsx`, `src/content/site.ts` |
 | Pagina valutazione patrimonio | `src/pages/SpecialistPage.tsx`, `src/content/site.ts` |
 | Form richieste | `src/pages/RequestsPage.tsx` |
@@ -143,6 +146,10 @@ Scelte architetturali:
 - contenuti e dati societari in `src/content/site.ts`;
 - pagine principali data-driven;
 - componenti condivisi piccoli e senza dipendenze shadcn;
+- immobili caricati nel browser dall'export CSV pubblico del Google Sheet
+  `15gP-IIWheuid1GCGGRMJk5vysmq3Oa3rIhVT8ndD5eg`, senza Google Sheets API;
+- cartelle immagini lette dalla funzione Vercel `api/drive-images.ts` tramite
+  la vista HTML pubblica `embeddedfolderview`, senza Google Drive API o chiavi;
 - unico flusso form in `RequestsPage` + `submitLeadRequest`;
 - animazioni create nelle pagine tramite `usePageAnimations`, con `useGSAP`,
   scope locale, `ScrollTrigger` e rispetto di `prefers-reduced-motion`;
@@ -163,7 +170,7 @@ Scelte architetturali:
 | `/richieste?type=locazione` | Form con tipo locazione | Attivo |
 | `/prenotazione` | `BookingPage` | Parziale |
 | `/privacy` | `PrivacyPage` | Parziale |
-| `/immobili/:slug` | `ListingPage` con dati placeholder da `featuredListings` | Simulato |
+| `/immobili/:slug` | `ListingPage` con dati e gallery dal foglio pubblico | Attivo |
 | `/accesso-clienti` | Redirect a `/richieste` | Legacy compatibile |
 | `/valorizzazione-book-fotografico` | Redirect a `/` | Legacy compatibile |
 | `/servizi-premium` | Redirect a `/` | Legacy compatibile |
@@ -194,7 +201,7 @@ I vecchi redirect verso `localhost:8081` sono stati rimossi.
   brevemente senza spazio aggiuntivo da pin e una curva color carta sale dal
   basso con `ScrollTrigger`; la curva mantiene il morph dinamico del path tra
   stato nascosto, onda e copertura completa;
-- gallery orizzontale di immobili placeholder subito dopo la curve swipe, con
+- gallery orizzontale di immobili pubblicati nel foglio subito dopo la curve swipe, con
   sezione `sticky` CSS centrata verticalmente sulle card, senza titolo o
   descrizione introduttiva; la prima card parte centrata nel viewport e resta
   ferma durante il reveal, poi lo scrub GSAP avvia il movimento orizzontale
@@ -224,15 +231,44 @@ scroll basati su transform/opacity e parallax leggero solo su dispositivi con
 puntatore fine. Su touch il parallax continuo viene disattivato. Con
 `prefers-reduced-motion` le animazioni vengono neutralizzate.
 
-### Immobili placeholder
+### Immobili da Google Sheets
 
-`featuredListings` in `src/content/site.ts` contiene una lista dimostrativa di
-case in vendita e in locazione. Non sono annunci reali e servono a validare UX,
-routing e layout.
+Fonte attiva:
 
-`ListingPage` renderizza la scheda dettaglio placeholder per `/immobili/:slug`.
-Le CTA portano al form richieste con `type=vendita` o `type=locazione` in base
-alla card selezionata.
+```text
+https://docs.google.com/spreadsheets/d/15gP-IIWheuid1GCGGRMJk5vysmq3Oa3rIhVT8ndD5eg/
+```
+
+Il sito legge direttamente l'export CSV pubblico del tab con `gid=0`, senza
+Google Sheets API, credenziali o variabili ambiente. Una riga viene pubblicata
+solo se `Pubblica *` vale `Sì` e contiene almeno contratto e titolo.
+
+Colonne supportate:
+
+- pubblicazione, codice, slug, contratto, titolo e tipologia;
+- comune, zona, indirizzo e CAP;
+- prezzo numerico o testo prezzo;
+- superficie, locali, camere, bagni, piano e ascensore;
+- stato immobile, classe energetica e disponibilita;
+- descrizione breve e completa;
+- caratteristiche e punti di forza, separati da `|` o a capo;
+- link cartella immagini pubblica;
+- link immagini diretti facoltativi, alt text e ordine.
+
+`api/drive-images.ts` riceve il link cartella, legge la vista HTML pubblica
+Google Drive e restituisce solo JPG, JPEG, PNG, WebP, AVIF e GIF. I file sono
+ordinati per nome: il primo diventa copertina, gli altri alimentano la gallery
+del dettaglio. La cartella e i file devono essere accessibili a chiunque abbia
+il link. Le risposte sono memorizzate dalla CDN fino a 5 minuti.
+
+I cinque esempi iniziali sono stati rimossi dal codice e inseriti nel foglio
+come righe `DEMO-001` ... `DEMO-005`. Usano percorsi immagini locali nella
+colonna `Link immagini`; i nuovi immobili possono usare solo la cartella
+pubblica. Se il foglio non e raggiungibile o non contiene righe pubblicate, il
+sito non inventa immobili e restituisce una lista vuota.
+
+`ListingPage` renderizza dati reali e gallery per `/immobili/:slug`. Le CTA
+portano al form richieste con `type=vendita` o `type=locazione`.
 
 ### Servizi principali
 
@@ -248,6 +284,9 @@ alla card selezionata.
 - benefici;
 - CTA verso form;
 - link WhatsApp con messaggio precompilato.
+
+Le pagine vendita e locazioni mostrano anche le card filtrate dal foglio,
+rispettivamente per contratto `Vendita` e `Locazione`.
 
 La UI usa hero chiaro con titolo serif e immagine, highlight in card leggere,
 metodo a righe numerate, benefici e CTA finale scura.
@@ -477,8 +516,14 @@ Motion attivo:
   oscuramento usano transform/opacity; il pin e tarato corto e non aggiunge
   spacer, cosi la gallery puo salire sotto la curva invece di aspettare la fine
   della hero;
+- la timeline hero e lo scroll orizzontale vengono reinizializzati quando
+  arrivano asincronamente le righe del foglio; prima dello scroll il viewport
+  immobili resta invisibile e non copre la prima schermata;
+- il caricamento del CSV parte alla valutazione del modulo e le immagini delle
+  card home usano `loading="eager"`: dati e media sono quindi preparati subito,
+  mentre la visibilita resta governata dalla transizione scroll;
 - `HomePage` usa `ScrollTrigger` senza `pin` GSAP per la gallery orizzontale
-  degli immobili placeholder: la sezione resta `sticky` via CSS, risale con
+  degli immobili pubblicati nel foglio: la sezione resta `sticky` via CSS, risale con
   overlap di un viewport rispetto alla hero e il track si muove su asse `x` con
   `ease: "none"` e `scrub` numerico; il track viene inizializzato con la prima
   card centrata e il movimento parte con un ritardo pari a circa il 72% della
@@ -550,6 +595,10 @@ Contiene:
 - output `dist`;
 - rewrite globale verso `/index.html`.
 
+La directory `api/` contiene `drive-images.ts`, funzione Edge pubblica usata
+solo come proxy same-origin della vista pubblica delle cartelle Drive. Non usa
+Google API, OAuth o chiavi.
+
 ## 16. Test e verifiche
 
 Comandi previsti:
@@ -580,7 +629,10 @@ Test statici coprono:
 - assenza degli asset pubblici rimossi per UAV e servizi personalizzati;
 - uso degli asset WebP attivi in `public/images`;
 - wiring della transizione curve swipe della home;
-- route e wiring della gallery immobili placeholder;
+- route e wiring della gallery immobili;
+- lettura CSV pubblico, parsing righe, assenza di fallback hardcoded;
+- parsing della vista pubblica delle cartelle Drive senza Google API;
+- filtro immobili nelle pagine vendita e locazioni;
 - asset richiesti.
 
 Limiti:
@@ -588,6 +640,8 @@ Limiti:
 - non verificano rendering visuale;
 - non verificano invio Supabase reale;
 - non verificano CRM reale;
+- non verificano automaticamente una cartella Drive reale del cliente finche
+  nel foglio non viene inserito un relativo link pubblico;
 - non verificano layout responsive in browser.
 
 ## 17. Debito e limiti noti
@@ -595,8 +649,13 @@ Limiti:
 - `BookingPage` non ha calendario reale.
 - `PrivacyPage` e sintetica.
 - Cookie analytics/marketing sono solo preferenze locali.
-- La gallery immobili e le relative pagine dettaglio usano placeholder, non
-  annunci immobiliari reali.
+- I dati immobili dipendono dalla disponibilita dell'export CSV pubblico del
+  foglio.
+- L'elenco immagini usa il markup pubblico `embeddedfolderview` di Google
+  Drive, non un'API contrattuale: se Google modifica quel markup, il parser va
+  aggiornato.
+- Le cartelle e le immagini Drive devono restare pubbliche; in caso contrario
+  la scheda usa solo eventuali link diretti presenti nel foglio.
 - Il CRM esterno e hardcoded in `src/lib/leads.ts`.
 - Il form richiede che la tabella `lead_submissions` sia creata su Supabase reale.
 - Il font Minion Variable Concept e richiamato nello stack CSS ma non e incluso

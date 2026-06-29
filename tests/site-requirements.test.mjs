@@ -48,9 +48,53 @@ test('site content is centralized and keeps company details', () => {
     '05791060287',
     'PD - 492863',
     'gemutcapital@pec.it',
-    'featuredListings',
-    'getFeaturedListing',
+    'FeaturedListing',
   ].forEach((text) => assert.match(site, new RegExp(text)));
+
+  assert.doesNotMatch(site, /DEMO-\d|fallbackListings|Placeholder per una scheda/);
+});
+
+test('public listings come from the public Google Sheet and public Drive folders', () => {
+  const listings = read('src/lib/listings.ts');
+  const hook = read('src/lib/useListings.ts');
+  const driveImages = read('api/drive-images.ts');
+  const servicePage = read('src/pages/ServicePage.tsx');
+
+  assert.match(listings, /15gP-IIWheuid1GCGGRMJk5vysmq3Oa3rIhVT8ndD5eg/);
+  assert.match(listings, /export\?format=csv&gid=/);
+  assert.match(listings, /Link cartella immagini/);
+  assert.match(listings, /\/api\/drive-images\?folder=/);
+  assert.match(hook, /loadListings/);
+  assert.match(driveImages, /embeddedfolderview/);
+  assert.match(driveImages, /flip-entry-title/);
+  assert.doesNotMatch(driveImages, /googleapis|API_KEY/);
+  assert.match(servicePage, /Immobili in vendita/);
+  assert.match(servicePage, /Immobili in locazione/);
+});
+
+test('listing parsers map public sheet rows and public folder markup', async () => {
+  const { parseListingsSheet } = await import('../src/lib/listings.ts');
+  const { parsePublicFolderImages } = await import('../api/drive-images.ts');
+  const csv = [
+    'Pubblica *,Codice immobile *,Contratto *,Titolo *,Tipologia *,Comune *,Descrizione breve *,Link cartella immagini *,Ordine',
+    'Sì,GEM-001,Vendita,Casa test,Appartamento,Padova,Descrizione,https://drive.google.com/drive/folders/FOLDER123,1',
+  ].join('\n');
+  const parsed = parseListingsSheet(csv);
+
+  assert.equal(parsed.listings.length, 1);
+  assert.equal(parsed.listings[0].slug, 'gem-001');
+  assert.equal(parsed.listings[0].requestType, 'vendita');
+  assert.equal(parsed.listings[0].imageFolderUrl, 'https://drive.google.com/drive/folders/FOLDER123');
+
+  const folderMarkup =
+    '<div class="flip-entry"><a href="https://drive.google.com/file/d/IMAGE123/view?usp=drive_web">' +
+    '<div class="flip-entry-title">01-copertina.jpg</div></a></div>' +
+    '<div class="flip-entry-last-modified">';
+  const images = parsePublicFolderImages(folderMarkup);
+
+  assert.equal(images.length, 1);
+  assert.equal(images[0].name, '01-copertina.jpg');
+  assert.match(images[0].url, /thumbnail\?id=IMAGE123/);
 });
 
 test('lead form writes to the clean lead_submissions table', () => {
@@ -73,6 +117,7 @@ test('required image assets exist and are used', () => {
     read('src/pages/RequestsPage.tsx'),
     read('src/pages/ListingPage.tsx'),
     read('src/content/site.ts'),
+    read('src/lib/listings.ts'),
   ].join('\n');
   const imageRefs = [...sources.matchAll(/\/images\/[^'")\s]+\.(?:webp|jpg)/g)].map((match) => match[0]);
 
@@ -82,7 +127,6 @@ test('required image assets exist and are used', () => {
     '/images/piazza-vicina.webp',
     '/images/piazza-vicina-mobile.jpg',
     '/images/prato-padova.webp',
-    '/images/prato-padova-mobile.jpg',
     '/images/profile.webp',
     '/images/sfondo-patrimoni.webp',
     '/images/sfondo-patrimoni-mobile.jpg',
@@ -176,7 +220,7 @@ test('design system assets and GSAP motion are wired', () => {
   assert.match(home, /min-h-\[260svh\]/);
   assert.doesNotMatch(home, /ref=\{heroRef\} className="section-line/);
   assert.doesNotMatch(home, /ref=\{listingsRef\} className="section-line/);
-  assert.match(home, /<\/section>\s+<Section>\s+<div className="grid gap-12/);
+  assert.match(home, /\) : null\}\s+<Section>\s+<div className="grid gap-12/);
   assert.match(home, /ease: 'none'/);
   assert.doesNotMatch(home, /fromTo\(\s*cards/);
   assert.doesNotMatch(home, /data-listings-track[^\n]+mx-auto/);
@@ -198,7 +242,8 @@ test('design system assets and GSAP motion are wired', () => {
   assert.match(home, /sm:text-\[clamp\(2\.5rem,6vw,5\.25rem\)\]/);
   assert.match(home, /onMouseEnter/);
   assert.match(listing, /useParams/);
-  assert.match(listing, /getFeaturedListing/);
+  assert.match(listing, /useListings/);
+  assert.match(listing, /listing\.images/);
   assert.match(listing, /richieste\?type=/);
   assert.match(nav, /logo-blue\.svg/);
   assert.match(nav, /data-site-navigation/);

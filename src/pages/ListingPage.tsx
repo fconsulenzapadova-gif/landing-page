@@ -2,16 +2,19 @@ import { useRef } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import ButtonLink from '../components/ButtonLink';
 import Icon from '../components/Icon';
+import LoadingState from '../components/LoadingState';
 import Section from '../components/Section';
-import { getFeaturedListing } from '../content/site';
+import { useListings } from '../lib/useListings';
 import { usePageAnimations } from '../lib/usePageAnimations';
 
 export default function ListingPage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const { slug } = useParams();
-  const listing = getFeaturedListing(slug);
+  const { listings, isLoading } = useListings();
+  const listing = listings.find((item) => item.slug === slug);
   usePageAnimations(pageRef);
 
+  if (!listing && isLoading) return <LoadingState />;
   if (!listing) return <Navigate to="/" replace />;
 
   return (
@@ -20,13 +23,13 @@ export default function ListingPage() {
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
             <p data-animate className="eyebrow">
-              {listing.status} - scheda placeholder
+              {listing.status} · Rif. {listing.code}
             </p>
             <h1 data-animate className="font-display mt-4 max-w-4xl text-5xl leading-[0.95] text-[var(--ink)] sm:text-7xl">
               {listing.title}
             </h1>
             <p data-animate className="mt-6 max-w-2xl text-base leading-7 text-[var(--graphite)] sm:text-lg sm:leading-8">
-              {listing.summary}
+              {listing.description || listing.summary}
             </p>
             <div data-animate className="mt-8 flex flex-col gap-3 sm:flex-row">
               <ButtonLink to={`/richieste?type=${listing.requestType}`} showArrow>
@@ -38,7 +41,7 @@ export default function ListingPage() {
             </div>
           </div>
           <div data-animate="image" className="media-frame h-[22rem] rounded-lg sm:h-[32rem]">
-            <img src={listing.image} alt="" className="h-full w-full object-cover" data-parallax />
+            <img src={listing.image} alt={listing.imageAlt} className="h-full w-full object-cover" data-parallax />
           </div>
         </div>
       </header>
@@ -50,7 +53,7 @@ export default function ListingPage() {
               Dettagli
             </p>
             <h2 data-animate className="font-display mt-4 text-4xl leading-tight text-[var(--ink)] sm:text-5xl">
-              Dati dimostrativi, pronti per essere sostituiti con annunci reali.
+              Informazioni principali
             </h2>
           </div>
           <div className="grid gap-4">
@@ -65,7 +68,7 @@ export default function ListingPage() {
               </div>
               <div className="grid grid-cols-[8rem_1fr] p-4">
                 <span className="text-sm font-semibold uppercase text-[var(--graphite)]">Tipo</span>
-                <span className="text-[var(--ink)]">{listing.status}</span>
+                <span className="text-[var(--ink)]">{listing.propertyType || listing.status}</span>
               </div>
             </div>
 
@@ -81,14 +84,44 @@ export default function ListingPage() {
         </div>
       </Section>
 
+      {listing.images.length > 1 ? (
+        <Section className="section-line bg-[var(--paper-soft)]">
+          <div>
+            <p data-animate className="eyebrow">
+              Gallery
+            </p>
+            <h2 data-animate className="font-display mt-4 text-4xl leading-tight text-[var(--ink)] sm:text-5xl">
+              Tutte le immagini
+            </h2>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {listing.images.map((image, index) => (
+              <div
+                key={`${image}-${index}`}
+                data-animate="image"
+                className={`media-frame rounded-lg ${index === 0 ? 'md:col-span-2 aspect-[16/9]' : 'aspect-[4/3]'}`}
+              >
+                <img
+                  src={image}
+                  alt={`${listing.imageAlt} — foto ${index + 1}`}
+                  className="h-full w-full object-cover"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+              </div>
+            ))}
+          </div>
+        </Section>
+      ) : null}
+
       <Section className="section-line bg-[var(--ink)] text-white">
         <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
           <div>
             <p data-animate className="text-xs font-bold uppercase text-white/60">
-              Note placeholder
+              Punti di forza
             </p>
             <h2 data-animate className="font-display mt-4 text-4xl leading-tight sm:text-6xl">
-              Questa scheda serve solo a verificare UX e routing.
+              Le caratteristiche da conoscere.
             </h2>
           </div>
           <div className="grid gap-3">
