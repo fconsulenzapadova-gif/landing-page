@@ -64,6 +64,7 @@ test('public listings come from the public Google Sheet and public Drive folders
   assert.match(listings, /export\?format=csv&gid=/);
   assert.match(listings, /Link cartella immagini/);
   assert.match(listings, /\/api\/drive-images\?folder=/);
+  assert.doesNotMatch(listings, /Alt immagini|get\('Ordine'\)|\.sort\(/);
   assert.match(hook, /loadListings/);
   assert.match(driveImages, /embeddedfolderview/);
   assert.match(driveImages, /flip-entry-title/);
@@ -76,15 +77,19 @@ test('listing parsers map public sheet rows and public folder markup', async () 
   const { parseListingsSheet } = await import('../src/lib/listings.ts');
   const { parsePublicFolderImages } = await import('../api/drive-images.ts');
   const csv = [
-    'Pubblica *,Codice immobile *,Contratto *,Titolo *,Tipologia *,Comune *,Descrizione breve *,Link cartella immagini *,Ordine',
-    'Sì,GEM-001,Vendita,Casa test,Appartamento,Padova,Descrizione,https://drive.google.com/drive/folders/FOLDER123,1',
+    'Pubblica *,Codice immobile *,Contratto *,Titolo *,Tipologia *,Comune *,Descrizione breve *,Link cartella immagini *',
+    'Sì,GEM-002,Vendita,Casa seconda,Appartamento,Padova,Descrizione,https://drive.google.com/drive/folders/FOLDER123',
+    'Sì,GEM-001,Locazione,Casa prima,Loft,Vicenza,Descrizione,https://drive.google.com/drive/folders/FOLDER456',
   ].join('\n');
   const parsed = parseListingsSheet(csv);
 
-  assert.equal(parsed.listings.length, 1);
-  assert.equal(parsed.listings[0].slug, 'gem-001');
+  assert.equal(parsed.listings.length, 2);
+  assert.equal(parsed.listings[0].slug, 'gem-002');
   assert.equal(parsed.listings[0].requestType, 'vendita');
   assert.equal(parsed.listings[0].imageFolderUrl, 'https://drive.google.com/drive/folders/FOLDER123');
+  assert.equal(parsed.listings[0].imageAlt, 'Casa seconda a Padova');
+  assert.equal(parsed.listings[1].slug, 'gem-001');
+  assert.equal(parsed.listings[1].requestType, 'locazione');
 
   const folderMarkup =
     '<div class="flip-entry"><a href="https://drive.google.com/file/d/IMAGE123/view?usp=drive_web">' +

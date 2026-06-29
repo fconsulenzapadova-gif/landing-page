@@ -257,7 +257,11 @@ Colonne supportate:
 - descrizione breve e completa;
 - caratteristiche e punti di forza, separati da `|` o a capo;
 - link cartella immagini pubblica;
-- link immagini diretti facoltativi, alt text e ordine.
+- link immagini diretti facoltativi.
+
+L'ordine pubblico coincide con l'ordine fisico delle righe nel foglio. Non
+esiste una colonna ordine. Il testo alternativo immagini non e gestito nel
+foglio: viene generato dal sito combinando titolo e comune.
 
 `api/drive-images.ts` riceve il link cartella, legge la vista HTML pubblica
 Google Drive e restituisce solo JPG, JPEG, PNG, WebP, AVIF e GIF. I file sono

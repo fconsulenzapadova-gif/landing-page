@@ -157,7 +157,7 @@ export function parseListingsSheet(csv: string): ParsedSheet {
   const seenSlugs = new Set<string>();
 
   const listings = dataRows
-    .map<(FeaturedListing & { order: number }) | null>((row, rowIndex) => {
+    .map<FeaturedListing | null>((row, rowIndex) => {
       const values = new Map(headers.map((header, columnIndex) => [header, normalizeValue(row[columnIndex])]));
       const get = (...names: string[]) => {
         for (const name of names) {
@@ -243,17 +243,14 @@ export function parseListingsSheet(csv: string): ParsedSheet {
         mobileImage: directImages[0] || defaultMobileImage,
         images: directImages.length ? directImages : [defaultImage],
         imageFolderUrl: get('Link cartella immagini', 'Cartella immagini'),
-        imageAlt: get('Alt immagini') || `${title}${municipality ? ` a ${municipality}` : ''}`,
+        imageAlt: `${title}${municipality ? ` a ${municipality}` : ''}`,
         summary: summary || get('Descrizione completa') || `${propertyType || 'Immobile'} ${requestType === 'vendita' ? 'in vendita' : 'in locazione'}${municipality ? ` a ${municipality}` : ''}.`,
         description: get('Descrizione completa') || summary,
         details: details.length ? details : [propertyType || 'Immobile'],
         highlights: highlights.length ? highlights : features,
-        order: parseItalianNumber(get('Ordine')) ?? rowIndex + 1,
       };
     })
-    .filter((listing): listing is FeaturedListing & { order: number } => listing !== null)
-    .sort((first, second) => first.order - second.order)
-    .map(({ order: _order, ...listing }) => listing);
+    .filter((listing): listing is FeaturedListing => listing !== null);
 
   return { listings, hasDataRows: dataRows.length > 0 };
 }
