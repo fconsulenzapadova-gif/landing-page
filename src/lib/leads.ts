@@ -1,9 +1,19 @@
 export type ContactPreference = 'telefono' | 'email' | 'whatsapp';
 export type LeadRequestType = 'acquisto' | 'vendita' | 'locazione';
+export type RequestRole = 'cerca' | 'proprietario';
+export type LocationMode = 'text' | 'polygon';
+
+export interface LocationPolygon {
+  type: 'Polygon';
+  coordinates: [number, number][][];
+}
 
 export interface LeadRequest {
   requestId: string;
   requestType: LeadRequestType;
+  requestRole: RequestRole;
+  locationMode: LocationMode;
+  locationGeometry: LocationPolygon | null;
   propertyType: string;
   location: string;
   budget: string;
