@@ -22,24 +22,40 @@ const drawStyles = [
 
 interface Props {
   value: LocationPolygon | null;
+  draftValue?: LocationPolygon | null;
   onChange: (value: LocationPolygon | null) => void;
+  onDraftChange?: (value: LocationPolygon | null) => void;
   onUnavailable: (message: string) => void;
   error?: string;
 }
 
-export default function LocationPolygonMap({ value, onChange, onUnavailable, error }: Props) {
+export default function LocationPolygonMap({
+  value,
+  draftValue,
+  onChange,
+  onDraftChange,
+  onUnavailable,
+  error,
+}: Props) {
+  const initialDraft = draftValue === undefined ? value : draftValue;
+  const validInitialDraft = isValidLocationPolygon(initialDraft) ? initialDraft : null;
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
-  const draftRef = useRef<LocationPolygon | null>(isValidLocationPolygon(value) ? value : null);
-  const initialValueRef = useRef(value);
+  const draftRef = useRef<LocationPolygon | null>(validInitialDraft);
+  const initialValueRef = useRef(validInitialDraft);
   const onChangeRef = useRef(onChange);
+  const onDraftChangeRef = useRef(onDraftChange);
   const onUnavailableRef = useRef(onUnavailable);
-  const [draftIsValid, setDraftIsValid] = useState(isValidLocationPolygon(value));
+  const [draftIsValid, setDraftIsValid] = useState(Boolean(validInitialDraft));
   const [unavailableMessage, setUnavailableMessage] = useState('');
 
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
+
+  useEffect(() => {
+    onDraftChangeRef.current = onDraftChange;
+  }, [onDraftChange]);
 
   useEffect(() => {
     onUnavailableRef.current = onUnavailable;
@@ -81,6 +97,7 @@ export default function LocationPolygonMap({ value, onChange, onUnavailable, err
       onDraft(polygon) {
         draftRef.current = polygon;
         setDraftIsValid(Boolean(polygon));
+        onDraftChangeRef.current?.(polygon);
         onChangeRef.current(null);
       },
       onUnavailable: handleUnavailable,
@@ -99,6 +116,7 @@ export default function LocationPolygonMap({ value, onChange, onUnavailable, err
     const [featureId] = draw.add({ type: 'Feature', properties: {}, geometry: polygon });
     draftRef.current = polygon;
     setDraftIsValid(true);
+    onDraftChangeRef.current?.(polygon);
     onChangeRef.current(null);
     draw.changeMode('direct_select', { featureId: String(featureId) });
   }
@@ -107,6 +125,7 @@ export default function LocationPolygonMap({ value, onChange, onUnavailable, err
     drawRef.current?.deleteAll();
     draftRef.current = null;
     setDraftIsValid(false);
+    onDraftChangeRef.current?.(null);
     onChangeRef.current(null);
     drawRef.current?.changeMode('draw_polygon');
   }

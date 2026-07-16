@@ -276,18 +276,30 @@ test('request polygon map is free, lazy, branded and accessible', () => {
 
 test('location selector swaps text and map in one accessible panel', () => {
   const selector = read('src/components/request/LocationSelector.tsx');
+  const map = read('src/components/request/LocationPolygonMap.tsx');
+  const boundary = read('src/components/request/LocationMapErrorBoundary.ts');
 
   assert.match(selector, /Scrivi zona/);
   assert.match(selector, /Seleziona sulla mappa/);
   assert.match(selector, /mode === 'text' \? \(/);
   assert.match(selector, /<LocationPolygonMap/);
-  assert.match(selector, /lazy\(\(\) => import\('\.\/LocationPolygonMap'\)\)/);
+  assert.match(selector, /lazy\(\(\) => loadLocationMapModule\(/);
   assert.doesNotMatch(selector, /import LocationPolygonMap from/);
+  assert.match(boundary, /class LocationMapErrorBoundary extends Component/);
+  assert.match(boundary, /static getDerivedStateFromError/);
+  assert.match(boundary, /componentDidCatch\(/);
+  assert.match(selector, /createLocationSelectorLifecycle/);
+  assert.match(selector, /<LocationMapErrorBoundary/);
+  assert.match(selector, /draftValue=\{locationLifecycle\.getDraft\(\)\}/);
+  assert.match(selector, /onDraftChange=\{locationLifecycle\.updateDraft\}/);
+  assert.match(map, /draftValue\?: LocationPolygon \| null/);
+  assert.match(map, /onDraftChange\?: \(value: LocationPolygon \| null\) => void/);
+  assert.match(map, /onDraftChangeRef\.current\?\.\(polygon\)/);
   assert.match(selector, /role="tablist"/);
   assert.match(selector, /aria-selected=\{mode === 'text'\}/);
   assert.match(selector, /role="tabpanel"/);
   assert.match(selector, /onKeyDown=\{moveTabFocus\}/);
-  assert.match(selector, /onMapUnavailable\(message\);[\s\S]*?onModeChange\('text'\);/);
+  assert.match(selector, /locationLifecycle\.handleMapUnavailable\(message\)/);
   assert.match(selector, /requestRole === 'proprietario'[\s\S]*?Comune, quartiere o indirizzo/);
 
   const conditionalStart = selector.indexOf("{mode === 'text' ? (");

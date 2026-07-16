@@ -1,7 +1,12 @@
-import { lazy, Suspense, useId, type KeyboardEvent } from 'react';
+import { lazy, Suspense, useId, useRef, type KeyboardEvent } from 'react';
 import type { LocationMode, LocationPolygon, RequestRole } from '../../lib/leads';
+import LocationMapErrorBoundary from './LocationMapErrorBoundary';
+import {
+  createLocationSelectorLifecycle,
+  loadLocationMapModule,
+} from './locationSelectorLifecycle';
 
-const LocationPolygonMap = lazy(() => import('./LocationPolygonMap'));
+const LocationPolygonMap = lazy(() => loadLocationMapModule(() => import('./LocationPolygonMap')));
 
 const suggestedZones = [
   'Padova Centro',
@@ -54,6 +59,19 @@ export default function LocationSelector({
   onPolygonChange,
   onMapUnavailable,
 }: Props) {
+  const onModeChangeRef = useRef(onModeChange);
+  const onMapUnavailableRef = useRef(onMapUnavailable);
+  onModeChangeRef.current = onModeChange;
+  onMapUnavailableRef.current = onMapUnavailable;
+  const lifecycleRef = useRef<ReturnType<typeof createLocationSelectorLifecycle> | null>(null);
+  if (!lifecycleRef.current) {
+    lifecycleRef.current = createLocationSelectorLifecycle({
+      initialDraft: polygonValue,
+      onModeChange(nextMode) { onModeChangeRef.current(nextMode); },
+      onMapUnavailable(message) { onMapUnavailableRef.current(message); },
+    });
+  }
+  const locationLifecycle = lifecycleRef.current;
   const baseId = useId();
   const titleId = `${baseId}-location-title`;
   const textTabId = `${baseId}-location-text-tab`;
@@ -71,8 +89,7 @@ export default function LocationSelector({
     : 'Es. Padova Centro o Arcella';
 
   function handleMapUnavailable(message: string) {
-    onMapUnavailable(message);
-    onModeChange('text');
+    locationLifecycle.handleMapUnavailable(message);
   }
 
   return (
@@ -97,7 +114,7 @@ export default function LocationSelector({
           aria-selected={mode === 'text'}
           aria-controls={textPanelId}
           tabIndex={mode === 'text' ? 0 : -1}
-          onClick={() => onModeChange('text')}
+          onClick={() => locationLifecycle.changeMode('text')}
           onKeyDown={moveTabFocus}
           className={`focus-ring min-h-11 rounded-md px-4 py-2 text-sm font-semibold transition ${
             mode === 'text' ? 'bg-white text-[var(--ink)] shadow-sm' : 'text-[var(--graphite)]'
@@ -112,9 +129,10 @@ export default function LocationSelector({
           aria-selected={mode === 'polygon'}
           aria-controls={mapPanelId}
           tabIndex={mode === 'polygon' ? 0 : -1}
-          onClick={() => onModeChange('polygon')}
+          disabled={locationLifecycle.isMapUnavailable()}
+          onClick={() => locationLifecycle.changeMode('polygon')}
           onKeyDown={moveTabFocus}
-          className={`focus-ring min-h-11 rounded-md px-4 py-2 text-sm font-semibold transition ${
+          className={`focus-ring min-h-11 rounded-md px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
             mode === 'polygon' ? 'bg-white text-[var(--ink)] shadow-sm' : 'text-[var(--graphite)]'
           }`}
         >
@@ -162,20 +180,24 @@ export default function LocationSelector({
         </div>
       ) : (
         <div id={mapPanelId} role="tabpanel" aria-labelledby={mapTabId}>
-          <Suspense
-            fallback={(
-              <p className="rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-4 text-sm" role="status">
-                Caricamento mappa…
-              </p>
-            )}
-          >
-            <LocationPolygonMap
-              value={polygonValue}
-              onChange={onPolygonChange}
-              onUnavailable={handleMapUnavailable}
-              error={error}
-            />
-          </Suspense>
+          <LocationMapErrorBoundary onUnavailable={handleMapUnavailable}>
+            <Suspense
+              fallback={(
+                <p className="rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-4 text-sm" role="status">
+                  Caricamento mappa…
+                </p>
+              )}
+            >
+              <LocationPolygonMap
+                value={polygonValue}
+                draftValue={locationLifecycle.getDraft()}
+                onChange={onPolygonChange}
+                onDraftChange={locationLifecycle.updateDraft}
+                onUnavailable={handleMapUnavailable}
+                error={error}
+              />
+            </Suspense>
+          </LocationMapErrorBoundary>
         </div>
       )}
     </section>
