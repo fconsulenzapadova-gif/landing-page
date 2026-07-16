@@ -10,6 +10,13 @@ Ultimo aggiornamento: 16 luglio 2026
 
 ## Focus handoff
 
+- Wizard guidato distribuito in produzione: migrazione D1
+  `0003_add_lead_location_geometry.sql`, Worker `gemut-leads-api` versione
+  `35863fff-9915-436c-a072-b5245932f924` e deployment Vercel
+  `dpl_FWvmKSy8P7b2idnM7oVAYdL8CXaA`. Gli alias `gemutcapital.com` e
+  `www.gemutcapital.com` sono attivi; smoke test pubblico su `/richieste`
+  conferma mappa predefinita per la ricerca, switch testuale esclusivo e assenza
+  di error overlay/console.
 - Migrazione form Cloudflare distribuita: Worker, D1, Turnstile e frontend Vercel
   sono attivi. Health, CORS, migrazioni, build e controlli locali superati.
 - Fix `Nuova richiesta` distribuito in produzione con deployment Vercel

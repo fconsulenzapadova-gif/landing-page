@@ -2,6 +2,9 @@
 
 ## Milestone
 
+- 16 luglio 2026 — wizard richieste guidato distribuito in produzione con
+  migrazione D1 additiva, Worker compatibile e frontend Vercel; health Worker,
+  build remota e smoke test pubblico su mappa/testo superati.
 - 16 luglio 2026 — wizard richieste guidato completato e verificato in locale
   su viewport desktop e mobile: quattro intenti, posizione testuale o area
   MapLibre/OpenFreeMap, payload e geometria D1, fallback WebGL, invio Worker e
