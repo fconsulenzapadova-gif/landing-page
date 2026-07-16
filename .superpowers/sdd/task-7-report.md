@@ -14,7 +14,8 @@ Success/reset Cloudflare preservati. Nessun deploy.
 - `RequestIntentSelector`: frecce/Home/End selezionano; CTA avanza.
 - `LocationSelector`: draft poligono controllato/liftato.
 - `ContactStep`: `notes` controllato + errore accessibile.
-- Test runtime in `tests/request-wizard.test.mjs`; wiring static ridotto in
+- Test controller in `tests/request-wizard.test.mjs`; test UI React/happy-dom in
+  `tests/request-wizard-ui.test.mjs`; wiring static ridotto in
   `tests/site-requirements.test.mjs`.
 - `docs/product/PRD.md`: UX canonica riallineata.
 
@@ -29,6 +30,14 @@ Success/reset Cloudflare preservati. Nessun deploy.
    anche errori di step successivi.
 5. Controller runtime copre keyboard, transizioni, back/edit, reset, payload
    text/polygon, rifiuto payload incoerente, normalizzazione/routing errori.
+6. Avanti, indietro e reset focalizzano heading stabile `tabIndex={-1}` del
+   passaggio appena renderizzato.
+7. Errori API `requestType`/`requestRole` tornano al passaggio obiettivo e
+   focalizzano heading con `aria-invalid` e `aria-describedby` verso errore visibile.
+8. Test UI monta pagina reale, invia eventi, usa submit fake e verifica focus.
+   `usePageAnimations` e `RequestSuccess` sono isolati via plugin Vite test-only:
+   nessun ticker GSAP nel runner. Teardown chiude happy-dom e Vite; nessun
+   `force-exit`.
 
 ## TDD
 
@@ -46,6 +55,7 @@ GREEN focused:
 - `request page composes`: 1/1.
 - `location selector swaps`: 1/1.
 - focused lead/wizard/location/success/reset: 6/6.
+- `tests/request-wizard-ui.test.mjs`: 3/3 (step focus, submit/reset, errori intento).
 
 ## Verifica finale
 
@@ -59,5 +69,7 @@ node node_modules/vite/bin/vite.js build
 git diff --check
 ```
 
-Tutto exit 0: 44 test pass; typecheck/lint puliti; build 149 moduli. Solo warning
-dimensione chunk MapLibre gia lazy; nessun errore.
+Tutto exit 0: 47 test pass; typecheck/lint puliti; build 149 moduli. Solo warning
+dimensione chunk MapLibre gia lazy; nessun errore. `npm ci --dry-run` conferma
+`package-lock.json`; `pnpm install --lockfile-only --frozen-lockfile` conferma
+`pnpm-lock.yaml` senza cambiare policy.

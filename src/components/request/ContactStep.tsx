@@ -66,7 +66,13 @@ export default function ContactStep({
 
   return (
     <fieldset className="grid gap-6">
-      <legend className="font-display text-3xl leading-tight text-[var(--ink)] sm:text-4xl">Come possiamo ricontattarti?</legend>
+      <legend
+        id="request-step-heading"
+        className="font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-4xl"
+        tabIndex={-1}
+      >
+        Come possiamo ricontattarti?
+      </legend>
       <p className="text-sm leading-6 text-[var(--graphite)]">Mostriamo solo il recapito necessario al canale che preferisci.</p>
 
       <ContactField id="name" label="Nome e cognome" error={errors.name} required>

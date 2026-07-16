@@ -52,7 +52,13 @@ export default function PropertyDetailsStep({ form, errors, updateField, locatio
 
   return (
     <fieldset className="grid gap-6">
-      <legend className="font-display text-3xl leading-tight text-[var(--ink)] sm:text-4xl">Dettagli dell’immobile</legend>
+      <legend
+        id="request-step-heading"
+        className="font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-4xl"
+        tabIndex={-1}
+      >
+        Dettagli dell’immobile
+      </legend>
       <p className="text-sm leading-6 text-[var(--graphite)]">
         Una risposta alla volta: puoi scegliere “Da definire” quando non hai ancora deciso.
       </p>

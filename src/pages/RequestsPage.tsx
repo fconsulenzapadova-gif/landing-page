@@ -30,8 +30,14 @@ import {
 import { usePageAnimations } from '../lib/usePageAnimations';
 
 const stepLabels = ['Obiettivo', 'Immobile', 'Contatti'] as const;
+const stepHeadingId = 'request-step-heading';
+const intentErrorFields = new Set<keyof LeadRequest>(['requestType', 'requestRole']);
 
-export default function RequestsPage() {
+interface RequestsPageProps {
+  submitRequest?: typeof submitLeadRequest;
+}
+
+export default function RequestsPage({ submitRequest = submitLeadRequest }: RequestsPageProps) {
   const pageRef = useRef<HTMLDivElement>(null);
   const [searchParams] = useSearchParams();
   const initialIntent = useMemo(() => getInitialIntent(searchParams.get('type')), [searchParams]);
@@ -102,10 +108,20 @@ export default function RequestsPage() {
     setMessage(unavailableMessage);
   };
 
-  const focusError = (field?: keyof LeadRequest) => {
-    if (!field) return;
+  const focusStepHeading = () => {
     window.requestAnimationFrame(() => {
-      const control = document.getElementById(field)
+      document.getElementById(stepHeadingId)?.focus();
+    });
+  };
+
+  const focusError = (field?: keyof LeadRequest, focusHeadingFirst = false) => {
+    window.requestAnimationFrame(() => {
+      const heading = document.getElementById(stepHeadingId);
+      if (focusHeadingFirst) heading?.focus();
+      if (!field) return;
+      const control = intentErrorFields.has(field)
+        ? heading
+        : document.getElementById(field)
         ?? document.querySelector<HTMLElement>('[aria-invalid="true"], [role="tab"][aria-selected="true"]');
       control?.focus();
     });
@@ -122,6 +138,7 @@ export default function RequestsPage() {
     setWizard(advanceRequestWizard);
     setStatus('idle');
     setMessage('');
+    focusStepHeading();
   };
 
   const goToPreviousStep = () => {
@@ -130,6 +147,7 @@ export default function RequestsPage() {
     setApiErrorSummary([]);
     setStatus('idle');
     setMessage('');
+    focusStepHeading();
   };
 
   const onTurnstileVerify = useCallback((token: string) => {
@@ -167,7 +185,7 @@ export default function RequestsPage() {
 
     setStatus('submitting');
     setMessage('');
-    const result = await submitLeadRequest(request);
+    const result = await submitRequest(request);
     setStatus(result.ok ? 'success' : 'error');
     setMessage(result.message);
 
@@ -175,8 +193,9 @@ export default function RequestsPage() {
       const normalized = normalizeLeadFieldErrors(result.fieldErrors);
       setErrors(normalized.formErrors);
       setApiErrorSummary(normalized.summary);
+      const changesStep = normalized.earliestStep !== step;
       setWizard((current) => setRequestWizardStep(current, normalized.earliestStep));
-      focusError(normalized.firstField);
+      focusError(normalized.firstField, changesStep);
     }
   };
 
@@ -186,6 +205,7 @@ export default function RequestsPage() {
     setApiErrorSummary([]);
     setStatus('idle');
     setMessage('');
+    focusStepHeading();
   };
 
   if (status === 'success') {
@@ -227,7 +247,11 @@ export default function RequestsPage() {
           <WizardProgress step={step} />
 
           {step === 0 && (
-            <RequestIntentSelector value={intentValue} onChange={selectIntent} />
+            <RequestIntentSelector
+              value={intentValue}
+              error={errors.requestType ?? errors.requestRole}
+              onChange={selectIntent}
+            />
           )}
 
           {step === 1 && (

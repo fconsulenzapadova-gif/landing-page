@@ -9,6 +9,7 @@ import { getNextIntentIndex } from '../../lib/requestWizardFlow';
 interface Props {
   value: RequestIntentValue;
   onChange: (intent: RequestIntent) => void;
+  error?: string;
 }
 
 function moveRadioFocus(event: KeyboardEvent<HTMLButtonElement>) {
@@ -26,10 +27,16 @@ function moveRadioFocus(event: KeyboardEvent<HTMLButtonElement>) {
   radios[nextIndex]?.click();
 }
 
-export default function RequestIntentSelector({ value, onChange }: Props) {
+export default function RequestIntentSelector({ value, onChange, error }: Props) {
   return (
     <fieldset className="grid gap-5">
-      <legend className="font-display text-3xl leading-tight text-[var(--ink)] sm:text-4xl">
+      <legend
+        id="request-step-heading"
+        className="font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-4xl"
+        tabIndex={-1}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? 'request-intent-error' : undefined}
+      >
         Qual è il tuo obiettivo?
       </legend>
       <p className="text-sm leading-6 text-[var(--graphite)]">
@@ -59,6 +66,11 @@ export default function RequestIntentSelector({ value, onChange }: Props) {
           );
         })}
       </div>
+      {error && (
+        <p id="request-intent-error" className="text-sm font-medium text-red-700" role="alert">
+          {error}
+        </p>
+      )}
     </fieldset>
   );
 }
