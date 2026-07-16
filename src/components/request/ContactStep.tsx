@@ -196,6 +196,8 @@ export default function ContactStep({
           type="checkbox"
           checked={form.privacyAccepted}
           onChange={(event) => updateField('privacyAccepted', event.target.checked)}
+          required
+          aria-required={true}
           aria-invalid={Boolean(errors.privacyAccepted)}
           aria-describedby={errors.privacyAccepted ? 'privacyAccepted-error' : undefined}
         />
@@ -223,6 +225,8 @@ interface ContactFieldProps {
   children: ReactElement<{
     'aria-describedby'?: string;
     'aria-invalid'?: boolean;
+    'aria-required'?: boolean;
+    required?: boolean;
   }>;
   id: 'name' | 'phone' | 'email';
   label: string;
@@ -238,6 +242,8 @@ function ContactField({ children, id, label, error, required = false }: ContactF
         {required && <span className="text-red-600"> *</span>}
       </span>
       {cloneElement(children, {
+        required: required,
+        'aria-required': required,
         'aria-invalid': Boolean(error),
         'aria-describedby': error ? `${id}-error` : undefined,
       })}

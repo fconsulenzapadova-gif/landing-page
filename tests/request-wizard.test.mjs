@@ -16,6 +16,10 @@ const polygon = {
 
 test('four explicit intents map to compatible type and role values', () => {
   assert.deepEqual(
+    requestIntents.map(({ label }) => label),
+    ['Compro casa', 'Vendo casa', 'Cerco in affitto', 'Metto in affitto'],
+  );
+  assert.deepEqual(
     requestIntents.map(({ value, requestType, requestRole }) => ({ value, requestType, requestRole })),
     [
       { value: 'acquisto', requestType: 'acquisto', requestRole: 'cerca' },

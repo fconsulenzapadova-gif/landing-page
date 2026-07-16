@@ -38,7 +38,6 @@ export default function RequestIntentSelector({ value, onChange }: Props) {
       <p className="text-sm leading-6 text-[var(--graphite)]">
         Scegli il percorso: le domande successive si adatteranno alla tua richiesta.
       </p>
-      {/* requestIntents renders: Compro casa, Vendo casa, Cerco in affitto, Metto in affitto. */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4" role="radiogroup" aria-label="Obiettivo richiesta">
         {requestIntents.map((intent, index) => {
           const active = value === intent.value;

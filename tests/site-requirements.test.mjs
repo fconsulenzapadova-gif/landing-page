@@ -239,7 +239,6 @@ test('guided request controls expose four intents and progressive inputs', () =>
   const property = read('src/components/request/PropertyDetailsStep.tsx');
   const contact = read('src/components/request/ContactStep.tsx');
   const progress = read('src/components/request/WizardProgress.tsx');
-  ['Compro casa', 'Vendo casa', 'Cerco in affitto', 'Metto in affitto'].forEach((label) => assert.match(intent, new RegExp(label)));
   assert.match(intent, /role="radiogroup"/);
   assert.match(progress, /circa 2 minuti/);
   assert.match(property, /propertyTypes\.map/);
@@ -248,6 +247,9 @@ test('guided request controls expose four intents and progressive inputs', () =>
   assert.match(contact, /contactPreference/);
   assert.match(contact, /form\.contactPreference === 'email'/);
   assert.match(contact, /Aggiungi anche/);
+  assert.match(contact, /required: required/);
+  assert.match(contact, /'aria-required': required/);
+  assert.match(contact, /id="privacyAccepted"[\s\S]*?required[\s\S]*?aria-required=\{true\}/);
 });
 
 test('required image assets exist and are used', () => {
