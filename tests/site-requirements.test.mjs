@@ -173,6 +173,7 @@ test('listing parsers map public sheet rows and public folder markup', async () 
 test('lead form uses the Cloudflare API without Supabase or external CRM', () => {
   const leads = read('src/lib/leads.ts');
   const requests = read('src/pages/RequestsPage.tsx');
+  const contact = read('src/components/request/ContactStep.tsx');
   const turnstile = read('src/components/Turnstile.tsx');
   const worker = read('cloudflare/src/index.ts');
   const notification = read('cloudflare/src/notification.ts');
@@ -196,7 +197,7 @@ test('lead form uses the Cloudflare API without Supabase or external CRM', () =>
   assert.match(requests, /useSearchParams/);
   assert.match(requests, /type=acquisto|requestType/);
   assert.match(requests, /stepLabels/);
-  assert.match(requests, /<Turnstile/);
+  assert.match(contact, /<Turnstile/);
   assert.doesNotMatch(leads, /supabase|crm-pro-five|google/i);
 });
 
@@ -250,6 +251,20 @@ test('guided request controls expose four intents and progressive inputs', () =>
   assert.match(contact, /required: required/);
   assert.match(contact, /'aria-required': required/);
   assert.match(contact, /id="privacyAccepted"[\s\S]*?required[\s\S]*?aria-required=\{true\}/);
+});
+
+test('request page composes the adaptive wizard and submits geometry', () => {
+  const requests = read('src/pages/RequestsPage.tsx');
+
+  assert.match(requests, /<RequestIntentSelector/);
+  assert.match(requests, /<PropertyDetailsStep/);
+  assert.match(requests, /<ContactStep/);
+  assert.match(requests, /getDefaultLocationMode/);
+  assert.match(requests, /summarizePolygon/);
+  assert.match(requests, /locationGeometry/);
+  assert.match(requests, /requestRole/);
+  assert.match(requests, /setStep\(1\)/);
+  assert.match(requests, /onMapUnavailable/);
 });
 
 test('request polygon map is free, lazy, branded and accessible', () => {

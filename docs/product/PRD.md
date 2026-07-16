@@ -391,8 +391,10 @@ Campi:
 
 - identificativo richiesta idempotente;
 - tipo richiesta;
+- ruolo nella richiesta: ricerca o proprietario;
 - tipo immobile;
-- zona o indirizzo;
+- zona o indirizzo, con modalita testuale oppure area poligonale;
+- geometria poligonale opzionale, presente solo per la modalita mappa;
 - budget o valore indicativo;
 - tempistiche;
 - caratteristiche/obiettivi;
@@ -412,7 +414,8 @@ Validazione frontend:
 - almeno telefono o email;
 - coerenza tra dato presente e canale di contatto scelto;
 - email e telefono con controllo formato base;
-- tipo immobile e zona obbligatori;
+- tipo immobile e posizione obbligatori; la posizione richiede testo non vuoto
+  oppure un poligono valido in base alla modalita selezionata;
 - consenso informativa obbligatorio;
 - Turnstile completato.
 
@@ -426,9 +429,13 @@ Altri valori ricadono su `acquisto`.
 
 UX corrente:
 
-- header compatto con solo titolo;
 - wizard in tre passaggi: obiettivo, immobile, contatti;
-- domande e label adattate a acquisto, vendita o locazione;
+- quattro obiettivi espliciti: acquisto, vendita, ricerca in affitto e immobile
+  da affittare;
+- modalita mappa predefinita per chi cerca e testo predefinito per il
+  proprietario, con pannelli esclusivi e fallback automatico al testo se la
+  mappa non e disponibile;
+- domande e label adattate a tipo richiesta e ruolo;
 - progressivo accessibile e navigazione avanti/indietro;
 - campi responsive, errori associati agli input e stato invio esplicito;
 - Turnstile normalmente invisibile con comparsa solo quando Cloudflare richiede interazione;
