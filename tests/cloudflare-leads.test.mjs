@@ -36,6 +36,17 @@ function validPayload(overrides = {}) {
   };
 }
 
+function withoutExtendedLocationFields(overrides = {}) {
+  const payload = validPayload({
+    location: '  Via Roma 1, Padova  ',
+    ...overrides,
+  });
+  delete payload.requestRole;
+  delete payload.locationMode;
+  delete payload.locationGeometry;
+  return payload;
+}
+
 test('Cloudflare lead validation accepts and normalizes a complete request', () => {
   const result = validateLeadPayload(validPayload(), now);
 
@@ -76,9 +87,85 @@ test('accepts text and polygon location modes', () => {
   assert.equal(polygon.value.locationGeometry.coordinates[0].length, 4);
 
   const text = validateLeadPayload(validPayload({
-    requestRole: 'proprietario', locationMode: 'text', location: 'Via Roma 1, Padova', locationGeometry: null,
+    requestType: 'vendita', requestRole: 'proprietario', locationMode: 'text', location: 'Via Roma 1, Padova', locationGeometry: null,
   }), now);
   assert.equal(text.ok, true);
+});
+
+test('accepts all four supported extended request intent pairs', () => {
+  for (const [requestType, requestRole] of [
+    ['acquisto', 'cerca'],
+    ['vendita', 'proprietario'],
+    ['locazione', 'cerca'],
+    ['locazione', 'proprietario'],
+  ]) {
+    const result = validateLeadPayload(validPayload({ requestType, requestRole }), now);
+
+    assert.equal(result.ok, true, `${requestType}+${requestRole}`);
+  }
+});
+
+test('rejects impossible extended request intent pairs with field errors', () => {
+  for (const [requestType, requestRole] of [
+    ['acquisto', 'proprietario'],
+    ['vendita', 'cerca'],
+  ]) {
+    const result = validateLeadPayload(validPayload({ requestType, requestRole }), now);
+
+    assert.equal(result.ok, false, `${requestType}+${requestRole}`);
+    assert.match(result.fieldErrors.requestType, /non compatibile/);
+    assert.match(result.fieldErrors.requestRole, /non compatibile/);
+  }
+});
+
+test('infers compatible text location fields only for fully legacy payloads', () => {
+  for (const [requestType, requestRole] of [
+    ['acquisto', 'cerca'],
+    ['vendita', 'proprietario'],
+    ['locazione', 'cerca'],
+  ]) {
+    const result = validateLeadPayload(withoutExtendedLocationFields({ requestType }), now);
+
+    assert.equal(result.ok, true, requestType);
+    assert.equal(result.value.requestRole, requestRole);
+    assert.equal(result.value.locationMode, 'text');
+    assert.equal(result.value.locationGeometry, null);
+    assert.equal(result.value.location, 'Via Roma 1, Padova');
+  }
+});
+
+test('rejects every partially upgraded location contract instead of treating it as legacy', () => {
+  const partialPayloads = [
+    (() => {
+      const payload = validPayload();
+      delete payload.requestRole;
+      return payload;
+    })(),
+    (() => {
+      const payload = validPayload();
+      delete payload.locationMode;
+      return payload;
+    })(),
+    (() => {
+      const payload = validPayload({ locationMode: 'text' });
+      delete payload.locationGeometry;
+      return payload;
+    })(),
+  ];
+
+  for (const payload of partialPayloads) {
+    const result = validateLeadPayload(payload, now);
+
+    assert.equal(result.ok, false);
+    assert.ok(result.fieldErrors.requestRole || result.fieldErrors.locationMode || result.fieldErrors.locationGeometry);
+  }
+});
+
+test('replaces a client-claimed polygon center with the canonical geometry summary', () => {
+  const result = validateLeadPayload(validPayload({ location: 'Centro dichiarato dal client: 0, 0' }), now);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.value.location, 'Area selezionata sulla mappa — centro 45.4133, 11.8867');
 });
 
 test('rejects inconsistent or malformed geometry', () => {
@@ -95,7 +182,7 @@ test('rejects inconsistent or malformed geometry', () => {
   }
 });
 
-test('persists request role, location mode and serialized geometry', async () => {
+test('persists request role, location mode, serialized geometry and canonical polygon location', async () => {
   let query = '';
   let boundValues = [];
   const statement = {
@@ -130,7 +217,10 @@ test('persists request role, location mode and serialized geometry', async () =>
       new Request('https://worker.test/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Origin: 'https://www.gemutcapital.com' },
-        body: JSON.stringify(validPayload({ startedAt: Date.now() - 10_000 })),
+        body: JSON.stringify(validPayload({
+          location: 'Centro dichiarato dal client: 0, 0',
+          startedAt: Date.now() - 10_000,
+        })),
       }),
       env,
       { waitUntil() {} },
@@ -141,6 +231,7 @@ test('persists request role, location mode and serialized geometry', async () =>
     assert.equal(boundValues[2], 'cerca');
     assert.equal(boundValues[3], 'polygon');
     assert.equal(boundValues[4], JSON.stringify(validPayload().locationGeometry));
+    assert.equal(boundValues[6], 'Area selezionata sulla mappa — centro 45.4133, 11.8867');
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -175,6 +266,21 @@ test('notification explains search role and polygon without dumping GeoJSON', ()
   assert.match(message.text, /Modalità posizione: Area disegnata sulla mappa/);
   assert.match(message.text, /Vertici area: 3/);
   assert.doesNotMatch(message.text, /coordinates|11\.86,45\.4/);
+});
+
+test('notification derives polygon area text from geometry instead of arbitrary lead location', () => {
+  const validated = validateLeadPayload(validPayload(), now).value;
+  const message = buildLeadNotification(
+    { ...validated, location: 'Centro arbitrario non attendibile: 0, 0' },
+    {
+      from: 'filippo@gemutcapital.com',
+      to: 'filippo@gemutcapital.com',
+      receivedAt: '2027-01-15T08:00:00.000Z',
+    },
+  );
+
+  assert.match(message.text, /Zona: Area selezionata sulla mappa — centro 45\.4133, 11\.8867/);
+  assert.doesNotMatch(message.text, /Centro arbitrario non attendibile/);
 });
 
 test('lead notification omits reply-to when customer provides only a phone number', () => {

@@ -1,4 +1,4 @@
-import type { ValidLead } from './validation';
+import { summarizeLocationPolygon, type ValidLead } from './validation.ts';
 
 export interface EmailAddress {
   email: string;
@@ -98,6 +98,9 @@ export function buildLeadNotification(
   const polygonVertices = lead.locationGeometry
     ? String(lead.locationGeometry.coordinates[0].length - 1)
     : 'Non applicabile';
+  const location = lead.locationMode === 'polygon' && lead.locationGeometry
+    ? summarizeLocationPolygon(lead.locationGeometry)
+    : lead.location;
   const fields = [
     ['Tipo richiesta', requestType],
     ['Ruolo', requestRoleLabels[lead.requestRole]],
@@ -107,7 +110,7 @@ export function buildLeadNotification(
     ['Contatto preferito', contactPreference],
     ['Tipo immobile', lead.propertyType],
     ['Modalità posizione', locationModeLabels[lead.locationMode]],
-    ['Zona', lead.location],
+    ['Zona', location],
     ['Vertici area', polygonVertices],
     ['Budget / valore', display(lead.budget)],
     ['Tempistiche', display(lead.timeframe)],

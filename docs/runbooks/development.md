@@ -57,6 +57,24 @@ scrive dati di prova nel database remoto e non mostra il banner Turnstile di tes
 In locale la notifica viene ignorata se i secret Gmail non sono presenti. I test
 del contenuto MIME e del trasporto usano mock e non inviano email reali.
 
+Rollout compatibile dei campi posizione guidata:
+
+1. applicare prima la migrazione D1 additiva che aggiunge le colonne nullable;
+2. distribuire il Worker di compatibilità;
+3. distribuire il frontend che invia `requestRole`, `locationMode` e
+   `locationGeometry`;
+4. osservare errori di validazione, inserimenti e notifiche durante la finestra
+   di transizione;
+5. solo in un rilascio successivo, quando non arrivano più client legacy,
+   valutare un Worker rigoroso che richieda sempre i tre nuovi campi.
+
+Il Worker di compatibilità considera legacy un payload solo se tutti e tre i
+campi nuovi sono assenti. In quel caso deduce `acquisto → cerca`,
+`vendita → proprietario` e `locazione → cerca`, usando posizione testuale e
+geometria nulla. Un payload parzialmente aggiornato resta non valido e non viene
+reinterpretato. Questa modifica documenta e prepara l'ordine di rollout: non
+distribuisce Worker o frontend e non applica migrazioni remote.
+
 Prima distribuzione remota:
 
 1. autenticare Wrangler con `wrangler login --use-keyring`;

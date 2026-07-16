@@ -62,8 +62,24 @@ const limits = {
 
 const maxGeometryLength = 6_000;
 
+const compatibleRequestRoles: Record<RequestType, readonly RequestRole[]> = {
+  acquisto: ['cerca'],
+  vendita: ['proprietario'],
+  locazione: ['cerca', 'proprietario'],
+};
+
+const legacyRequestRoles: Record<RequestType, RequestRole> = {
+  acquisto: 'cerca',
+  vendita: 'proprietario',
+  locazione: 'cerca',
+};
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function hasOwn(payload: Record<string, unknown>, field: string) {
+  return Object.prototype.hasOwnProperty.call(payload, field);
 }
 
 function text(value: unknown, maxLength: number) {
@@ -100,14 +116,28 @@ function parseLocationGeometry(value: unknown): LocationPolygon | null {
   return distinct.size >= 3 && distinct.size <= 24 && first[0] === last[0] && first[1] === last[1] ? polygon : null;
 }
 
+export function summarizeLocationPolygon(polygon: LocationPolygon) {
+  const points = polygon.coordinates[0].slice(0, -1);
+  const [lngSum, latSum] = points.reduce(
+    ([currentLng, currentLat], [lng, lat]) => [currentLng + lng, currentLat + lat],
+    [0, 0],
+  );
+  const lng = Number((lngSum / points.length).toFixed(6));
+  const lat = Number((latSum / points.length).toFixed(6));
+  return `Area selezionata sulla mappa — centro ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+}
+
 export function validateLeadPayload(payload: unknown, now = Date.now()): ValidationResult {
   if (!isObject(payload)) return { ok: false, fieldErrors: { form: 'Payload non valido.' } };
 
   const requestId = text(payload.requestId, limits.requestId);
   const requestType = text(payload.requestType, 20);
-  const requestRole = text(payload.requestRole, 20);
-  const locationMode = text(payload.locationMode, 20);
-  const locationGeometry = parseLocationGeometry(payload.locationGeometry);
+  const isLegacyPayload = ['requestRole', 'locationMode', 'locationGeometry'].every((field) => !hasOwn(payload, field));
+  const requestRole = isLegacyPayload && requestTypes.includes(requestType as RequestType)
+    ? legacyRequestRoles[requestType as RequestType]
+    : text(payload.requestRole, 20);
+  const locationMode = isLegacyPayload ? 'text' : text(payload.locationMode, 20);
+  const locationGeometry = isLegacyPayload ? null : parseLocationGeometry(payload.locationGeometry);
   const propertyType = text(payload.propertyType, limits.propertyType);
   const location = text(payload.location, limits.location);
   const budget = text(payload.budget, limits.budget);
@@ -128,7 +158,18 @@ export function validateLeadPayload(payload: unknown, now = Date.now()): Validat
   if (!isUuid(requestId)) errors.requestId = 'Identificativo richiesta non valido.';
   if (!requestTypes.includes(requestType as RequestType)) errors.requestType = 'Tipo richiesta non valido.';
   if (!requestRoles.includes(requestRole as RequestRole)) errors.requestRole = 'Ruolo richiesta non valido.';
+  if (
+    requestTypes.includes(requestType as RequestType) &&
+    requestRoles.includes(requestRole as RequestRole) &&
+    !compatibleRequestRoles[requestType as RequestType].includes(requestRole as RequestRole)
+  ) {
+    errors.requestType = 'Tipo richiesta non compatibile con il ruolo.';
+    errors.requestRole = 'Ruolo richiesta non compatibile con il tipo.';
+  }
   if (!locationModes.includes(locationMode as LocationMode)) errors.locationMode = 'Modalità posizione non valida.';
+  if (!isLegacyPayload && !hasOwn(payload, 'locationGeometry')) {
+    errors.locationGeometry = 'Specifica la geometria della posizione.';
+  }
   if (locationMode === 'text' && payload.locationGeometry != null) {
     errors.locationGeometry = 'La posizione testuale non può includere una geometria.';
   }
@@ -165,7 +206,7 @@ export function validateLeadPayload(payload: unknown, now = Date.now()): Validat
       locationMode: locationMode as LocationMode,
       locationGeometry,
       propertyType,
-      location,
+      location: locationMode === 'polygon' && locationGeometry ? summarizeLocationPolygon(locationGeometry) : location,
       budget,
       timeframe,
       features,
