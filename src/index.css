@@ -190,6 +190,38 @@
     box-shadow: inset 0 0 0 5px var(--brand-blue);
   }
 
+  .request-location-map.maplibregl-map.mouse-pointer .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: pointer;
+  }
+
+  .request-location-map.maplibregl-map.mouse-move .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: move;
+  }
+
+  .request-location-map.maplibregl-map.mouse-add .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: crosshair;
+  }
+
+  .request-location-map.maplibregl-map.mouse-move.mode-direct_select .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: grab;
+  }
+
+  .request-location-map.maplibregl-map.mode-direct_select.feature-vertex.mouse-move .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: move;
+  }
+
+  .request-location-map.maplibregl-map.mode-direct_select.feature-midpoint.mouse-pointer .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: cell;
+  }
+
+  .request-location-map.maplibregl-map.mode-direct_select.feature-feature.mouse-move .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: move;
+  }
+
+  .request-location-map.maplibregl-map.mode-static.mouse-pointer .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: grab;
+  }
+
   .request-location-map .maplibregl-ctrl-attrib {
     background: rgb(247 245 239 / 0.92);
     color: var(--graphite);

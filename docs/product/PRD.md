@@ -78,6 +78,8 @@ componenti shadcn/Radix nel runtime pubblico.
 | Pagine acquisto/vendita/locazioni | `src/pages/ServicePage.tsx`, `src/content/site.ts` |
 | Pagina valutazione patrimonio | `src/pages/SpecialistPage.tsx`, `src/content/site.ts` |
 | Form richieste | `src/pages/RequestsPage.tsx` |
+| Componenti wizard richieste | `src/components/request/` |
+| Modello intenti e flusso wizard | `src/lib/requestWizard.ts`, `src/lib/requestWizardFlow.ts` |
 | Invio lead Cloudflare | `src/lib/leads.ts`, `cloudflare/src/index.ts` |
 | WhatsApp | `src/lib/whatsapp.ts` |
 | Prenotazione | `src/pages/BookingPage.tsx` |
@@ -105,6 +107,7 @@ componenti shadcn/Radix nel runtime pubblico.
 - Tailwind CSS;
 - Lucide React;
 - GSAP con `@gsap/react` e `ScrollTrigger`;
+- MapLibre GL JS con stile OpenFreeMap e Mapbox GL Draw;
 - Cloudflare Workers, D1 e Turnstile;
 - Node test runner;
 - Vercel.
@@ -402,7 +405,7 @@ Campi:
 - telefono;
 - email;
 - canale di contatto preferito;
-- note.
+- note;
 - consenso informativa;
 - token Turnstile, non persistito;
 - URL sorgente e referrer;
@@ -430,16 +433,28 @@ Altri valori ricadono su `acquisto`.
 UX corrente:
 
 - wizard in tre passaggi: obiettivo, immobile, contatti;
-- quattro obiettivi espliciti: acquisto, vendita, ricerca in affitto e immobile
-  da affittare;
+- quattro obiettivi visibili: `Compro casa`, `Vendo casa`, `Cerco in affitto`
+  e `Metto in affitto`;
 - scelta obiettivo separata dall’avanzamento: frecce, Home ed End cambiano la
   selezione senza lasciare il passaggio; `Continua` conferma il percorso;
-- modalita mappa predefinita per chi cerca e testo predefinito per il
-  proprietario, con pannelli esclusivi e fallback automatico al testo se la
-  mappa non e disponibile;
+- il ruolo `cerca` usa di default la mappa, mentre il ruolo `proprietario` usa
+  di default il testo; le tab consentono comunque di passare tra le due
+  modalita;
+- il pannello mappa e il pannello testo sono mutuamente esclusivi: il cambio
+  tab sostituisce il pannello attivo e non li monta mai insieme;
+- la mappa usa MapLibre GL JS, stile OpenFreeMap e Mapbox GL Draw, senza API
+  key, account, geocoding o geolocalizzazione; consente disegno, modifica,
+  annullamento dell’ultimo punto, reset e conferma del poligono, mantenendo
+  visibile l’attribuzione;
+- errori di inizializzazione, tile o WebGL attivano automaticamente il pannello
+  testuale senza perdere l’intento selezionato;
 - navigazione indietro conserva campi e bozze, inclusa un’area non ancora
   confermata; riselezionare lo stesso obiettivo non azzera la posizione;
 - domande e label adattate a tipo richiesta e ruolo;
+- controlli immobile progressivi: la posizione rivela il tipo immobile, poi
+  budget/valore, tempistiche e infine i dettagli facoltativi, chiusi di default;
+- il canale di contatto rivela solo il campo obbligatorio relativo e permette
+  di aggiungere il recapito secondario;
 - progressivo accessibile e navigazione avanti/indietro;
 - campi responsive, errori associati agli input e stato invio esplicito;
 - errori restituiti dal Worker riportano al primo passaggio coinvolto, mappano
@@ -477,6 +492,13 @@ Il browser non contiene chiavi D1. Il Worker:
 - timestamp;
 - indici composti per stato/tipo e data;
 - vincoli SQL su tipi richiesta, canali e presenza di un contatto.
+
+`cloudflare/migrations/0003_add_lead_location_geometry.sql` aggiunge colonne
+nullable per ruolo (`request_role`), modalita posizione (`location_mode`) e
+GeoJSON serializzato (`location_geometry`). Il Worker valida la geometria e la
+salva solo per la modalita mappa; la posizione testuale conserva geometria
+nulla. Il riepilogo Gmail include ruolo, modalita e numero di vertici, senza
+allegare il GeoJSON completo.
 
 L'accesso è mediato dal binding D1 del Worker. Nessuna credenziale database è
 esposta nel client.

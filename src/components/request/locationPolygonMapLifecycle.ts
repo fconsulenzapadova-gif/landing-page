@@ -125,8 +125,16 @@ export function createLocationPolygonMapLifecycle({
       if (disposed) return;
       disposed = true;
       subscriptions.forEach((subscription) => subscription.unsubscribe());
-      if (controlAdded && map.hasControl(control)) map.removeControl(control);
-      map.remove();
+      try {
+        if (controlAdded && map.hasControl(control)) map.removeControl(control);
+      } catch {
+        // WebGL/style loss can make Draw cleanup fail after fallback has begun.
+      }
+      try {
+        map.remove();
+      } catch {
+        // Cleanup must not break the text fallback if MapLibre is already torn down.
+      }
     },
   };
 }

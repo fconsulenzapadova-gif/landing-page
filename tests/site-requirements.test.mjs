@@ -297,6 +297,9 @@ test('request polygon map is free, lazy, branded and accessible', () => {
   assert.match(css, /--brand-blue/);
   assert.match(css, /\.request-location-map \.maplibregl-canvas:focus-visible/);
   assert.doesNotMatch(css, /\.request-location-map \.maplibregl-canvas\s*\{\s*outline:\s*none/);
+  assert.match(css, /\.request-location-map\.maplibregl-map\.mouse-add[\s\S]*?cursor:\s*crosshair/);
+  assert.match(css, /\.request-location-map\.maplibregl-map\.mode-direct_select\.feature-midpoint\.mouse-pointer[\s\S]*?cursor:\s*cell/);
+  assert.match(css, /\.request-location-map\.maplibregl-map\.mode-static\.mouse-pointer[\s\S]*?cursor:\s*grab/);
 });
 
 test('location selector swaps text and map in one accessible panel', () => {

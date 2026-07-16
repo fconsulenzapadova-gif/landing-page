@@ -206,3 +206,25 @@ test('map lifecycle unsubscribes listeners and removes control and map', async (
   assert.equal(mapHarness.calls.removed, 1);
   assert.deepEqual(drafts, []);
 });
+
+test('map lifecycle cleanup survives control removal after WebGL loss', async () => {
+  const { createLocationPolygonMapLifecycle } = await loadLifecycle();
+  const mapHarness = createMapHarness();
+  const drawHarness = createDrawHarness();
+  const control = {};
+  const lifecycle = createLocationPolygonMapLifecycle({
+    map: mapHarness.map,
+    draw: drawHarness.draw,
+    control,
+    initialValue: null,
+    onDraft() {},
+    onUnavailable() {},
+  });
+  mapHarness.fire('load');
+  mapHarness.map.removeControl = () => {
+    throw new TypeError("Cannot read properties of null (reading 'getLayer')");
+  };
+
+  assert.doesNotThrow(() => lifecycle.dispose());
+  assert.equal(mapHarness.calls.removed, 1);
+});
