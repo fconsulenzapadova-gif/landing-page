@@ -104,7 +104,11 @@ async function flush() {
   });
 }
 
-async function renderWizard(submitRequest = async () => ({ ok: true, message: 'Richiesta salvata.' })) {
+async function renderWizard(
+  submitRequest = async () => ({ ok: true, message: 'Richiesta salvata.' }),
+  { preserveDraft = false } = {},
+) {
+  if (!preserveDraft) domWindow.localStorage.removeItem('gemut-request-wizard-v1');
   document.body.innerHTML = '<div id="root"></div>';
   const container = document.getElementById('root');
   const root = createRoot(container);
@@ -224,7 +228,7 @@ test('wizard intent cards use a mobile grid and advance immediately when activat
   await click(button('Indietro'));
   assert.strictEqual(document.activeElement, stepHeading('Qual è il tuo obiettivo?'));
   await click(button('Compro casa'));
-  assert.strictEqual(document.activeElement, stepHeading('Dove ti piacerebbe abitare?'));
+  assert.strictEqual(document.activeElement, stepHeading('Disegna la zona'));
   await rendered.unmount();
 });
 
@@ -253,6 +257,35 @@ test('wizard progress advances through every visible sub-screen', async () => {
   assert.equal(progressScreen(), 8);
 
   await rendered.unmount();
+});
+
+test('refresh restores the current sub-screen and entered form data', async () => {
+  const firstRender = await renderWizard();
+  await click(button('Vendo casa'));
+  const location = document.querySelector('input[autocomplete="street-address"]');
+  assert.ok(location);
+  await change(location, 'Via Roma 10, Padova');
+  await click(button('Continua'));
+  await click(button('Appartamento'));
+  await change(document.getElementById('budget-minimum'), '300.000');
+  await change(document.getElementById('budget-maximum'), '400.000');
+  await click(button('Continua'));
+  await change(document.getElementById('timeframe-custom'), 'Entro settembre 2027');
+  assert.equal(stepHeading('Quando?').textContent, 'Quando?');
+  await firstRender.unmount();
+
+  const restoredRender = await renderWizard(undefined, { preserveDraft: true });
+  assert.equal(stepHeading('Quando?').textContent, 'Quando?');
+  assert.equal(document.getElementById('timeframe-custom').value, 'Entro settembre 2027');
+  await click(button('Indietro'));
+  assert.equal(stepHeading('Budget').textContent, 'Budget');
+  assert.equal(document.getElementById('budget-minimum').value, '300.000');
+  assert.equal(document.getElementById('budget-maximum').value, '400.000');
+  await click(button('Indietro'));
+  assert.equal(document.querySelector('[role="radio"][aria-checked="true"]').textContent.trim(), 'Appartamento');
+  await click(button('Indietro'));
+  assert.equal(document.querySelector('input[autocomplete="street-address"]').value, 'Via Roma 10, Padova');
+  await restoredRender.unmount();
 });
 
 test('owner intents accept only a street address, without map or suggested zones', async () => {
@@ -305,28 +338,30 @@ test('API intent errors return to step zero, expose description and focus the in
   await rendered.unmount();
 });
 
-test('property budget presets follow purchase or rent intent', async () => {
+test('budget uses minimum and maximum fields with the correct unit', async () => {
   const purchase = await renderWizard();
   await reachPropertyChoices('Vendo casa');
 
-  assert.equal(stepHeading('Valore o canone desiderato').textContent, 'Valore o canone desiderato');
-  assert.ok(button('Fino a 200.000 €'));
+  assert.equal(stepHeading('Budget').textContent, 'Budget');
+  assert.equal(document.getElementById('budget-minimum').placeholder, 'Es. 200.000');
+  assert.equal(document.getElementById('budget-maximum').placeholder, 'Es. 200.000');
+  assert.ok(button('Da definire'));
+  assert.equal(document.body.textContent.includes('Fino a 200.000 €'), false);
   assert.equal(document.body.textContent.includes('€/mese'), false);
   await purchase.unmount();
 
   const rent = await renderWizard();
   await reachPropertyChoices('Metto in affitto');
 
-  assert.equal(stepHeading('Valore o canone desiderato').textContent, 'Valore o canone desiderato');
-  assert.ok(button('Fino a 800 €/mese'));
-  assert.equal(document.body.textContent.includes('200.000–350.000 €'), false);
-  await click(button('Altro importo'));
-  assert.equal(document.getElementById('budget-custom').placeholder, 'Es. 900–1.200 €/mese');
-  assert.equal(document.getElementById('budget-custom').placeholder.includes('300.000'), false);
+  assert.equal(stepHeading('Budget').textContent, 'Budget');
+  assert.equal(document.getElementById('budget-minimum').placeholder, 'Es. 800');
+  assert.equal(document.getElementById('budget-maximum').placeholder, 'Es. 800');
+  assert.equal(document.body.textContent.includes('€/mese'), true);
+  assert.equal(document.body.textContent.includes('Altro importo'), false);
   await rent.unmount();
 });
 
-test('custom budget and timeframe drafts survive preset toggles and reach the existing payload fields', async () => {
+test('budget range and always-visible custom timeframe reach the existing payload fields', async () => {
   const requests = [];
   const rendered = await renderWizard(async (request) => {
     requests.push(request);
@@ -334,26 +369,21 @@ test('custom budget and timeframe drafts survive preset toggles and reach the ex
   });
   await reachPropertyChoices('Vendo casa');
 
-  await click(button('Altro importo'));
-  const customBudget = document.getElementById('budget-custom');
-  assert.ok(customBudget, 'custom budget input must exist');
-  await change(customBudget, '300.000–400.000 €');
-  await click(button('Fino a 200.000 €'));
-  await click(button('Indietro'));
-  await click(button('Altro importo'));
-  assert.equal(document.getElementById('budget-custom').value, '300.000–400.000 €');
+  const budgetMinimum = document.getElementById('budget-minimum');
+  const budgetMaximum = document.getElementById('budget-maximum');
+  assert.ok(budgetMinimum, 'minimum budget input must exist');
+  assert.ok(budgetMaximum, 'maximum budget input must exist');
+  await change(budgetMinimum, '300.000');
+  await change(budgetMaximum, '400.000');
   await click(button('Continua'));
 
-  await click(button('Altro periodo'));
   const customTimeframe = document.getElementById('timeframe-custom');
-  assert.ok(customTimeframe, 'custom timeframe input must exist');
+  assert.ok(customTimeframe, 'custom timeframe input must always exist');
+  assert.equal(customTimeframe.labels[0].textContent.trim().startsWith('Altro periodo'), true);
   await change(customTimeframe, 'Entro settembre 2027');
-  await click(button('Entro 3 mesi'));
-  await click(button('Indietro'));
-  await click(button('Altro periodo'));
-  assert.equal(document.getElementById('timeframe-custom').value, 'Entro settembre 2027');
-
   await click(button('Continua'));
+  assert.ok(document.getElementById('features'), 'optional details must always be visible');
+  assert.equal([...document.querySelectorAll('button')].some((candidate) => candidate.textContent.trim() === 'Aggiungi dettagli'), false);
   await click(button('Vai ai contatti'));
   await change(document.getElementById('name'), 'Ada Lovelace');
   await change(document.getElementById('phone'), '3331234567');

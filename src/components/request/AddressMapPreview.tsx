@@ -43,7 +43,7 @@ export default function AddressMapPreview({ coordinates, apiKey, onAddressSelect
         center: padovaCenter,
         zoom: 11,
         interactive: true,
-        attributionControl: true,
+        attributionControl: { compact: true },
       });
       mapRef.current = map;
       map.getCanvas().style.cursor = 'crosshair';

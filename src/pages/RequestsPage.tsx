@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import RequestSuccess from '../components/RequestSuccess';
 import Section from '../components/Section';
@@ -27,6 +27,11 @@ import {
   validateRequestStep,
   type FormErrors,
 } from '../lib/requestWizardFlow';
+import {
+  clearPersistedRequestWizard,
+  loadPersistedRequestWizard,
+  savePersistedRequestWizard,
+} from '../lib/requestWizardStorage';
 import { usePageAnimations } from '../lib/usePageAnimations';
 
 const stepLabels = ['Obiettivo', 'Immobile', 'Contatti'] as const;
@@ -43,6 +48,17 @@ const contactScreenProgress: Record<ContactScreen, number> = {
   details: 6,
   consent: 7,
 };
+const detailsScreenByProgress: Partial<Record<number, DetailsScreen>> = {
+  1: 'location',
+  2: 'propertyType',
+  3: 'budget',
+  4: 'timeframe',
+  5: 'details',
+};
+const contactScreenByProgress: Partial<Record<number, ContactScreen>> = {
+  6: 'details',
+  7: 'consent',
+};
 
 interface RequestsPageProps {
   submitRequest?: typeof submitLeadRequest;
@@ -52,14 +68,26 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
   const pageRef = useRef<HTMLDivElement>(null);
   const [searchParams] = useSearchParams();
   const initialIntent = useMemo(() => getInitialIntent(searchParams.get('type')), [searchParams]);
-  const [wizard, setWizard] = useState(() => createRequestWizardDraft(initialIntent));
+  const persistedState = useMemo(
+    () => typeof window === 'undefined' ? null : loadPersistedRequestWizard(window.localStorage, initialIntent),
+    [initialIntent],
+  );
+  const [wizard, setWizard] = useState(() => persistedState?.wizard ?? createRequestWizardDraft(initialIntent));
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiErrorSummary, setApiErrorSummary] = useState<string[]>([]);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
-  const [progressScreen, setProgressScreen] = useState(0);
+  const [progressScreen, setProgressScreen] = useState(() => persistedState?.progressScreen ?? 0);
   const { form, intentValue, locationText, step } = wizard;
   usePageAnimations(pageRef);
+
+  useEffect(() => {
+    if (status === 'success') {
+      clearPersistedRequestWizard(window.localStorage);
+      return;
+    }
+    savePersistedRequestWizard(window.localStorage, { wizard, progressScreen });
+  }, [progressScreen, status, wizard]);
 
   const handleDetailsScreenChange = useCallback((screen: DetailsScreen) => {
     setProgressScreen(detailsScreenProgress[screen]);
@@ -238,6 +266,7 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
   };
 
   const resetForm = () => {
+    clearPersistedRequestWizard(window.localStorage);
     setWizard(resetRequestWizard(initialIntent));
     setErrors({});
     setApiErrorSummary([]);
@@ -319,6 +348,7 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
               onComplete={goToNextStep}
               onLocationMissing={showLocationMissing}
               onScreenChange={handleDetailsScreenChange}
+              initialScreen={detailsScreenByProgress[progressScreen]}
             />
           )}
 
@@ -333,6 +363,7 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
               onBack={goToPreviousStep}
               isSubmitting={status === 'submitting'}
               onScreenChange={handleContactScreenChange}
+              initialScreen={contactScreenByProgress[progressScreen]}
             />
           )}
         </form>

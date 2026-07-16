@@ -23,6 +23,11 @@ import {
   setRequestPolygonDraft,
   updateRequestField,
 } from '../src/lib/requestWizardFlow.ts';
+import {
+  loadPersistedRequestWizard,
+  REQUEST_WIZARD_STORAGE_KEY,
+  savePersistedRequestWizard,
+} from '../src/lib/requestWizardStorage.ts';
 
 const polygon = {
   type: 'Polygon',
@@ -127,6 +132,52 @@ test('back and edit preserve contact data while reset creates a clean query-deri
   assert.equal(reset.form.requestId, 'request-2');
   assert.equal(reset.form.name, '');
   assert.equal(reset.form.locationMode, 'text');
+});
+
+test('persisted wizard restores its exact screen and fields without security tokens', () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const intent = getInitialIntent('vendita');
+  let draft = createRequestWizardDraft(intent, { requestId: 'request-1', startedAt: 100 });
+  draft = advanceRequestWizard(draft);
+  draft = setRequestLocationText(draft, 'Via Roma 10, Padova');
+  draft = updateRequestField(draft, 'propertyType', 'appartamento');
+  draft = updateRequestField(draft, 'budget', '300.000–400.000 €');
+  draft = updateRequestField(draft, 'turnstileToken', 'must-not-persist');
+
+  savePersistedRequestWizard(storage, { wizard: draft, progressScreen: 4 }, 1_000);
+  const serialized = values.get(REQUEST_WIZARD_STORAGE_KEY);
+  assert.ok(serialized);
+  assert.equal(serialized.includes('must-not-persist'), false);
+
+  const restored = loadPersistedRequestWizard(storage, getInitialIntent('acquisto'), 2_000);
+  assert.ok(restored);
+  assert.equal(restored.progressScreen, 4);
+  assert.equal(restored.wizard.step, 1);
+  assert.equal(restored.wizard.intentValue, 'vendita');
+  assert.equal(restored.wizard.locationText, 'Via Roma 10, Padova');
+  assert.equal(restored.wizard.form.propertyType, 'appartamento');
+  assert.equal(restored.wizard.form.budget, '300.000–400.000 €');
+  assert.equal(restored.wizard.form.turnstileToken, '');
+});
+
+test('persisted wizard expires after twenty-four hours', () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const draft = advanceRequestWizard(createRequestWizardDraft(getInitialIntent('acquisto')));
+  savePersistedRequestWizard(storage, { wizard: draft, progressScreen: 1 }, 1_000);
+
+  const restored = loadPersistedRequestWizard(storage, getInitialIntent('acquisto'), 1_000 + (24 * 60 * 60 * 1000) + 1);
+  assert.equal(restored, null);
+  assert.equal(values.has(REQUEST_WIZARD_STORAGE_KEY), false);
 });
 
 test('submission payload keeps notes and enforces exclusive text or polygon location', () => {

@@ -24,6 +24,9 @@ export default function PrivacyPage() {
               Le richieste vengono protette da Cloudflare Turnstile e salvate in un database Cloudflare D1. Quando usi i suggerimenti di indirizzo, il testo digitato viene inviato direttamente dal browser a Geoapify esclusivamente per proporre indirizzi pertinenti. Il sito non invia i dati del modulo a Google Forms, Supabase o CRM esterni e non conserva nel database l’indirizzo IP o il token antispam.
             </p>
             <p>
+              Durante la compilazione, una bozza del modulo viene salvata per un massimo di 24 ore nel browser utilizzato, così da non perdere dati e passaggio corrente dopo un aggiornamento della pagina. La bozza viene rimossa dopo l’invio riuscito o quando avvii una nuova richiesta; token antispam e campi tecnici non vengono salvati nella bozza.
+            </p>
+            <p>
               I dati vengono conservati per il tempo necessario a gestire la richiesta e gli eventuali rapporti conseguenti, nel rispetto degli obblighi applicabili.
             </p>
             <p>

@@ -255,14 +255,22 @@ test('guided request controls expose four intents and progressive inputs', () =>
   assert.match(property, /form\.requestRole === 'proprietario' \? '' : 'items-center'/);
   assert.ok((property.match(/flex flex-1 items-center/g) ?? []).length >= 4);
   assert.ok((contact.match(/flex flex-1 items-center/g) ?? []).length >= 2);
-  assert.match(property, /budgetOptions\.map/);
+  assert.match(property, /id="budget-minimum"/);
+  assert.match(property, /id="budget-maximum"/);
+  assert.match(property, /formatBudgetRange/);
+  assert.doesNotMatch(property, /Altro importo/);
   assert.match(property, /timeframeOptions\.map/);
+  assert.match(property, /flex flex-wrap justify-center gap-2/);
+  assert.match(property, />\s*Altro periodo\s*</);
+  assert.doesNotMatch(property, /showDetails|Aggiungi dettagli|Nascondi dettagli/);
   assert.match(contact, /contactPreference/);
   assert.match(contact, /form\.contactPreference === 'email'/);
   assert.match(contact, /Aggiungi anche/);
   assert.match(contact, /required: required/);
   assert.match(contact, /'aria-required': required/);
   assert.match(contact, /id="privacyAccepted"[\s\S]*?required[\s\S]*?aria-required=\{true\}/);
+  assert.match(contact, /id="notes-panel"/);
+  assert.doesNotMatch(contact, /showNotes|Aggiungi note|Nascondi note/);
 });
 
 test('request page composes the adaptive wizard and submits geometry', () => {
@@ -280,6 +288,11 @@ test('request page composes the adaptive wizard and submits geometry', () => {
   assert.match(requests, /buildLeadRequestPayload/);
   assert.match(requests, /normalizeLeadFieldErrors/);
   assert.match(requests, /apiErrorSummary/);
+  assert.match(requests, /loadPersistedRequestWizard\(window\.localStorage, initialIntent\)/);
+  assert.match(requests, /savePersistedRequestWizard\(window\.localStorage, \{ wizard, progressScreen \}\)/);
+  assert.match(requests, /clearPersistedRequestWizard\(window\.localStorage\)/);
+  assert.match(requests, /initialScreen=\{detailsScreenByProgress\[progressScreen\]\}/);
+  assert.match(requests, /initialScreen=\{contactScreenByProgress\[progressScreen\]\}/);
   assert.match(requests, /role=\{status === 'error' \? 'alert' : 'status'\}/);
   assert.match(intent, /getNextIntentIndex/);
   assert.match(requests, /h-\[calc\(100svh-4rem-1px\)\].*overflow-hidden/);
@@ -299,7 +312,7 @@ test('request polygon map is free, lazy, branded and accessible', () => {
   assert.match(pkg, /"maplibre-gl": "5\.24\.0"/);
   assert.match(pkg, /"@mapbox\/mapbox-gl-draw": "1\.5\.1"/);
   assert.match(map, /https:\/\/tiles\.openfreemap\.org\/styles\/positron/);
-  assert.match(map, /attributionControl: true/);
+  assert.match(map, /attributionControl: \{ compact: true \}/);
   assert.match(map, /aria-label="Annulla ultimo punto"/);
   assert.match(map, /aria-label="Ricomincia"/);
   assert.match(map, /Undo2/);

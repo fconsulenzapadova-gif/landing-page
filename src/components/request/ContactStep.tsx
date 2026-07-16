@@ -19,6 +19,7 @@ interface Props {
   onBack: () => void;
   isSubmitting: boolean;
   onScreenChange: (screen: ContactScreen) => void;
+  initialScreen?: ContactScreen;
 }
 
 const contactPreferences: Array<{ value: ContactPreference; label: string; icon: LucideIcon }> = [
@@ -58,10 +59,10 @@ export default function ContactStep({
   onBack,
   isSubmitting,
   onScreenChange,
+  initialScreen = 'details',
 }: Props) {
-  const [screen, setScreen] = useState<ContactScreen>('details');
+  const [screen, setScreen] = useState<ContactScreen>(initialScreen);
   const [showSecondaryContact, setShowSecondaryContact] = useState(Boolean(form.email && form.phone));
-  const [showNotes, setShowNotes] = useState(Boolean(form.notes));
   const emailIsPrimary = form.contactPreference === 'email';
   const secondaryValue = emailIsPrimary ? form.phone : form.email;
   const showSecondary = showSecondaryContact || Boolean(secondaryValue);
@@ -200,22 +201,11 @@ export default function ContactStep({
         <>
           <div className="flex flex-1 items-center">
             <div className="grid w-full gap-3">
-              <button
-                type="button"
-                className="focus-ring min-h-11 w-fit rounded-lg border border-[var(--control-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]"
-                aria-expanded={showNotes}
-                aria-controls="notes-panel"
-                onClick={() => setShowNotes((current) => !current)}
-              >
-                {showNotes ? 'Nascondi note' : 'Aggiungi note'}
-              </button>
-              {showNotes && (
-                <label id="notes-panel" className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="notes">
-                  <span>Note <span className="ml-2 font-normal text-[var(--graphite)]">Facoltative</span></span>
-                  <textarea id="notes" className={`${fieldClassName} min-h-20`} value={form.notes} onChange={(event) => updateField('notes', event.target.value)} rows={2} placeholder="Aggiungi informazioni utili per il ricontatto." aria-invalid={Boolean(errors.notes)} aria-describedby={errors.notes ? 'notes-error' : undefined} />
-                  {errors.notes && <span id="notes-error" className="text-sm font-medium text-red-700">{errors.notes}</span>}
-                </label>
-              )}
+              <label id="notes-panel" className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="notes">
+                <span>Note <span className="ml-2 font-normal text-[var(--graphite)]">Facoltative</span></span>
+                <textarea id="notes" className={`${fieldClassName} min-h-20`} value={form.notes} onChange={(event) => updateField('notes', event.target.value)} rows={2} placeholder="Aggiungi informazioni utili per il ricontatto." aria-invalid={Boolean(errors.notes)} aria-describedby={errors.notes ? 'notes-error' : undefined} />
+                {errors.notes && <span id="notes-error" className="text-sm font-medium text-red-700">{errors.notes}</span>}
+              </label>
               <label className="flex items-start gap-3 rounded-lg border border-[var(--line)] bg-white p-3" htmlFor="privacyAccepted">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 stroke-[1.8] text-[var(--ink)]" aria-hidden="true" />
                 <input id="privacyAccepted" className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--ink)]" type="checkbox" checked={form.privacyAccepted} onChange={(event) => updateField('privacyAccepted', event.target.checked)} required aria-required={true} aria-invalid={Boolean(errors.privacyAccepted)} aria-describedby={errors.privacyAccepted ? 'privacyAccepted-error' : undefined} />

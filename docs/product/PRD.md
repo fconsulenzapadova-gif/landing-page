@@ -451,7 +451,8 @@ UX corrente:
   schermata; negli step seguenti resta soltanto la barra, che avanza a ogni
   schermata effettiva;
 - il ruolo `cerca` apre direttamente la mappa, senza card o selettori
-  intermedi, con la domanda `Dove ti piacerebbe abitare?`; se la mappa non è
+  intermedi, con il titolo `Disegna la zona` e la domanda
+  `Dove ti piacerebbe abitare?`; se la mappa non è
   disponibile viene mostrato il campo testuale;
   il ruolo `proprietario` accetta soltanto via e numero civico dell’immobile,
   con campo sopra una mappa che riempie lo spazio disponibile; i suggerimenti
@@ -474,16 +475,17 @@ UX corrente:
   testuale senza perdere l’intento selezionato;
 - navigazione indietro conserva campi e area selezionata; riselezionare lo
   stesso obiettivo non azzera la posizione;
-- domande, label e preset economici adattati a tipo richiesta e ruolo: acquisto
-  e vendita usano valori di compravendita, mentre la locazione usa canoni
-  mensili; budget e tempistiche accettano anche un valore testuale personalizzato;
+- il budget usa due campi affiancati, minimo e massimo, adattando l’unità tra
+  compravendita e canone mensile; resta disponibile l’opzione `Da definire`;
+  le tempistiche sono centrate e il campo `Altro periodo` resta sempre visibile;
 - controlli immobile progressivi su schermate dedicate: posizione, tipo
-  immobile, budget/valore, tempistiche e dettagli facoltativi; i titoli del
-  wizard non usano icone decorative e i contenuti sono centrati nello spazio
-  disponibile;
+  immobile, budget/valore, tempistiche e dettagli facoltativi; il campo dettagli
+  resta sempre aperto, senza controllo di espansione. I titoli del wizard non
+  usano icone decorative e i contenuti sono centrati nello spazio disponibile;
 - contatti e consenso sono schermate separate; il canale di contatto rivela
   solo il campo obbligatorio relativo e permette di aggiungere il recapito
-  secondario;
+  secondario; nella schermata consenso il campo note facoltative resta sempre
+  visibile, senza controllo di espansione;
 - progressivo accessibile e navigazione avanti/indietro;
 - campi responsive, errori associati agli input e stato invio esplicito;
 - errori restituiti dal Worker riportano al primo passaggio coinvolto, mappano
@@ -548,6 +550,17 @@ Preferenze:
 
 Stato: UI attiva, analytics/marketing simulati. Le preferenze vengono salvate
 ma non caricano script esterni.
+
+Il wizard `/richieste` salva in `localStorage` una bozza funzionale con chiave:
+
+```text
+gemut-request-wizard-v1
+```
+
+La bozza comprende dati inseriti, macro-step, sotto-schermata e geometria della
+mappa; scade dopo 24 ore ed è rimossa dopo invio riuscito o nuova richiesta.
+Token Turnstile, honeypot, URL sorgente e referrer non vengono persistiti. Una
+bozza corrotta o di versione non compatibile viene ignorata e rimossa.
 
 ## 13. Asset pubblici
 

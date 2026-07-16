@@ -6,8 +6,6 @@ const propertyTypes = [
   ['appartamento', 'Appartamento'], ['villa', 'Villa o casa'], ['commerciale', 'Ufficio o commerciale'],
   ['terreno', 'Terreno'], ['altro', 'Altro'],
 ] as const;
-const purchaseBudgetOptions = ['Da definire', 'Fino a 200.000 €', '200.000–350.000 €', '350.000–500.000 €', 'Oltre 500.000 €'] as const;
-const rentBudgetOptions = ['Da definire', 'Fino a 800 €/mese', '800–1.200 €/mese', '1.200–1.800 €/mese', 'Oltre 1.800 €/mese'] as const;
 const timeframeOptions = [['subito', 'Il prima possibile'], ['entro-3-mesi', 'Entro 3 mesi'], ['entro-6-mesi', 'Entro 6 mesi'], ['oltre-6-mesi', 'Oltre 6 mesi'], ['da-definire', 'Da definire']] as const;
 
 type FormErrors = Partial<Record<keyof LeadRequest, string>>;
@@ -23,14 +21,32 @@ interface Props {
   onComplete: () => void;
   onLocationMissing: () => void;
   onScreenChange: (screen: DetailsScreen) => void;
+  initialScreen?: DetailsScreen;
 }
 
-function initialScreen(form: LeadRequest): DetailsScreen {
+function getInitialScreen(form: LeadRequest): DetailsScreen {
   if (!form.location.trim()) return 'location';
   if (!form.propertyType) return 'propertyType';
   if (!form.budget) return 'budget';
   if (!form.timeframe) return 'timeframe';
   return 'details';
+}
+
+function parseBudgetBounds(value: string): [string, string] {
+  if (!value || value === 'Da definire') return ['', ''];
+  const amounts = value.match(/\d[\d.]*/g) ?? [];
+  if (amounts.length >= 2) return [amounts[0], amounts[1]];
+  if (value.startsWith('Fino a')) return ['', amounts[0] ?? ''];
+  return [amounts[0] ?? '', ''];
+}
+
+function formatBudgetRange(minimum: string, maximum: string, unit: string) {
+  const min = minimum.trim();
+  const max = maximum.trim();
+  if (min && max) return `${min}–${max} ${unit}`;
+  if (min) return `Da ${min} ${unit}`;
+  if (max) return `Fino a ${max} ${unit}`;
+  return '';
 }
 
 function ScreenActions({ onBack, onNext, nextLabel = 'Continua' }: { onBack: () => void; onNext: () => void; nextLabel?: string }) {
@@ -64,33 +80,24 @@ export default function PropertyDetailsStep({
   onComplete,
   onLocationMissing,
   onScreenChange,
+  initialScreen,
 }: Props) {
-  const budgetOptions = form.requestType === 'locazione' ? rentBudgetOptions : purchaseBudgetOptions;
-  const [screen, setScreen] = useState<DetailsScreen>(() => initialScreen(form));
-  const [budgetMode, setBudgetMode] = useState<'preset' | 'custom'>(
-    form.budget && !budgetOptions.includes(form.budget) ? 'custom' : 'preset',
-  );
-  const [timeframeMode, setTimeframeMode] = useState<'preset' | 'custom'>(
-    form.timeframe && !timeframeOptions.some(([value]) => value === form.timeframe) ? 'custom' : 'preset',
-  );
-  const [customBudgetDraft, setCustomBudgetDraft] = useState(budgetOptions.includes(form.budget) ? '' : form.budget);
+  const [screen, setScreen] = useState<DetailsScreen>(() => initialScreen ?? getInitialScreen(form));
+  const initialBudgetBounds = parseBudgetBounds(form.budget);
+  const [budgetMinimum, setBudgetMinimum] = useState(initialBudgetBounds[0]);
+  const [budgetMaximum, setBudgetMaximum] = useState(initialBudgetBounds[1]);
   const [customTimeframeDraft, setCustomTimeframeDraft] = useState(
     timeframeOptions.some(([value]) => value === form.timeframe) ? '' : form.timeframe,
   );
-  const [showDetails, setShowDetails] = useState(Boolean(form.features));
-  const budgetLabel = form.requestRole === 'proprietario'
-    ? 'Valore o canone desiderato'
-    : form.requestType === 'locazione'
-      ? 'Canone mensile indicativo'
-      : 'Budget massimo';
-  const budgetPlaceholder = form.requestType === 'locazione' ? 'Es. 900–1.200 €/mese' : 'Es. 300.000–400.000 €';
+  const budgetUnit = form.requestType === 'locazione' ? '€/mese' : '€';
+  const budgetPlaceholder = form.requestType === 'locazione' ? 'Es. 800' : 'Es. 200.000';
   const locationCopy: [string, string] = form.requestRole === 'cerca'
-    ? ['Dove ti piacerebbe abitare?', 'Disegna sulla mappa la zona ideale per te.']
+    ? ['Disegna la zona', 'Dove ti piacerebbe abitare?']
     : ['Dove si trova l’immobile?', 'Inserisci via e numero civico, poi continua.'];
   const screenCopy: Record<DetailsScreen, [string, string]> = {
     location: locationCopy,
     propertyType: ['Che tipo di immobile?', 'Scegli la tipologia più vicina.'],
-    budget: [budgetLabel, 'Puoi scegliere “Da definire”.'],
+    budget: ['Budget', 'Inserisci minimo e massimo oppure scegli “Da definire”.'],
     timeframe: ['Quando?', 'Indica la tempistica ideale.'],
     details: ['Ultimi dettagli', 'Facoltativi: puoi aggiungerli o inviare la richiesta.'],
   };
@@ -106,6 +113,10 @@ export default function PropertyDetailsStep({
     if (screen === 'budget') return setScreen('propertyType');
     if (screen === 'timeframe') return setScreen('budget');
     setScreen('timeframe');
+  };
+
+  const updateBudgetBounds = (minimum: string, maximum: string) => {
+    updateField('budget', formatBudgetRange(minimum, maximum, budgetUnit));
   };
 
   return (
@@ -170,62 +181,63 @@ export default function PropertyDetailsStep({
       {screen === 'budget' && (
         <>
           <div className="flex flex-1 items-center">
-            <div className="grid w-full gap-3">
-              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={budgetLabel}>
-                {budgetOptions.map((option) => {
-                  const active = budgetMode === 'preset' && form.budget === option;
-                  return (
-                    <button
-                      key={option}
-                      id={active ? 'budget' : undefined}
-                      type="button"
-                      role="radio"
-                      aria-checked={active}
-                      onClick={() => {
-                        setBudgetMode('preset');
-                        updateField('budget', option);
-                        setScreen('timeframe');
+            <div className="grid w-full gap-4">
+              <div className="grid grid-cols-2 gap-3" role="group" aria-label="Intervallo budget">
+                <label className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="budget-minimum">
+                  Minimo
+                  <div className="relative">
+                    <input
+                      id="budget-minimum"
+                      type="text"
+                      inputMode="numeric"
+                      value={budgetMinimum}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setBudgetMinimum(value);
+                        updateBudgetBounds(value, budgetMaximum);
                       }}
-                      className={`focus-ring min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                        active ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  );
-                })}
-                <button
-                  id={budgetMode === 'custom' ? 'budget' : undefined}
-                  type="button"
-                  role="radio"
-                  aria-checked={budgetMode === 'custom'}
-                  onClick={() => {
-                    setBudgetMode('custom');
-                    updateField('budget', customBudgetDraft);
-                  }}
-                  className={`focus-ring min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                    budgetMode === 'custom' ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
-                  }`}
-                >
-                  Altro importo
-                </button>
-              </div>
-              {budgetMode === 'custom' && (
-                <label className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="budget-custom">
-                  Budget personalizzato
-                  <input
-                    id="budget-custom"
-                    type="text"
-                    value={customBudgetDraft}
-                    onChange={(event) => {
-                      setCustomBudgetDraft(event.target.value);
-                      updateField('budget', event.target.value);
-                    }}
-                    className="field-control min-h-11 rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
-                    placeholder={budgetPlaceholder}
-                  />
+                      className="field-control min-h-12 rounded-lg border border-[var(--control-border)] bg-white py-2 pl-3 pr-9 text-base font-normal outline-none transition"
+                      placeholder={budgetPlaceholder}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--graphite)]">{budgetUnit}</span>
+                  </div>
                 </label>
-              )}
+                <label className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="budget-maximum">
+                  Massimo
+                  <div className="relative">
+                    <input
+                      id="budget-maximum"
+                      type="text"
+                      inputMode="numeric"
+                      value={budgetMaximum}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setBudgetMaximum(value);
+                        updateBudgetBounds(budgetMinimum, value);
+                      }}
+                      className="field-control min-h-12 rounded-lg border border-[var(--control-border)] bg-white py-2 pl-3 pr-9 text-base font-normal outline-none transition"
+                      placeholder={budgetPlaceholder}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--graphite)]">{budgetUnit}</span>
+                  </div>
+                </label>
+              </div>
+              <button
+                id={form.budget === 'Da definire' ? 'budget' : undefined}
+                type="button"
+                aria-pressed={form.budget === 'Da definire'}
+                onClick={() => {
+                  setBudgetMinimum('');
+                  setBudgetMaximum('');
+                  updateField('budget', 'Da definire');
+                  setScreen('timeframe');
+                }}
+                className={`focus-ring min-h-11 w-fit rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  form.budget === 'Da definire' ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
+                }`}
+              >
+                Da definire
+              </button>
             </div>
           </div>
           <ScreenActions
@@ -241,9 +253,9 @@ export default function PropertyDetailsStep({
         <>
           <div className="flex flex-1 items-center">
             <div className="grid w-full gap-3">
-              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Tempistica">
+              <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Tempistica">
                 {timeframeOptions.map(([value, label]) => {
-                  const active = timeframeMode === 'preset' && form.timeframe === value;
+                  const active = form.timeframe === value;
                   return (
                     <button
                       key={value}
@@ -252,7 +264,6 @@ export default function PropertyDetailsStep({
                       role="radio"
                       aria-checked={active}
                       onClick={() => {
-                        setTimeframeMode('preset');
                         updateField('timeframe', value);
                         setScreen('details');
                       }}
@@ -264,38 +275,21 @@ export default function PropertyDetailsStep({
                     </button>
                   );
                 })}
-                <button
-                  id={timeframeMode === 'custom' ? 'timeframe' : undefined}
-                  type="button"
-                  role="radio"
-                  aria-checked={timeframeMode === 'custom'}
-                  onClick={() => {
-                    setTimeframeMode('custom');
-                    updateField('timeframe', customTimeframeDraft);
-                  }}
-                  className={`focus-ring min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                    timeframeMode === 'custom' ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
-                  }`}
-                >
-                  Altro periodo
-                </button>
               </div>
-              {timeframeMode === 'custom' && (
-                <label className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="timeframe-custom">
-                  Tempistica personalizzata
-                  <input
-                    id="timeframe-custom"
-                    type="text"
-                    value={customTimeframeDraft}
-                    onChange={(event) => {
-                      setCustomTimeframeDraft(event.target.value);
-                      updateField('timeframe', event.target.value);
-                    }}
-                    className="field-control min-h-11 rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
-                    placeholder="Es. Entro settembre 2027"
-                  />
-                </label>
-              )}
+              <label className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="timeframe-custom">
+                Altro periodo
+                <input
+                  id="timeframe-custom"
+                  type="text"
+                  value={customTimeframeDraft}
+                  onChange={(event) => {
+                    setCustomTimeframeDraft(event.target.value);
+                    updateField('timeframe', event.target.value);
+                  }}
+                  className="field-control min-h-11 rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
+                  placeholder="Es. Entro settembre 2027"
+                />
+              </label>
             </div>
           </div>
           <ScreenActions
@@ -311,28 +305,17 @@ export default function PropertyDetailsStep({
         <>
           <div className="flex flex-1 items-center">
             <div className="grid w-full gap-3">
-              <button
-                type="button"
-                className="focus-ring min-h-11 w-fit rounded-lg border border-[var(--control-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]"
-                aria-expanded={showDetails}
-                aria-controls="features-panel"
-                onClick={() => setShowDetails((current) => !current)}
-              >
-                {showDetails ? 'Nascondi dettagli' : 'Aggiungi dettagli'}
-              </button>
-              {showDetails && (
-                <label id="features-panel" className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="features">
-                  Dettagli facoltativi
-                  <textarea
-                    id="features"
-                    className="field-control min-h-24 rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
-                    value={form.features}
-                    onChange={(event) => updateField('features', event.target.value)}
-                    rows={3}
-                    placeholder="Spazi, condizioni, vincoli o risultati importanti…"
-                  />
-                </label>
-              )}
+              <label id="features-panel" className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="features">
+                Dettagli facoltativi
+                <textarea
+                  id="features"
+                  className="field-control min-h-24 rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
+                  value={form.features}
+                  onChange={(event) => updateField('features', event.target.value)}
+                  rows={3}
+                  placeholder="Spazi, condizioni, vincoli o risultati importanti…"
+                />
+              </label>
             </div>
           </div>
           <ScreenActions onBack={goBack} onNext={onComplete} nextLabel="Vai ai contatti" />

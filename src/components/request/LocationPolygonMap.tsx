@@ -78,7 +78,7 @@ export default function LocationPolygonMap({
         style: styleUrl,
         center: padovaCenter,
         zoom: 11,
-        attributionControl: true,
+        attributionControl: { compact: true },
       });
     } catch {
       handleUnavailable('La mappa non è disponibile. Inserisci la zona come testo.');

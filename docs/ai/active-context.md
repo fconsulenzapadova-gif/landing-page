@@ -13,7 +13,8 @@ Ultimo aggiornamento: 16 luglio 2026
 - Wizard `/richieste` ora a schermate fisse, senza footer né scroll del documento:
   obiettivi 2×2 su mobile con descrizione e avanzamento al tap, dettagli
   immobile e consenso contatti divisi in scene. La ricerca apre direttamente
-  la sola mappa, con la domanda `Dove ti piacerebbe abitare?`; vendita e
+  la sola mappa, con il titolo `Disegna la zona` e la domanda
+  `Dove ti piacerebbe abitare?`; vendita e
   locazione del proprietario accettano solo indirizzo, con campo sopra mappa
   interattiva che riempie lo spazio libero: i suggerimenti Geoapify aggiornano
   la posizione e un clic sulla mappa inserisce l’indirizzo (chiave pubblica
@@ -25,8 +26,21 @@ Ultimo aggiornamento: 16 luglio 2026
   poi le azioni restano ancorate in basso: indietro a sinistra e avanti a
   destra; i titoli del wizard non usano icone decorative e tutti i contenuti
   delle schermate (fuori dalla mappa) sono centrati verticalmente. Test, lint
-  e build superati dopo l’integrazione Geoapify; resta da verificare il flusso
-  live dei suggerimenti dopo la configurazione della chiave pubblica.
+  e build superati dopo l’integrazione Geoapify.
+- Nelle schermate immobile, `Budget` usa due campi affiancati minimo/massimo
+  più `Da definire`; le pillole tempistica sono centrate e il campo `Altro
+  periodo` è sempre visibile; anche `Dettagli facoltativi` resta sempre aperto.
+  Test, lint e build superati.
+- Nella schermata consenso il campo note facoltative è sempre aperto e non ha
+  più la pillola mostra/nascondi.
+- Il wizard salva automaticamente in `localStorage` dati, geometria e
+  sotto-schermata corrente: il refresh ripristina esattamente la compilazione.
+  La bozza scade dopo 24 ore, viene rimossa su invio riuscito/nuova richiesta e
+  non contiene token Turnstile, honeypot o metadati tecnici.
+- Progetto Geoapify `Gemüt Capital Website` creato e chiave configurata in
+  `.env` locale, con referrer/origini consentiti per localhost e i due domini
+  pubblici. La variabile Vercel di produzione e il collaudo live restano in
+  attesa dell’accesso Vercel dell’utente nella scheda Chrome già aperta.
 - Wizard guidato distribuito in produzione: migrazione D1
   `0003_add_lead_location_geometry.sql`, Worker `gemut-leads-api` versione
   `35863fff-9915-436c-a072-b5245932f924` e deployment Vercel
