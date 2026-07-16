@@ -252,6 +252,24 @@ test('guided request controls expose four intents and progressive inputs', () =>
   assert.match(contact, /id="privacyAccepted"[\s\S]*?required[\s\S]*?aria-required=\{true\}/);
 });
 
+test('request polygon map is free, lazy, branded and accessible', () => {
+  const pkg = read('package.json');
+  const map = read('src/components/request/LocationPolygonMap.tsx');
+  const css = read('src/index.css');
+  assert.match(pkg, /"maplibre-gl": "5\.24\.0"/);
+  assert.match(pkg, /"@mapbox\/mapbox-gl-draw": "1\.5\.1"/);
+  assert.match(map, /https:\/\/tiles\.openfreemap\.org\/styles\/positron/);
+  assert.match(map, /© OpenStreetMap contributors/);
+  assert.match(map, /© OpenMapTiles/);
+  assert.match(map, /Annulla ultimo punto/);
+  assert.match(map, /Ricomincia/);
+  assert.match(map, /Conferma area/);
+  assert.match(map, /onUnavailable/);
+  assert.doesNotMatch(map, /access_token|apiKey|geolocation|getCurrentPosition/);
+  assert.match(css, /\.request-location-map/);
+  assert.match(css, /--brand-blue/);
+});
+
 test('required image assets exist and are used', () => {
   const sources = [
     read('src/pages/HomePage.tsx'),
