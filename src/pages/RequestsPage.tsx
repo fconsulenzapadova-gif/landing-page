@@ -14,6 +14,7 @@ import Turnstile from '../components/Turnstile';
 import type { RequestType } from '../content/site';
 import type { LeadRequest } from '../lib/leads';
 import { submitLeadRequest } from '../lib/leads';
+import { getDefaultLocationMode, getInitialIntent } from '../lib/requestWizard';
 import { usePageAnimations } from '../lib/usePageAnimations';
 
 type FormErrors = Partial<Record<keyof LeadRequest, string>>;
@@ -56,9 +57,14 @@ function getInitialType(type: string | null): RequestType {
 }
 
 function createEmptyForm(requestType: RequestType): LeadRequest {
+  const intent = getInitialIntent(requestType);
+
   return {
     requestId: crypto.randomUUID(),
     requestType,
+    requestRole: intent.requestRole,
+    locationMode: getDefaultLocationMode(intent.requestRole),
+    locationGeometry: null,
     propertyType: '',
     location: '',
     budget: '',
