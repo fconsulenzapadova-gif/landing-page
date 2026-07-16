@@ -2,10 +2,10 @@
 
 ## Milestone
 
-- 16 luglio 2026 — wizard richieste guidato completato e verificato in locale:
-  quattro intenti, posizione testuale o area MapLibre/OpenFreeMap, payload e
-  geometria D1, fallback WebGL, invio Worker e reset accessibile; nessun deploy
-  remoto eseguito in questa milestone.
+- 16 luglio 2026 — wizard richieste guidato completato e verificato in locale
+  su viewport desktop e mobile: quattro intenti, posizione testuale o area
+  MapLibre/OpenFreeMap, payload e geometria D1, fallback WebGL, invio Worker e
+  reset accessibile; nessun deploy remoto eseguito in questa milestone.
 - 16 luglio 2026 — corretto e distribuito il reset post-conferma: `Nuova richiesta` rimonta il wizard visibile al primo passaggio, con regressione coperta da test e collaudo browser locale/produzione.
 - 16 luglio 2026 — Turnstile reso normalmente invisibile e conferma form sostituita con scena GSAP accessibile e rispettosa di `prefers-reduced-motion`.
 - 16 luglio 2026 — form richieste riprogettato come wizard e storage lead

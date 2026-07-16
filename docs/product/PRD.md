@@ -115,8 +115,10 @@ componenti shadcn/Radix nel runtime pubblico.
 Dipendenze runtime dichiarate dopo la pulizia:
 
 - `@gsap/react`;
+- `@mapbox/mapbox-gl-draw`, per disegnare e modificare aree poligonali;
 - `gsap`;
 - `lucide-react`;
+- `maplibre-gl`, per renderizzare la mappa con stile OpenFreeMap;
 - `react`;
 - `react-dom`;
 - `react-router-dom`;
