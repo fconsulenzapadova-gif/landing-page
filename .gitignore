@@ -137,6 +137,7 @@ $RECYCLE.BIN/
 .DS_Store
 .AppleDouble
 .LSOverride
+._*
 
 # Windows
 Thumbs.db
@@ -154,3 +155,6 @@ node_modules
 
 # Isolated agent worktrees
 .worktrees/
+
+# Subagent-driven development scratch
+.superpowers/
