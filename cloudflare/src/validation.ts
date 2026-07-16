@@ -1,12 +1,24 @@
 export const requestTypes = ['acquisto', 'vendita', 'locazione'] as const;
+export const requestRoles = ['cerca', 'proprietario'] as const;
+export const locationModes = ['text', 'polygon'] as const;
 export const contactPreferences = ['telefono', 'email', 'whatsapp'] as const;
 
 export type RequestType = (typeof requestTypes)[number];
+export type RequestRole = (typeof requestRoles)[number];
+export type LocationMode = (typeof locationModes)[number];
 export type ContactPreference = (typeof contactPreferences)[number];
+
+export interface LocationPolygon {
+  type: 'Polygon';
+  coordinates: [number, number][][];
+}
 
 export interface ValidLead {
   requestId: string;
   requestType: RequestType;
+  requestRole: RequestRole;
+  locationMode: LocationMode;
+  locationGeometry: LocationPolygon | null;
   propertyType: string;
   location: string;
   budget: string;
@@ -48,6 +60,8 @@ const limits = {
   referrer: 500,
 } as const;
 
+const maxGeometryLength = 6_000;
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -61,11 +75,39 @@ function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
+function parseLocationGeometry(value: unknown): LocationPolygon | null {
+  if (!value || typeof value !== 'object') return null;
+
+  let serialized: string;
+  try {
+    serialized = JSON.stringify(value);
+  } catch {
+    return null;
+  }
+  if (serialized.length > maxGeometryLength) return null;
+
+  const polygon = value as LocationPolygon;
+  if (polygon.type !== 'Polygon' || !Array.isArray(polygon.coordinates) || polygon.coordinates.length !== 1) return null;
+  const ring = polygon.coordinates[0];
+  if (!Array.isArray(ring) || ring.length < 4 || ring.length > 25) return null;
+  const pointIsValid = (point: unknown): point is [number, number] =>
+    Array.isArray(point) && point.length === 2 && point.every(Number.isFinite) &&
+    point[0] >= -180 && point[0] <= 180 && point[1] >= -90 && point[1] <= 90;
+  if (!ring.every(pointIsValid)) return null;
+  const distinct = new Set(ring.slice(0, -1).map(([lng, lat]) => `${lng},${lat}`));
+  const first = ring[0];
+  const last = ring.at(-1)!;
+  return distinct.size >= 3 && distinct.size <= 24 && first[0] === last[0] && first[1] === last[1] ? polygon : null;
+}
+
 export function validateLeadPayload(payload: unknown, now = Date.now()): ValidationResult {
   if (!isObject(payload)) return { ok: false, fieldErrors: { form: 'Payload non valido.' } };
 
   const requestId = text(payload.requestId, limits.requestId);
   const requestType = text(payload.requestType, 20);
+  const requestRole = text(payload.requestRole, 20);
+  const locationMode = text(payload.locationMode, 20);
+  const locationGeometry = parseLocationGeometry(payload.locationGeometry);
   const propertyType = text(payload.propertyType, limits.propertyType);
   const location = text(payload.location, limits.location);
   const budget = text(payload.budget, limits.budget);
@@ -85,6 +127,14 @@ export function validateLeadPayload(payload: unknown, now = Date.now()): Validat
 
   if (!isUuid(requestId)) errors.requestId = 'Identificativo richiesta non valido.';
   if (!requestTypes.includes(requestType as RequestType)) errors.requestType = 'Tipo richiesta non valido.';
+  if (!requestRoles.includes(requestRole as RequestRole)) errors.requestRole = 'Ruolo richiesta non valido.';
+  if (!locationModes.includes(locationMode as LocationMode)) errors.locationMode = 'Modalità posizione non valida.';
+  if (locationMode === 'text' && payload.locationGeometry != null) {
+    errors.locationGeometry = 'La posizione testuale non può includere una geometria.';
+  }
+  if (locationMode === 'polygon' && !locationGeometry) {
+    errors.locationGeometry = 'Area selezionata non valida.';
+  }
   if (!propertyType) errors.propertyType = 'Indica il tipo di immobile.';
   if (!location) errors.location = 'Indica la zona o la posizione.';
   if (!name) errors.name = 'Inserisci nome e cognome.';
@@ -111,6 +161,9 @@ export function validateLeadPayload(payload: unknown, now = Date.now()): Validat
     value: {
       requestId,
       requestType: requestType as RequestType,
+      requestRole: requestRole as RequestRole,
+      locationMode: locationMode as LocationMode,
+      locationGeometry,
       propertyType,
       location,
       budget,

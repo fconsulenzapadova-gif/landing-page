@@ -1,5 +1,5 @@
-import { validateLeadPayload, type ValidLead } from './validation';
-import { sendLeadNotification } from './notification';
+import { validateLeadPayload, type ValidLead } from './validation.ts';
+import { sendLeadNotification } from './notification.ts';
 
 interface D1Result {
   success: boolean;
@@ -86,14 +86,18 @@ async function verifyTurnstile(lead: ValidLead, request: Request, env: Env) {
 async function storeLead(lead: ValidLead, env: Env) {
   return env.DB.prepare(`
     INSERT OR IGNORE INTO lead_submissions (
-      id, request_type, property_type, location, budget, timeframe, features,
+      id, request_type, request_role, location_mode, location_geometry,
+      property_type, location, budget, timeframe, features,
       name, phone, email, contact_preference, notes, source_url, referrer,
       privacy_policy_version, privacy_accepted_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
     .bind(
       lead.requestId,
       lead.requestType,
+      lead.requestRole,
+      lead.locationMode,
+      lead.locationGeometry ? JSON.stringify(lead.locationGeometry) : null,
       lead.propertyType,
       lead.location,
       lead.budget || null,

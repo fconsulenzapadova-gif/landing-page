@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import worker from '../cloudflare/src/index.ts';
 import { buildGmailRawMessage, buildLeadNotification, sendGmailMessage } from '../cloudflare/src/notification.ts';
 import { validateLeadPayload } from '../cloudflare/src/validation.ts';
 
@@ -9,8 +10,14 @@ function validPayload(overrides = {}) {
   return {
     requestId: '019f6a61-ba86-4b41-9c93-acbfd8bed42a',
     requestType: 'acquisto',
+    requestRole: 'cerca',
     propertyType: 'appartamento',
-    location: 'Padova centro',
+    locationMode: 'polygon',
+    location: 'Area selezionata sulla mappa — centro 45.4133, 11.8867',
+    locationGeometry: {
+      type: 'Polygon',
+      coordinates: [[[11.86, 45.40], [11.90, 45.40], [11.90, 45.44], [11.86, 45.40]]],
+    },
     budget: '250.000 €',
     timeframe: 'entro-3-mesi',
     features: 'Tre camere',
@@ -61,6 +68,82 @@ test('Cloudflare lead validation enforces request types and privacy confirmation
   assert.equal(result.ok, false);
   assert.match(result.fieldErrors.requestType, /non valido/);
   assert.match(result.fieldErrors.privacyAccepted, /richiesto/);
+});
+
+test('accepts text and polygon location modes', () => {
+  const polygon = validateLeadPayload(validPayload(), now);
+  assert.equal(polygon.ok, true);
+  assert.equal(polygon.value.locationGeometry.coordinates[0].length, 4);
+
+  const text = validateLeadPayload(validPayload({
+    requestRole: 'proprietario', locationMode: 'text', location: 'Via Roma 1, Padova', locationGeometry: null,
+  }), now);
+  assert.equal(text.ok, true);
+});
+
+test('rejects inconsistent or malformed geometry', () => {
+  for (const override of [
+    { requestRole: 'altro' },
+    { locationMode: 'text', locationGeometry: validPayload().locationGeometry },
+    { locationMode: 'polygon', locationGeometry: null },
+    { locationGeometry: { type: 'Polygon', coordinates: [[[11, 45], [12, 45], [11, 45]]] } },
+    { locationGeometry: { type: 'Polygon', coordinates: [[[181, 45], [12, 45], [12, 46], [181, 45]]] } },
+  ]) {
+    const result = validateLeadPayload(validPayload(override), now);
+    assert.equal(result.ok, false);
+    assert.ok(result.fieldErrors.requestRole || result.fieldErrors.locationMode || result.fieldErrors.locationGeometry);
+  }
+});
+
+test('persists request role, location mode and serialized geometry', async () => {
+  let query = '';
+  let boundValues = [];
+  const statement = {
+    bind(...values) {
+      boundValues = values;
+      return statement;
+    },
+    async run() {
+      return { success: true, meta: { changes: 0 } };
+    },
+  };
+  const env = {
+    DB: {
+      prepare(value) {
+        query = value;
+        return statement;
+      },
+    },
+    ALLOWED_ORIGINS: 'https://www.gemutcapital.com',
+    GMAIL_CLIENT_ID: '',
+    GMAIL_CLIENT_SECRET: '',
+    GMAIL_REFRESH_TOKEN: '',
+    NOTIFICATION_FROM_EMAIL: '',
+    NOTIFICATION_TO_EMAIL: '',
+    TURNSTILE_SECRET_KEY: 'test-secret',
+  };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => Response.json({ success: true, action: 'lead_form' });
+
+  try {
+    const response = await worker.fetch(
+      new Request('https://worker.test/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Origin: 'https://www.gemutcapital.com' },
+        body: JSON.stringify(validPayload({ startedAt: Date.now() - 10_000 })),
+      }),
+      env,
+      { waitUntil() {} },
+    );
+
+    assert.equal(response.status, 201);
+    assert.match(query, /request_role, location_mode, location_geometry/);
+    assert.equal(boundValues[2], 'cerca');
+    assert.equal(boundValues[3], 'polygon');
+    assert.equal(boundValues[4], JSON.stringify(validPayload().locationGeometry));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test('lead notification contains normalized form data and a safe reply-to', () => {
