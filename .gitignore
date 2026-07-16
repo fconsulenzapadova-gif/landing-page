@@ -148,3 +148,9 @@ $RECYCLE.BIN/
 *~
 node_modules
 .vercel
+
+# Superdesign temporary HTML
+.superdesign/tmp/
+
+# Isolated agent worktrees
+.worktrees/
