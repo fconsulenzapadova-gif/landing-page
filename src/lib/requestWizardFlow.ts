@@ -73,6 +73,7 @@ export function selectRequestIntent(
   intent: RequestIntent,
 ): RequestWizardDraft {
   if (intent.value === current.intentValue) return current;
+  const changesRequestType = intent.requestType !== current.form.requestType;
 
   return {
     ...current,
@@ -86,6 +87,8 @@ export function selectRequestIntent(
       locationMode: getDefaultLocationMode(intent.requestRole),
       location: '',
       locationGeometry: null,
+      budget: changesRequestType ? '' : current.form.budget,
+      timeframe: changesRequestType ? '' : current.form.timeframe,
     },
   };
 }

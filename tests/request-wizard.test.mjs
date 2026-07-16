@@ -92,6 +92,18 @@ test('reselecting the active intent preserves location and polygon drafts', () =
   assert.equal(changed.form.locationMode, 'text');
 });
 
+test('changing between purchase and rent clears incompatible budget and timeframe presets', () => {
+  const initial = createRequestWizardDraft(getInitialIntent('acquisto'), { requestId: 'request-1', startedAt: 100 });
+  const withBudget = updateRequestField(initial, 'budget', 'Fino a 200.000 €');
+  const withTimeframe = updateRequestField(withBudget, 'timeframe', 'entro-3-mesi');
+
+  const rent = selectRequestIntent(withTimeframe, requestIntents[2]);
+
+  assert.equal(rent.form.requestType, 'locazione');
+  assert.equal(rent.form.budget, '');
+  assert.equal(rent.form.timeframe, '');
+});
+
 test('back and edit preserve contact data while reset creates a clean query-derived draft', () => {
   const initial = createRequestWizardDraft(getInitialIntent('acquisto'), { requestId: 'request-1', startedAt: 100 });
   const atContacts = advanceRequestWizard(advanceRequestWizard(initial));

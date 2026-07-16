@@ -185,6 +185,17 @@ async function reachContactStep() {
   await change(document.getElementById('privacyAccepted'), true);
 }
 
+async function reachPropertyChoices(intentLabel) {
+  await click(button(intentLabel));
+  await click(button('Continua'));
+  const textTab = button('Scrivi zona');
+  if (textTab.getAttribute('aria-selected') !== 'true') await click(textTab);
+  const location = document.querySelector('[role="tabpanel"] input');
+  assert.ok(location, 'text location input must exist');
+  await change(location, 'Padova Centro');
+  await click(button('Appartamento'));
+}
+
 test('wizard keyboard selection stays reachable and every forward/back step focuses its heading', async () => {
   const rendered = await renderWizard();
   const firstIntent = button('Compro casa');
@@ -237,5 +248,65 @@ test('API intent errors return to step zero, expose description and focus the in
   assert.equal(heading.getAttribute('aria-invalid'), 'true');
   assert.equal(heading.getAttribute('aria-describedby'), 'request-intent-error');
   assert.equal(document.getElementById('request-intent-error').textContent, 'Tipo richiesta non valido.');
+  await rendered.unmount();
+});
+
+test('property budget presets and labels follow purchase or rent intent', async () => {
+  const purchase = await renderWizard();
+  await reachPropertyChoices('Compro casa');
+
+  assert.equal(document.getElementById('budget-label').textContent, 'Budget massimo');
+  assert.ok(button('Fino a 200.000 €'));
+  assert.equal(document.body.textContent.includes('€/mese'), false);
+  await purchase.unmount();
+
+  const rent = await renderWizard();
+  await reachPropertyChoices('Cerco in affitto');
+
+  assert.equal(document.getElementById('budget-label').textContent, 'Canone mensile indicativo');
+  assert.ok(button('Fino a 800 €/mese'));
+  assert.equal(document.body.textContent.includes('200.000–350.000 €'), false);
+  await rent.unmount();
+});
+
+test('custom budget and timeframe drafts survive preset toggles and reach the existing payload fields', async () => {
+  const requests = [];
+  const rendered = await renderWizard(async (request) => {
+    requests.push(request);
+    return { ok: true, message: 'Richiesta salvata.' };
+  });
+  await reachPropertyChoices('Vendo casa');
+
+  const lastBudgetPreset = button('Oltre 500.000 €');
+  lastBudgetPreset.focus();
+  await keyDown(lastBudgetPreset, 'ArrowRight');
+  assert.equal(document.activeElement.textContent.trim(), 'Altro importo');
+  assert.equal(document.activeElement.getAttribute('aria-checked'), 'true');
+  const customBudget = document.getElementById('budget-custom');
+  assert.ok(customBudget, 'custom budget input must exist');
+  assert.equal(customBudget.getAttribute('aria-label'), 'Budget personalizzato');
+  await change(customBudget, '300.000–400.000 €');
+  await click(button('Fino a 200.000 €'));
+  await click(button('Altro importo'));
+  assert.equal(document.getElementById('budget-custom').value, '300.000–400.000 €');
+
+  await click(button('Altro periodo'));
+  const customTimeframe = document.getElementById('timeframe-custom');
+  assert.ok(customTimeframe, 'custom timeframe input must exist');
+  assert.equal(customTimeframe.getAttribute('aria-label'), 'Tempistica personalizzata');
+  await change(customTimeframe, 'Entro settembre 2027');
+  await click(button('Entro 3 mesi'));
+  await click(button('Altro periodo'));
+  assert.equal(document.getElementById('timeframe-custom').value, 'Entro settembre 2027');
+
+  await click(button('Continua'));
+  await change(document.getElementById('name'), 'Ada Lovelace');
+  await change(document.getElementById('phone'), '3331234567');
+  await change(document.getElementById('privacyAccepted'), true);
+  await click(button('Invia richiesta'));
+
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].budget, '300.000–400.000 €');
+  assert.equal(requests[0].timeframe, 'Entro settembre 2027');
   await rendered.unmount();
 });

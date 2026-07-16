@@ -452,7 +452,9 @@ UX corrente:
   testuale senza perdere l’intento selezionato;
 - navigazione indietro conserva campi e bozze, inclusa un’area non ancora
   confermata; riselezionare lo stesso obiettivo non azzera la posizione;
-- domande e label adattate a tipo richiesta e ruolo;
+- domande, label e preset economici adattati a tipo richiesta e ruolo: acquisto
+  e vendita usano valori di compravendita, mentre la locazione usa canoni
+  mensili; budget e tempistiche accettano anche un valore testuale personalizzato;
 - controlli immobile progressivi: la posizione rivela il tipo immobile, poi
   budget/valore, tempistiche e infine i dettagli facoltativi, chiusi di default;
 - il canale di contatto rivela solo il campo obbligatorio relativo e permette
