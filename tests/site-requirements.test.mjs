@@ -274,6 +274,28 @@ test('request polygon map is free, lazy, branded and accessible', () => {
   assert.doesNotMatch(css, /\.request-location-map \.maplibregl-canvas\s*\{\s*outline:\s*none/);
 });
 
+test('location selector swaps text and map in one accessible panel', () => {
+  const selector = read('src/components/request/LocationSelector.tsx');
+
+  assert.match(selector, /Scrivi zona/);
+  assert.match(selector, /Seleziona sulla mappa/);
+  assert.match(selector, /mode === 'text' \? \(/);
+  assert.match(selector, /<LocationPolygonMap/);
+  assert.match(selector, /lazy\(\(\) => import\('\.\/LocationPolygonMap'\)\)/);
+  assert.doesNotMatch(selector, /import LocationPolygonMap from/);
+  assert.match(selector, /role="tablist"/);
+  assert.match(selector, /aria-selected=\{mode === 'text'\}/);
+  assert.match(selector, /role="tabpanel"/);
+  assert.match(selector, /onKeyDown=\{moveTabFocus\}/);
+  assert.match(selector, /onMapUnavailable\(message\);[\s\S]*?onModeChange\('text'\);/);
+  assert.match(selector, /requestRole === 'proprietario'[\s\S]*?Comune, quartiere o indirizzo/);
+
+  const conditionalStart = selector.indexOf("{mode === 'text' ? (");
+  const conditionalEnd = selector.indexOf('\n      )}', conditionalStart);
+  assert.ok(conditionalStart >= 0 && conditionalEnd > conditionalStart, 'location panels must share one conditional');
+  assert.equal((selector.slice(conditionalStart, conditionalEnd).match(/role="tabpanel"/g) ?? []).length, 2);
+});
+
 test('required image assets exist and are used', () => {
   const sources = [
     read('src/pages/HomePage.tsx'),
