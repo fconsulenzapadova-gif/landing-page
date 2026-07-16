@@ -265,9 +265,13 @@ test('request polygon map is free, lazy, branded and accessible', () => {
   assert.match(map, /Ricomincia/);
   assert.match(map, /Conferma area/);
   assert.match(map, /onUnavailable/);
+  assert.match(map, /configureMapboxDrawForMapLibre\(MapboxDraw\.constants\.classes\)/);
+  assert.match(map, /createLocationPolygonMapLifecycle/);
   assert.doesNotMatch(map, /access_token|apiKey|geolocation|getCurrentPosition/);
   assert.match(css, /\.request-location-map/);
   assert.match(css, /--brand-blue/);
+  assert.match(css, /\.request-location-map \.maplibregl-canvas:focus-visible/);
+  assert.doesNotMatch(css, /\.request-location-map \.maplibregl-canvas\s*\{\s*outline:\s*none/);
 });
 
 test('required image assets exist and are used', () => {

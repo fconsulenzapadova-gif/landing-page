@@ -5,6 +5,12 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef, useState } from 'react';
 import type { LocationPolygon } from '../../lib/leads';
 import { isValidLocationPolygon } from '../../lib/requestWizard';
+import {
+  configureMapboxDrawForMapLibre,
+  createLocationPolygonMapLifecycle,
+} from './locationPolygonMapLifecycle';
+
+configureMapboxDrawForMapLibre(MapboxDraw.constants.classes);
 
 const styleUrl = 'https://tiles.openfreemap.org/styles/positron';
 const padovaCenter: [number, number] = [11.8768, 45.4064];
@@ -21,36 +27,13 @@ interface Props {
   error?: string;
 }
 
-function polygonFromEvent(event: unknown) {
-  if (!event || typeof event !== 'object' || !('features' in event)) return null;
-  const { features } = event as { features?: unknown };
-  if (!Array.isArray(features)) return null;
-
-  for (const feature of features) {
-    if (!feature || typeof feature !== 'object' || !('geometry' in feature)) continue;
-    const geometry = (feature as { geometry?: unknown }).geometry;
-    if (isValidLocationPolygon(geometry)) {
-      return {
-        type: 'Polygon',
-        coordinates: geometry.coordinates.map((ring) =>
-          ring.map(([longitude, latitude]): [number, number] => [longitude, latitude]),
-        ),
-      } satisfies LocationPolygon;
-    }
-  }
-
-  return null;
-}
-
 export default function LocationPolygonMap({ value, onChange, onUnavailable, error }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
   const draftRef = useRef<LocationPolygon | null>(isValidLocationPolygon(value) ? value : null);
   const initialValueRef = useRef(value);
   const onChangeRef = useRef(onChange);
   const onUnavailableRef = useRef(onUnavailable);
-  const unavailableRef = useRef(false);
   const [draftIsValid, setDraftIsValid] = useState(isValidLocationPolygon(value));
   const [unavailableMessage, setUnavailableMessage] = useState('');
 
@@ -66,9 +49,7 @@ export default function LocationPolygonMap({ value, onChange, onUnavailable, err
     const container = mapContainerRef.current;
     if (!container) return;
 
-    const notifyUnavailable = (message: string) => {
-      if (unavailableRef.current) return;
-      unavailableRef.current = true;
+    const handleUnavailable = (message: string) => {
       setUnavailableMessage(message);
       onUnavailableRef.current(message);
     };
@@ -83,75 +64,31 @@ export default function LocationPolygonMap({ value, onChange, onUnavailable, err
         attributionControl: false,
       });
     } catch {
-      notifyUnavailable('La mappa non è disponibile. Inserisci la zona come testo.');
+      handleUnavailable('La mappa non è disponibile. Inserisci la zona come testo.');
       return;
     }
 
-    mapRef.current = map;
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       styles: [...drawStyles],
     });
     drawRef.current = draw;
-    let controlAdded = false;
-
-    const handleDrawChange = (event: unknown) => {
-      const polygon = polygonFromEvent(event);
-      draftRef.current = polygon;
-      setDraftIsValid(Boolean(polygon));
-      onChangeRef.current(null);
-    };
-
-    const handleDrawDelete = () => {
-      draftRef.current = null;
-      setDraftIsValid(false);
-      onChangeRef.current(null);
-      draw.changeMode('draw_polygon');
-    };
-
-    const handleLoad = () => {
-      try {
-        map.addControl(draw as unknown as maplibregl.IControl);
-        controlAdded = true;
-        const initialValue = initialValueRef.current;
-        if (isValidLocationPolygon(initialValue)) {
-          const [featureId] = draw.add({ type: 'Feature', properties: {}, geometry: initialValue });
-          draftRef.current = initialValue;
-          setDraftIsValid(true);
-          draw.changeMode('direct_select', { featureId: String(featureId) });
-        } else {
-          draw.changeMode('draw_polygon');
-        }
-      } catch {
-        notifyUnavailable('La mappa non è disponibile. Inserisci la zona come testo.');
-      }
-    };
-
-    const handleMapError = () => {
-      notifyUnavailable('Non riusciamo a caricare la mappa. Inserisci la zona come testo.');
-    };
-
-    const handleWebglContextLost = () => {
-      notifyUnavailable('La mappa non è più disponibile. Inserisci la zona come testo.');
-    };
-
-    const subscriptions = [
-      map.on('load', handleLoad),
-      map.on('draw.create', handleDrawChange),
-      map.on('draw.update', handleDrawChange),
-      map.on('draw.delete', handleDrawDelete),
-      map.on('error', handleMapError),
-      map.on('webglcontextlost', handleWebglContextLost),
-    ];
+    const lifecycle = createLocationPolygonMapLifecycle({
+      map,
+      draw,
+      control: draw as unknown as maplibregl.IControl,
+      initialValue: initialValueRef.current,
+      onDraft(polygon) {
+        draftRef.current = polygon;
+        setDraftIsValid(Boolean(polygon));
+        onChangeRef.current(null);
+      },
+      onUnavailable: handleUnavailable,
+    });
 
     return () => {
-      subscriptions.forEach((subscription) => subscription.unsubscribe());
-      if (controlAdded && map.hasControl(draw as unknown as maplibregl.IControl)) {
-        map.removeControl(draw as unknown as maplibregl.IControl);
-      }
+      lifecycle.dispose();
       drawRef.current = null;
-      mapRef.current = null;
-      map.remove();
     };
   }, []);
 
