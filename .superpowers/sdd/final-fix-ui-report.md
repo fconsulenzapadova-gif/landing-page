@@ -10,10 +10,13 @@ Base: `3240975`
   `Valore o canone desiderato`.
 - Radio `Altro importo` e `Altro periodo` rivelano input accessibili; i valori
   restano nei campi esistenti `LeadRequest.budget` e `LeadRequest.timeframe`.
+- Anche il placeholder del budget custom segue l'intento: esempio mensile per
+  locazione, esempio di compravendita per acquisto/vendita.
 - Le bozze custom sopravvivono ai passaggi preset/custom finché lo step resta
   montato e vengono ripristinate tornando indietro dal passo contatti.
 - Il cambio tra compravendita e locazione azzera budget/tempistiche incompatibili,
-  evitando che un preset di acquisto ricompaia nella UI affitto.
+  evitando che un preset di acquisto ricompaia nella UI affitto; i passaggi
+  acquisto ↔ vendita preservano invece budget e tempistiche compatibili.
 - Nessuna modifica a mappe, contatti, Worker, D1, deploy, API o policy pnpm.
 
 ## TDD
@@ -35,6 +38,16 @@ node --test tests/request-wizard.test.mjs
 ```
 
 Fail atteso: cambio acquisto → locazione conservava `Fino a 200.000 €`.
+
+RED review P2:
+
+```text
+node --test tests/request-wizard-ui.test.mjs        4 pass, 1 fail
+node --test tests/request-wizard.test.mjs           9 pass, 1 fail
+```
+
+Fail attesi: placeholder custom locazione mostrava l'esempio `300.000–400.000 €`;
+acquisto → vendita azzerava budget e timeframe compatibili.
 
 GREEN mirati:
 

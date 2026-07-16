@@ -92,12 +92,18 @@ test('reselecting the active intent preserves location and polygon drafts', () =
   assert.equal(changed.form.locationMode, 'text');
 });
 
-test('changing between purchase and rent clears incompatible budget and timeframe presets', () => {
+test('intent changes preserve compatible property choices and clear them between purchase and rent groups', () => {
   const initial = createRequestWizardDraft(getInitialIntent('acquisto'), { requestId: 'request-1', startedAt: 100 });
   const withBudget = updateRequestField(initial, 'budget', 'Fino a 200.000 €');
   const withTimeframe = updateRequestField(withBudget, 'timeframe', 'entro-3-mesi');
 
-  const rent = selectRequestIntent(withTimeframe, requestIntents[2]);
+  const sale = selectRequestIntent(withTimeframe, requestIntents[1]);
+
+  assert.equal(sale.form.requestType, 'vendita');
+  assert.equal(sale.form.budget, 'Fino a 200.000 €');
+  assert.equal(sale.form.timeframe, 'entro-3-mesi');
+
+  const rent = selectRequestIntent(sale, requestIntents[2]);
 
   assert.equal(rent.form.requestType, 'locazione');
   assert.equal(rent.form.budget, '');

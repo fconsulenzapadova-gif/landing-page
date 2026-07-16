@@ -67,6 +67,9 @@ export default function PropertyDetailsStep({ form, errors, updateField, locatio
     : form.requestType === 'locazione'
       ? 'Canone mensile indicativo'
       : 'Budget massimo';
+  const budgetPlaceholder = form.requestType === 'locazione'
+    ? 'Es. 900–1.200 €/mese'
+    : 'Es. 300.000–400.000 €';
 
   return (
     <fieldset className="grid gap-6">
@@ -186,7 +189,7 @@ export default function PropertyDetailsStep({ form, errors, updateField, locatio
                 aria-invalid={Boolean(errors.budget)}
                 aria-describedby={errors.budget ? 'budget-error' : undefined}
                 className="field-control min-h-11 w-full rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
-                placeholder="Es. 300.000–400.000 €"
+                placeholder={budgetPlaceholder}
               />
             </label>
           )}

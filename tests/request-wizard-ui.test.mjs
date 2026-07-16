@@ -266,6 +266,9 @@ test('property budget presets and labels follow purchase or rent intent', async 
   assert.equal(document.getElementById('budget-label').textContent, 'Canone mensile indicativo');
   assert.ok(button('Fino a 800 €/mese'));
   assert.equal(document.body.textContent.includes('200.000–350.000 €'), false);
+  await click(button('Altro importo'));
+  assert.equal(document.getElementById('budget-custom').placeholder, 'Es. 900–1.200 €/mese');
+  assert.equal(document.getElementById('budget-custom').placeholder.includes('300.000'), false);
   await rent.unmount();
 });
 
