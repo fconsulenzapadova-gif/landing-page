@@ -22,10 +22,12 @@ interface Props {
   mode: LocationMode;
   textValue: string;
   polygonValue: LocationPolygon | null;
+  polygonDraftValue: LocationPolygon | null;
   error?: string;
   onModeChange: (mode: LocationMode) => void;
   onTextChange: (value: string) => void;
   onPolygonChange: (value: LocationPolygon | null) => void;
+  onPolygonDraftChange: (value: LocationPolygon | null) => void;
   onMapUnavailable: (message: string) => void;
 }
 
@@ -53,10 +55,12 @@ export default function LocationSelector({
   mode,
   textValue,
   polygonValue,
+  polygonDraftValue,
   error,
   onModeChange,
   onTextChange,
   onPolygonChange,
+  onPolygonDraftChange,
   onMapUnavailable,
 }: Props) {
   const onModeChangeRef = useRef(onModeChange);
@@ -66,7 +70,7 @@ export default function LocationSelector({
   const lifecycleRef = useRef<ReturnType<typeof createLocationSelectorLifecycle> | null>(null);
   if (!lifecycleRef.current) {
     lifecycleRef.current = createLocationSelectorLifecycle({
-      initialDraft: polygonValue,
+      initialDraft: polygonDraftValue,
       onModeChange(nextMode) { onModeChangeRef.current(nextMode); },
       onMapUnavailable(message) { onMapUnavailableRef.current(message); },
     });
@@ -90,6 +94,11 @@ export default function LocationSelector({
 
   function handleMapUnavailable(message: string) {
     locationLifecycle.handleMapUnavailable(message);
+  }
+
+  function handlePolygonDraftChange(value: LocationPolygon | null) {
+    locationLifecycle.updateDraft(value);
+    onPolygonDraftChange(value);
   }
 
   return (
@@ -192,7 +201,7 @@ export default function LocationSelector({
                 value={polygonValue}
                 draftValue={locationLifecycle.getDraft()}
                 onChange={onPolygonChange}
-                onDraftChange={locationLifecycle.updateDraft}
+                onDraftChange={handlePolygonDraftChange}
                 onUnavailable={handleMapUnavailable}
                 error={error}
               />

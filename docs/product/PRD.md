@@ -432,12 +432,18 @@ UX corrente:
 - wizard in tre passaggi: obiettivo, immobile, contatti;
 - quattro obiettivi espliciti: acquisto, vendita, ricerca in affitto e immobile
   da affittare;
+- scelta obiettivo separata dall’avanzamento: frecce, Home ed End cambiano la
+  selezione senza lasciare il passaggio; `Continua` conferma il percorso;
 - modalita mappa predefinita per chi cerca e testo predefinito per il
   proprietario, con pannelli esclusivi e fallback automatico al testo se la
   mappa non e disponibile;
+- navigazione indietro conserva campi e bozze, inclusa un’area non ancora
+  confermata; riselezionare lo stesso obiettivo non azzera la posizione;
 - domande e label adattate a tipo richiesta e ruolo;
 - progressivo accessibile e navigazione avanti/indietro;
 - campi responsive, errori associati agli input e stato invio esplicito;
+- errori restituiti dal Worker riportano al primo passaggio coinvolto, mappano
+  gli errori geometria sulla posizione e restano annunciati in un riepilogo;
 - Turnstile normalmente invisibile con comparsa solo quando Cloudflare richiede interazione;
 - scena di conferma animata dopo salvataggio Cloudflare, con fallback immediato per `prefers-reduced-motion`.
 - `Nuova richiesta` azzera dati e stato, genera un nuovo identificativo e rimonta il primo passaggio immediatamente visibile.

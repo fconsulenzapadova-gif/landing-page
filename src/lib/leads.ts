@@ -32,10 +32,13 @@ export interface LeadRequest {
   referrer: string;
 }
 
+export type LeadField = keyof LeadRequest | 'form';
+export type LeadFieldErrors = Partial<Record<LeadField, string>>;
+
 export interface LeadResult {
   ok: boolean;
   message: string;
-  fieldErrors?: Partial<Record<keyof LeadRequest, string>>;
+  fieldErrors?: LeadFieldErrors;
 }
 
 const localEndpoint = 'http://127.0.0.1:8787/api/leads';

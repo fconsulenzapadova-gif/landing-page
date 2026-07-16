@@ -178,6 +178,24 @@ export default function ContactStep({
         )}
       </div>
 
+      <label className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="notes">
+        <span>
+          Note
+          <span className="ml-2 font-normal text-[var(--graphite)]">Facoltative</span>
+        </span>
+        <textarea
+          id="notes"
+          className={`${fieldClassName} min-h-28`}
+          value={form.notes}
+          onChange={(event) => updateField('notes', event.target.value)}
+          rows={4}
+          placeholder="Aggiungi informazioni utili per il ricontatto."
+          aria-invalid={Boolean(errors.notes)}
+          aria-describedby={errors.notes ? 'notes-error' : undefined}
+        />
+        {errors.notes && <span id="notes-error" className="text-sm font-medium text-red-700">{errors.notes}</span>}
+      </label>
+
       <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
         <label htmlFor="website">Sito web</label>
         <input

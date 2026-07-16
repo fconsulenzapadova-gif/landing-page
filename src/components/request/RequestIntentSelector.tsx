@@ -4,6 +4,7 @@ import {
   type RequestIntent,
   type RequestIntentValue,
 } from '../../lib/requestWizard';
+import { getNextIntentIndex } from '../../lib/requestWizardFlow';
 
 interface Props {
   value: RequestIntentValue;
@@ -17,12 +18,8 @@ function moveRadioFocus(event: KeyboardEvent<HTMLButtonElement>) {
   const currentIndex = radios.indexOf(event.currentTarget);
   if (currentIndex < 0) return;
 
-  let nextIndex: number | undefined;
-  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % radios.length;
-  if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + radios.length) % radios.length;
-  if (event.key === 'Home') nextIndex = 0;
-  if (event.key === 'End') nextIndex = radios.length - 1;
-  if (nextIndex === undefined) return;
+  const nextIndex = getNextIntentIndex(event.key, currentIndex, radios.length);
+  if (nextIndex === null) return;
 
   event.preventDefault();
   radios[nextIndex]?.focus();

@@ -2,45 +2,50 @@
 
 ## Stato
 
-Task 7 impl completa. `RequestsPage` ora orchestra 3 step, 4 intenti, posizione
-testo/poligono, fallback mappa e submission coerente. Success/reset Cloudflare
-preservati. Nessun deploy.
+Task 7 + review findings impl. Wizard 3 step/4 intenti, keyboard sicura,
+draft persistenti, note canoniche, payload coerente, routing errori API.
+Success/reset Cloudflare preservati. Nessun deploy.
 
-## Scope
+## Scope finale
 
-- `src/pages/RequestsPage.tsx`: componenti guidati + stato/transizioni/payload.
-- `tests/site-requirements.test.mjs`: integrazione + ownership Turnstile aggiornata.
-- `docs/product/PRD.md`: UX/campi canonici riallineati.
-- `src/lib/leads.ts`: nessun diff necessario; tipi estesi gia presenti da Task 1.
-- `tests/request-wizard.test.mjs`: nessun diff necessario; helper/default gia coperti.
+- `src/pages/RequestsPage.tsx`: orchestrazione React + summary/focus API.
+- `src/lib/requestWizardFlow.ts`: controller puro testabile.
+- `src/lib/leads.ts`: error fields includono `form` server-side.
+- `RequestIntentSelector`: frecce/Home/End selezionano; CTA avanza.
+- `LocationSelector`: draft poligono controllato/liftato.
+- `ContactStep`: `notes` controllato + errore accessibile.
+- Test runtime in `tests/request-wizard.test.mjs`; wiring static ridotto in
+  `tests/site-requirements.test.mjs`.
+- `docs/product/PRD.md`: UX canonica riallineata.
 
-## Comportamento
+## Findings chiusi
 
-- Query `type` → intento iniziale; 4 intenti espliciti.
-- `cerca` → `polygon`; `proprietario` → `text`.
-- Cambio intento conserva campi ragionevoli, azzera solo posizione/modo correlato,
-  rimonta selector via `key`, avanza a step 1.
-- Draft testo separato; draft mappa preservato dal lifecycle Task 6.
-- Pannelli testo/mappa esclusivi; fallback mappa → testo + geometria rimossa.
-- Step immobile richiede posizione valida + tipo immobile.
-- Submit trimma testo; geometry inviata solo con `locationMode === 'polygon'`;
-  posizione poligono sintetizzata via `summarizePolygon`.
-- Reset: nuovo `requestId`, intento query-derived, draft vuoti, step 0.
+1. Tastiera: selezione intento non cambia step. `Continua` avanza esplicitamente.
+2. Reselezione stesso intento ritorna stesso draft; nessun reset posizione,
+   geometria o bozza poligono non confermata. Cambio reale resetta solo posizione.
+3. `notes` di nuovo visibile, controllato, incluso via spread nel payload/API.
+4. `locationGeometry` server → `location`; errori ordinati per step minimo,
+   pagina torna a step 0/1/2, focus sul primo campo, summary `role="alert"` espone
+   anche errori di step successivi.
+5. Controller runtime copre keyboard, transizioni, back/edit, reset, payload
+   text/polygon, rifiuto payload incoerente, normalizzazione/routing errori.
 
 ## TDD
 
-RED:
+RED osservati:
 
-```sh
-node --test --test-name-pattern="request page composes" tests/site-requirements.test.mjs
-```
+- `ERR_MODULE_NOT_FOUND` per `requestWizardFlow.ts`.
+- Wiring pagina assente: `/selectRequestIntent/`.
+- Draft lift assente: export `setRequestPolygonDraft` e prop `polygonDraftValue`.
+- Payload polygon invalido non lanciava errore: `Missing expected exception`.
+- Note senza `aria-invalid`: asserzione wiring fallita.
 
-Exit 1: `/RequestIntentSelector/` assente in `RequestsPage`.
+GREEN focused:
 
-GREEN: stesso comando → 1 pass, 0 fail.
-
-Regressione intermedia: suite mirata 5/6; test legacy cercava `<Turnstile>` nella
-pagina. Asserzione riallineata a `ContactStep`; rerun 6/6.
+- `tests/request-wizard.test.mjs`: 9/9.
+- `request page composes`: 1/1.
+- `location selector swaps`: 1/1.
+- focused lead/wizard/location/success/reset: 6/6.
 
 ## Verifica finale
 
@@ -54,5 +59,5 @@ node node_modules/vite/bin/vite.js build
 git diff --check
 ```
 
-Tutto exit 0: 38 test pass, typecheck/lint puliti, build 148 moduli. Build mostra
-solo warning dimensione chunk MapLibre gia lazy; nessun errore.
+Tutto exit 0: 44 test pass; typecheck/lint puliti; build 149 moduli. Solo warning
+dimensione chunk MapLibre gia lazy; nessun errore.

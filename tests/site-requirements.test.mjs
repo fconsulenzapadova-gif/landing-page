@@ -173,6 +173,7 @@ test('listing parsers map public sheet rows and public folder markup', async () 
 test('lead form uses the Cloudflare API without Supabase or external CRM', () => {
   const leads = read('src/lib/leads.ts');
   const requests = read('src/pages/RequestsPage.tsx');
+  const flow = read('src/lib/requestWizardFlow.ts');
   const contact = read('src/components/request/ContactStep.tsx');
   const turnstile = read('src/components/Turnstile.tsx');
   const worker = read('cloudflare/src/index.ts');
@@ -195,7 +196,7 @@ test('lead form uses the Cloudflare API without Supabase or external CRM', () =>
   assert.match(worker, /GMAIL_REFRESH_TOKEN/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS lead_submissions/);
   assert.match(requests, /useSearchParams/);
-  assert.match(requests, /type=acquisto|requestType/);
+  assert.match(flow, /requestType/);
   assert.match(requests, /stepLabels/);
   assert.match(contact, /<Turnstile/);
   assert.doesNotMatch(leads, /supabase|crm-pro-five|google/i);
@@ -224,7 +225,7 @@ test('successful request shows an accessible animated confirmation', () => {
 test('starting a new request remounts a visible form', () => {
   const requests = read('src/pages/RequestsPage.tsx');
 
-  assert.match(requests, /const resetForm = \(\) => \{[\s\S]*?setStep\(0\);[\s\S]*?setStatus\('idle'\);/);
+  assert.match(requests, /const resetForm = \(\) => \{[\s\S]*?setWizard\(resetRequestWizard\(initialIntent\)\);[\s\S]*?setStatus\('idle'\);/);
   assert.doesNotMatch(requests, /<form[^>]*\sdata-animate(?:=|\s|>)/);
 });
 
@@ -255,16 +256,25 @@ test('guided request controls expose four intents and progressive inputs', () =>
 
 test('request page composes the adaptive wizard and submits geometry', () => {
   const requests = read('src/pages/RequestsPage.tsx');
+  const intent = read('src/components/request/RequestIntentSelector.tsx');
+  const contact = read('src/components/request/ContactStep.tsx');
 
   assert.match(requests, /<RequestIntentSelector/);
   assert.match(requests, /<PropertyDetailsStep/);
   assert.match(requests, /<ContactStep/);
-  assert.match(requests, /getDefaultLocationMode/);
-  assert.match(requests, /summarizePolygon/);
-  assert.match(requests, /locationGeometry/);
-  assert.match(requests, /requestRole/);
-  assert.match(requests, /setStep\(1\)/);
   assert.match(requests, /onMapUnavailable/);
+  assert.match(requests, /selectRequestIntent/);
+  assert.match(requests, /advanceRequestWizard/);
+  assert.match(requests, /buildLeadRequestPayload/);
+  assert.match(requests, /normalizeLeadFieldErrors/);
+  assert.match(requests, /apiErrorSummary/);
+  assert.match(requests, /role=\{status === 'error' \? 'alert' : 'status'\}/);
+  assert.match(intent, /getNextIntentIndex/);
+  assert.match(contact, /id="notes"/);
+  assert.match(contact, /value=\{form\.notes\}/);
+  assert.match(contact, /updateField\('notes', event\.target\.value\)/);
+  assert.match(contact, /aria-invalid=\{Boolean\(errors\.notes\)\}/);
+  assert.match(contact, /id="notes-error"/);
 });
 
 test('request polygon map is free, lazy, branded and accessible', () => {
@@ -306,7 +316,9 @@ test('location selector swaps text and map in one accessible panel', () => {
   assert.match(selector, /createLocationSelectorLifecycle/);
   assert.match(selector, /<LocationMapErrorBoundary/);
   assert.match(selector, /draftValue=\{locationLifecycle\.getDraft\(\)\}/);
-  assert.match(selector, /onDraftChange=\{locationLifecycle\.updateDraft\}/);
+  assert.match(selector, /onDraftChange=\{handlePolygonDraftChange\}/);
+  assert.match(selector, /polygonDraftValue/);
+  assert.match(selector, /onPolygonDraftChange/);
   assert.match(map, /draftValue\?: LocationPolygon \| null/);
   assert.match(map, /onDraftChange\?: \(value: LocationPolygon \| null\) => void/);
   assert.match(map, /onDraftChangeRef\.current\?\.\(polygon\)/);

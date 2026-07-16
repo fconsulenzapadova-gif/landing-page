@@ -9,90 +9,43 @@ import RequestIntentSelector from '../components/request/RequestIntentSelector';
 import WizardProgress from '../components/request/WizardProgress';
 import type { LeadRequest, LocationMode, LocationPolygon } from '../lib/leads';
 import { submitLeadRequest } from '../lib/leads';
+import { getInitialIntent, type RequestIntent } from '../lib/requestWizard';
 import {
-  getDefaultLocationMode,
-  getInitialIntent,
-  isValidLocationPolygon,
-  summarizePolygon,
-  type RequestIntent,
-} from '../lib/requestWizard';
+  advanceRequestWizard,
+  buildLeadRequestPayload,
+  createRequestWizardDraft,
+  normalizeLeadFieldErrors,
+  resetRequestWizard,
+  retreatRequestWizard,
+  selectRequestIntent,
+  setRequestLocationMode,
+  setRequestLocationText,
+  setRequestPolygon,
+  setRequestPolygonDraft,
+  setRequestWizardStep,
+  updateRequestField,
+  validateRequestStep,
+  type FormErrors,
+} from '../lib/requestWizardFlow';
 import { usePageAnimations } from '../lib/usePageAnimations';
 
-type FormErrors = Partial<Record<keyof LeadRequest, string>>;
-
 const stepLabels = ['Obiettivo', 'Immobile', 'Contatti'] as const;
-
-function createEmptyForm(intent: RequestIntent): LeadRequest {
-  return {
-    requestId: crypto.randomUUID(),
-    requestType: intent.requestType,
-    requestRole: intent.requestRole,
-    locationMode: getDefaultLocationMode(intent.requestRole),
-    propertyType: '',
-    location: '',
-    locationGeometry: null,
-    budget: '',
-    timeframe: '',
-    features: '',
-    name: '',
-    phone: '',
-    email: '',
-    contactPreference: 'telefono',
-    notes: '',
-    privacyAccepted: false,
-    turnstileToken: '',
-    website: '',
-    startedAt: Date.now(),
-    sourceUrl: '',
-    referrer: '',
-  };
-}
-
-function validateStep(form: LeadRequest, locationText: string, step: number): FormErrors {
-  const errors: FormErrors = {};
-
-  if (step === 1) {
-    if (!form.propertyType.trim()) errors.propertyType = 'Indica il tipo di immobile.';
-    const hasLocation = form.locationMode === 'text'
-      ? Boolean(locationText.trim())
-      : isValidLocationPolygon(form.locationGeometry);
-    if (!hasLocation) errors.location = 'Indica la zona o la posizione.';
-  }
-
-  if (step === 2) {
-    if (!form.name.trim()) errors.name = 'Inserisci nome e cognome.';
-    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) errors.email = 'Inserisci un’email valida.';
-    if (form.phone && form.phone.replace(/\D/g, '').length < 7) errors.phone = 'Inserisci un numero valido.';
-    if (!form.email.trim() && !form.phone.trim()) {
-      errors.email = 'Inserisci almeno email o telefono.';
-      errors.phone = 'Inserisci almeno telefono o email.';
-    }
-    if (form.contactPreference === 'email' && !form.email.trim()) errors.email = 'Email necessaria per questo contatto.';
-    if ((form.contactPreference === 'telefono' || form.contactPreference === 'whatsapp') && !form.phone.trim()) {
-      errors.phone = 'Telefono necessario per questo contatto.';
-    }
-    if (!form.privacyAccepted) errors.privacyAccepted = 'Conferma la lettura dell’informativa.';
-    if (!form.turnstileToken) errors.turnstileToken = 'Completa la verifica antispam.';
-  }
-
-  return errors;
-}
 
 export default function RequestsPage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const [searchParams] = useSearchParams();
   const initialIntent = useMemo(() => getInitialIntent(searchParams.get('type')), [searchParams]);
-  const [intentValue, setIntentValue] = useState(initialIntent.value);
-  const [locationText, setLocationText] = useState('');
-  const [form, setForm] = useState<LeadRequest>(() => createEmptyForm(initialIntent));
-  const [step, setStep] = useState(0);
+  const [wizard, setWizard] = useState(() => createRequestWizardDraft(initialIntent));
   const [errors, setErrors] = useState<FormErrors>({});
+  const [apiErrorSummary, setApiErrorSummary] = useState<string[]>([]);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const { form, intentValue, locationText, step } = wizard;
   usePageAnimations(pageRef);
 
   const clearErrorState = (field: keyof LeadRequest) => {
     setErrors((current) => ({ ...current, [field]: undefined }));
+    setApiErrorSummary([]);
     if (status === 'error') {
       setStatus('idle');
       setMessage('');
@@ -100,102 +53,93 @@ export default function RequestsPage() {
   };
 
   const updateField = <FieldName extends keyof LeadRequest>(field: FieldName, value: LeadRequest[FieldName]) => {
-    setForm((current) => ({ ...current, [field]: value }));
+    setWizard((current) => updateRequestField(current, field, value));
     clearErrorState(field);
   };
 
   const selectIntent = (intent: RequestIntent) => {
-    const defaultMode = getDefaultLocationMode(intent.requestRole);
-    setIntentValue(intent.value);
-    setLocationText('');
-    setForm((current) => ({
-      ...current,
-      requestType: intent.requestType,
-      requestRole: intent.requestRole,
-      locationMode: defaultMode,
-      location: '',
-      locationGeometry: null,
-    }));
+    if (intent.value === intentValue) return;
+    setWizard((current) => selectRequestIntent(current, intent));
     setErrors({});
+    setApiErrorSummary([]);
     setStatus('idle');
     setMessage('');
-    window.requestAnimationFrame(() => setStep(1));
   };
 
   const selectLocationMode = (locationMode: LocationMode) => {
-    setForm((current) => ({
-      ...current,
-      locationMode,
-      location: locationMode === 'text'
-        ? locationText
-        : current.locationGeometry
-          ? summarizePolygon(current.locationGeometry)
-          : '',
-    }));
+    setWizard((current) => setRequestLocationMode(current, locationMode));
     clearErrorState('location');
   };
 
   const setLocationTextValue = (value: string) => {
-    setLocationText(value);
-    setForm((current) => ({ ...current, location: value }));
+    setWizard((current) => setRequestLocationText(current, value));
     clearErrorState('location');
   };
 
   const setPolygon = (locationGeometry: LocationPolygon | null) => {
-    setForm((current) => ({
-      ...current,
-      locationGeometry,
-      location: locationGeometry ? summarizePolygon(locationGeometry) : '',
-    }));
+    setWizard((current) => setRequestPolygon(current, locationGeometry));
     clearErrorState('location');
   };
 
+  const setPolygonDraft = (locationGeometry: LocationPolygon | null) => {
+    setWizard((current) => setRequestPolygonDraft(current, locationGeometry));
+  };
+
   const onMapUnavailable = (unavailableMessage: string) => {
-    setForm((current) => ({
+    setWizard((current) => ({
       ...current,
-      locationMode: 'text',
-      location: locationText,
-      locationGeometry: null,
+      locationPolygonDraft: null,
+      form: {
+        ...current.form,
+        locationMode: 'text',
+        location: current.locationText,
+        locationGeometry: null,
+      },
     }));
     setErrors((current) => ({ ...current, location: undefined }));
+    setApiErrorSummary([]);
     setStatus('idle');
     setMessage(unavailableMessage);
   };
 
-  const focusFirstError = (nextErrors: FormErrors) => {
-    const firstField = Object.keys(nextErrors)[0];
-    if (!firstField) return;
+  const focusError = (field?: keyof LeadRequest) => {
+    if (!field) return;
     window.requestAnimationFrame(() => {
-      const control = document.getElementById(firstField)
+      const control = document.getElementById(field)
         ?? document.querySelector<HTMLElement>('[aria-invalid="true"], [role="tab"][aria-selected="true"]');
       control?.focus();
     });
   };
 
   const goToNextStep = () => {
-    const nextErrors = validateStep(form, locationText, step);
+    const nextErrors = validateRequestStep(form, locationText, step);
     setErrors(nextErrors);
+    setApiErrorSummary([]);
     if (Object.keys(nextErrors).length > 0) {
-      focusFirstError(nextErrors);
+      focusError(Object.keys(nextErrors)[0] as keyof LeadRequest);
       return;
     }
-    setStep((current) => Math.min(current + 1, stepLabels.length - 1));
+    setWizard(advanceRequestWizard);
+    setStatus('idle');
     setMessage('');
   };
 
   const goToPreviousStep = () => {
-    setStep((current) => Math.max(current - 1, 0));
+    setWizard(retreatRequestWizard);
     setErrors({});
+    setApiErrorSummary([]);
+    setStatus('idle');
     setMessage('');
   };
 
   const onTurnstileVerify = useCallback((token: string) => {
-    setForm((current) => ({ ...current, turnstileToken: token }));
+    setWizard((current) => updateRequestField(current, 'turnstileToken', token));
     setErrors((current) => ({ ...current, turnstileToken: undefined }));
+    setApiErrorSummary([]);
   }, []);
 
   const onTurnstileExpire = useCallback(() => {
-    setForm((current) => ({ ...current, turnstileToken: '' }));
+    setWizard((current) => updateRequestField(current, 'turnstileToken', ''));
   }, []);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -205,39 +149,41 @@ export default function RequestsPage() {
       return;
     }
 
-    const nextErrors = validateStep(form, locationText, step);
+    const nextErrors = validateRequestStep(form, locationText, step);
     setErrors(nextErrors);
+    setApiErrorSummary([]);
     if (Object.keys(nextErrors).length > 0) {
       setStatus('error');
       setMessage('Controlla i campi evidenziati.');
-      focusFirstError(nextErrors);
+      focusError(Object.keys(nextErrors)[0] as keyof LeadRequest);
       return;
     }
 
-    const request: LeadRequest = {
-      ...form,
-      location: form.locationMode === 'text'
-        ? locationText.trim()
-        : summarizePolygon(form.locationGeometry!),
-      locationGeometry: form.locationMode === 'polygon' ? form.locationGeometry : null,
-      sourceUrl: window.location.href,
-      referrer: document.referrer,
-    };
+    const request = buildLeadRequestPayload(
+      wizard,
+      window.location.href,
+      document.referrer,
+    );
 
     setStatus('submitting');
     setMessage('');
     const result = await submitLeadRequest(request);
     setStatus(result.ok ? 'success' : 'error');
     setMessage(result.message);
-    if (result.fieldErrors) setErrors(result.fieldErrors);
+
+    if (result.fieldErrors) {
+      const normalized = normalizeLeadFieldErrors(result.fieldErrors);
+      setErrors(normalized.formErrors);
+      setApiErrorSummary(normalized.summary);
+      setWizard((current) => setRequestWizardStep(current, normalized.earliestStep));
+      focusError(normalized.firstField);
+    }
   };
 
   const resetForm = () => {
-    setIntentValue(initialIntent.value);
-    setLocationText('');
-    setForm(createEmptyForm(initialIntent));
-    setStep(0);
+    setWizard(resetRequestWizard(initialIntent));
     setErrors({});
+    setApiErrorSummary([]);
     setStatus('idle');
     setMessage('');
   };
@@ -251,10 +197,8 @@ export default function RequestsPage() {
   }
 
   const messageClassName = status === 'error'
-    ? 'text-red-700'
-    : status === 'idle'
-      ? 'text-[var(--graphite)]'
-      : 'text-emerald-700';
+    ? 'border-red-200 bg-red-50 text-red-800'
+    : 'border-[var(--line)] bg-white text-[var(--graphite)]';
 
   return (
     <div ref={pageRef}>
@@ -264,6 +208,22 @@ export default function RequestsPage() {
           className="mx-auto max-w-5xl rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-5 sm:p-8"
           noValidate
         >
+          {message && (
+            <div
+              className={`mb-6 rounded-lg border p-4 text-sm font-semibold ${messageClassName}`}
+              role={status === 'error' ? 'alert' : 'status'}
+              aria-live={status === 'error' ? 'assertive' : 'polite'}
+              aria-atomic="true"
+            >
+              <p>{message}</p>
+              {apiErrorSummary.length > 0 && (
+                <ul className="mt-2 list-disc space-y-1 pl-5 font-medium">
+                  {apiErrorSummary.map((errorMessage) => <li key={errorMessage}>{errorMessage}</li>)}
+                </ul>
+              )}
+            </div>
+          )}
+
           <WizardProgress step={step} />
 
           {step === 0 && (
@@ -282,10 +242,12 @@ export default function RequestsPage() {
                   mode={form.locationMode}
                   textValue={locationText}
                   polygonValue={form.locationGeometry}
+                  polygonDraftValue={wizard.locationPolygonDraft}
                   error={errors.location}
                   onModeChange={selectLocationMode}
                   onTextChange={setLocationTextValue}
                   onPolygonChange={setPolygon}
+                  onPolygonDraftChange={setPolygonDraft}
                   onMapUnavailable={onMapUnavailable}
                 />
               )}
@@ -321,7 +283,6 @@ export default function RequestsPage() {
               {status === 'submitting' ? 'Salvataggio in corso…' : step === stepLabels.length - 1 ? 'Invia richiesta' : 'Continua'}
             </button>
           </div>
-          {message && <p className={`mt-4 text-sm font-semibold ${messageClassName}`} role="status">{message}</p>}
         </form>
       </Section>
     </div>
