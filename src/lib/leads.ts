@@ -1,77 +1,82 @@
-import { isSupabaseConfigured, supabase } from './supabase';
+export type ContactPreference = 'telefono' | 'email' | 'whatsapp';
+export type LeadRequestType = 'acquisto' | 'vendita' | 'locazione';
 
 export interface LeadRequest {
-  name: string;
-  phone: string;
-  email: string;
-  requestType: 'acquisto' | 'vendita' | 'locazione';
+  requestId: string;
+  requestType: LeadRequestType;
   propertyType: string;
   location: string;
   budget: string;
   timeframe: string;
   features: string;
+  name: string;
+  phone: string;
+  email: string;
+  contactPreference: ContactPreference;
   notes: string;
+  privacyAccepted: boolean;
+  turnstileToken: string;
+  website: string;
+  startedAt: number;
+  sourceUrl: string;
+  referrer: string;
 }
 
 export interface LeadResult {
   ok: boolean;
   message: string;
+  fieldErrors?: Partial<Record<keyof LeadRequest, string>>;
 }
 
-const crmEndpoint = 'https://crm-pro-five.vercel.app/api/submit-lead';
+const localEndpoint = 'http://127.0.0.1:8787/api/leads';
+const localHostnames = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
 
-async function sendToExternalCrm(request: LeadRequest) {
-  const response = await fetch(crmEndpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name: request.name,
-      email: request.email,
-      phone: request.phone,
-      landing_page_url: 'www.gemutcapital.com',
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`CRM error ${response.status}`);
-  }
+function getEndpoint() {
+  if (localHostnames.has(window.location.hostname)) return localEndpoint;
+  const configuredEndpoint = import.meta.env.VITE_LEADS_API_URL?.trim();
+  if (configuredEndpoint) return configuredEndpoint;
+  return '';
 }
 
 export async function submitLeadRequest(request: LeadRequest): Promise<LeadResult> {
-  if (!isSupabaseConfigured) {
+  const endpoint = getEndpoint();
+  if (!endpoint) {
     return {
       ok: false,
-      message: 'Supabase non e configurato. Imposta le variabili ambiente prima di usare il form in produzione.',
+      message: 'Il servizio richieste non è configurato. Contattaci telefonicamente o via email.',
     };
   }
 
-  const { error } = await supabase.from('lead_submissions').insert({
-    name: request.name,
-    phone: request.phone,
-    email: request.email,
-    request_type: request.requestType,
-    property_type: request.propertyType || null,
-    location: request.location,
-    budget: request.budget || null,
-    timeframe: request.timeframe || null,
-    features: request.features || null,
-    notes: request.notes || null,
-    source: 'gemutcapital.com',
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 12_000);
 
-  if (error) {
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+      signal: controller.signal,
+    });
+    const result = (await response.json().catch(() => null)) as LeadResult | null;
+
+    if (!response.ok || !result?.ok) {
+      return {
+        ok: false,
+        message: result?.message || 'Non siamo riusciti a salvare la richiesta. Riprova tra poco.',
+        fieldErrors: result?.fieldErrors,
+      };
+    }
+
+    return result;
+  } catch (error) {
     return {
       ok: false,
-      message: 'Non siamo riusciti a salvare la richiesta. Riprova piu tardi.',
+      message:
+        error instanceof DOMException && error.name === 'AbortError'
+          ? 'Il salvataggio sta richiedendo troppo tempo. Controlla la connessione e riprova.'
+          : 'Connessione non disponibile. La richiesta non è stata inviata.',
     };
+  } finally {
+    window.clearTimeout(timeout);
   }
-
-  sendToExternalCrm(request).catch((crmError) => {
-    console.error('External CRM submission failed', crmError);
-  });
-
-  return {
-    ok: true,
-    message: 'Richiesta inviata. Ti ricontatteremo entro 24 ore.',
-  };
 }

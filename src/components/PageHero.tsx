@@ -26,7 +26,7 @@ export default function PageHero({
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
           <div>
-            <div data-animate className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg border border-[var(--line)] bg-white text-[var(--brand-blue-strong)]">
+            <div data-animate className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--brand-blue)] text-[var(--ink)]">
               <Icon name={icon} className="h-6 w-6" />
             </div>
             <p data-animate className="eyebrow">

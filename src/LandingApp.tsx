@@ -11,6 +11,8 @@ const RequestsPage = lazy(() => import('./pages/RequestsPage'));
 const BookingPage = lazy(() => import('./pages/BookingPage'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const ListingPage = lazy(() => import('./pages/ListingPage'));
+const ListingsPage = lazy(() => import('./pages/ListingsPage'));
+const ServicesPage = lazy(() => import('./pages/ServicesPage'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -33,7 +35,9 @@ export default function LandingApp() {
             <Route path="richieste" element={<RequestsPage />} />
             <Route path="prenotazione" element={<BookingPage />} />
             <Route path="privacy" element={<PrivacyPage />} />
+            <Route path="immobili" element={<ListingsPage />} />
             <Route path="immobili/:slug" element={<ListingPage />} />
+            <Route path="servizi" element={<ServicesPage />} />
 
             <Route path="acquisto-casa" element={<ServicePage service={primaryServices.acquisto} />} />
             <Route path="vendita-immobili" element={<ServicePage service={primaryServices.vendita} />} />

@@ -15,15 +15,15 @@ interface ButtonLinkProps {
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    'bg-[var(--brand-blue)] text-[var(--ink)] hover:bg-[var(--brand-blue-hover)] focus-visible:ring-[#b3e5fc]/60',
-  secondary: 'bg-[var(--ink)] text-white hover:bg-black focus-visible:ring-black/20',
+    'bg-[var(--brand-blue)] text-[var(--ink)] hover:ring-2 hover:ring-[var(--ink)]',
+  secondary: 'bg-[var(--ink)] text-white hover:bg-black',
   outline:
-    'border border-[var(--ink)]/20 bg-transparent text-[var(--ink)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue-strong)] focus-visible:ring-[#b3e5fc]/60',
-  light: 'bg-[var(--paper-soft)] text-[var(--ink)] hover:bg-white focus-visible:ring-white/70',
+    'border border-[var(--control-border)] bg-transparent text-[var(--ink)] hover:border-[var(--ink)] hover:bg-[var(--brand-blue)]',
+  light: 'bg-[var(--paper-soft)] text-[var(--ink)] hover:bg-white',
 };
 
 const baseClass =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4';
+  'focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition';
 
 export default function ButtonLink({
   children,

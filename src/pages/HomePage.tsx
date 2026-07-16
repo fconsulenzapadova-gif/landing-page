@@ -1,17 +1,16 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useMemo, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ButtonLink from '../components/ButtonLink';
 import Icon from '../components/Icon';
 import ListingCard from '../components/ListingCard';
 import Section from '../components/Section';
-import { primaryServices, specialistServices, valueProps, type RequestType } from '../content/site';
+import { specialistServices, valueProps } from '../content/site';
 import { useListings } from '../lib/useListings';
 import { usePageAnimations } from '../lib/usePageAnimations';
 
-const services = Object.values(primaryServices);
 const specialists = Object.values(specialistServices);
 
 const curveSwipePaths = {
@@ -30,16 +29,68 @@ export default function HomePage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
   const listingsRef = useRef<HTMLElement>(null);
-  const servicesSectionRef = useRef<HTMLDivElement>(null);
-  const [activeServiceId, setActiveServiceId] = useState<RequestType>('acquisto');
   const { listings } = useListings();
+
+  useGSAP(
+    () => {
+      const words = gsap.utils.toArray<HTMLElement>('[data-hero-word]');
+      const image = heroRef.current?.querySelector<HTMLElement>('[data-hero-image]');
+      const media = gsap.matchMedia();
+
+      media.add(
+        {
+          reduceMotion: '(prefers-reduced-motion: reduce)',
+          motionOK: '(prefers-reduced-motion: no-preference)',
+        },
+        (context) => {
+          if (context.conditions?.reduceMotion) {
+            gsap.set(words, { autoAlpha: 1, y: 0, clearProps: 'opacity,visibility,transform' });
+            if (image) gsap.set(image, { scale: 1, clearProps: 'transform' });
+            return;
+          }
+
+          if (image) {
+            gsap.fromTo(
+              image,
+              { scale: 1.06, force3D: true },
+              {
+                scale: 1,
+                force3D: true,
+                duration: 1.8,
+                ease: 'power3.out',
+              },
+            );
+          }
+
+          gsap.fromTo(
+            words,
+            { autoAlpha: 0, y: 42, force3D: true },
+            {
+              autoAlpha: 1,
+              y: 0,
+              force3D: true,
+              duration: 1,
+              ease: 'power3.out',
+              stagger: 0.14,
+              overwrite: 'auto',
+              onComplete: () => {
+                gsap.set(words, { clearProps: 'opacity,visibility,transform' });
+              },
+            },
+          );
+        },
+      );
+
+      return () => media.revert();
+    },
+    { scope: heroRef },
+  );
 
   useGSAP(
     () => {
       const hero = heroRef.current;
       if (!hero) return;
 
-      const words = gsap.utils.toArray<HTMLElement>('[data-hero-word]');
       const image = hero.querySelector<HTMLElement>('[data-hero-image]');
       const tint = hero.querySelector<HTMLElement>('[data-hero-tint]');
       const curvePath = hero.querySelector<SVGPathElement>('[data-curve-path]');
@@ -58,41 +109,18 @@ export default function HomePage() {
           const reduceMotion = context.conditions?.reduceMotion;
 
           if (reduceMotion) {
-            gsap.set(words, { autoAlpha: 1, y: 0, clearProps: 'transform,visibility' });
-            gsap.set(image, { scale: 1, yPercent: 0, clearProps: 'transform' });
-            gsap.set(listingsRevealTarget, { autoAlpha: 1, y: 0, clearProps: 'transform,visibility' });
-            gsap.set(listingsBackdropTarget, { autoAlpha: 1 });
+            if (image) gsap.set(image, { scale: 1, yPercent: 0, clearProps: 'transform' });
+            if (listingsRevealTarget.length > 0) {
+              gsap.set(listingsRevealTarget, { autoAlpha: 1, y: 0, clearProps: 'transform,visibility' });
+            }
+            if (listingsBackdropTarget.length > 0) gsap.set(listingsBackdropTarget, { autoAlpha: 1 });
             curvePath?.setAttribute('d', curveSwipePaths.hidden);
             return;
           }
 
-          gsap.set(curvePath, { attr: { d: curveSwipePaths.hidden } });
-          gsap.set(listingsRevealTarget, { autoAlpha: 0, y: 64, force3D: true });
-          gsap.set(listingsBackdropTarget, { autoAlpha: 0 });
-
-          gsap.fromTo(
-            image,
-            { scale: 1.06, force3D: true },
-            {
-              scale: 1,
-              force3D: true,
-              duration: 1.8,
-              ease: 'power3.out',
-            },
-          );
-
-          gsap.fromTo(
-            words,
-            { autoAlpha: 0, y: 42, force3D: true },
-            {
-              autoAlpha: 1,
-              y: 0,
-              force3D: true,
-              duration: 1,
-              ease: 'power3.out',
-              stagger: 0.14,
-            },
-          );
+          if (curvePath) gsap.set(curvePath, { attr: { d: curveSwipePaths.hidden } });
+          if (listingsRevealTarget.length > 0) gsap.set(listingsRevealTarget, { autoAlpha: 0, y: 64, force3D: true });
+          if (listingsBackdropTarget.length > 0) gsap.set(listingsBackdropTarget, { autoAlpha: 0 });
 
           const transition = gsap.timeline({
             scrollTrigger: {
@@ -116,22 +144,13 @@ export default function HomePage() {
 
           transition
             .to(curvePath, { attr: { d: curveSwipePaths.wave }, duration: 0.42, ease: 'power2.in' }, 0)
-            .to(curvePath, { attr: { d: curveSwipePaths.full }, duration: 0.58, ease: 'power2.out' }, 0.42)
-            .to(
-              words,
-              {
-                autoAlpha: 0,
-                y: -48,
-                force3D: true,
-                duration: 0.55,
-                ease: 'power2.inOut',
-                stagger: { amount: 0.08, from: 'end' },
-              },
-              0.12,
-            )
-            .to(image, { scale: 1.12, yPercent: -4, force3D: true, duration: 1, ease: 'none' }, 0)
-            .to(tint, { opacity: 0.98, duration: 1, ease: 'none' }, 0)
-            .to(listingsRevealTarget, { autoAlpha: 1, y: 0, force3D: true, duration: 0.28, ease: 'power2.out' }, 0.5);
+            .to(curvePath, { attr: { d: curveSwipePaths.full }, duration: 0.58, ease: 'power2.out' }, 0.42);
+
+          if (image) transition.to(image, { scale: 1.12, yPercent: -4, force3D: true, duration: 1, ease: 'none' }, 0);
+          if (tint) transition.to(tint, { opacity: 0.98, duration: 1, ease: 'none' }, 0);
+          if (listingsRevealTarget.length > 0) {
+            transition.to(listingsRevealTarget, { autoAlpha: 1, y: 0, force3D: true, duration: 0.28, ease: 'power2.out' }, 0.5);
+          }
         },
       );
 
@@ -165,12 +184,14 @@ export default function HomePage() {
       mm.add(
         {
           reduceMotion: '(prefers-reduced-motion: reduce)',
+          touch: '(any-pointer: coarse)',
           motionOK: '(prefers-reduced-motion: no-preference)',
         },
         (context) => {
           const reduceMotion = context.conditions?.reduceMotion;
+          const touch = context.conditions?.touch;
 
-          if (reduceMotion) {
+          if (reduceMotion || touch) {
             gsap.set(track, { x: getStartX() });
             gsap.set(cards, { autoAlpha: 1, y: 0, clearProps: 'transform,visibility' });
             return;
@@ -202,80 +223,7 @@ export default function HomePage() {
     { scope: listingsRef, dependencies: [listings.length], revertOnUpdate: true },
   );
 
-  useGSAP(
-    () => {
-      const section = servicesSectionRef.current;
-      if (!section) return;
-
-      const revealItems = gsap.utils.toArray<HTMLElement>('[data-service-reveal]');
-      const media = gsap.matchMedia();
-
-      media.add(
-        {
-          reduceMotion: '(prefers-reduced-motion: reduce)',
-          desktop: '(min-width: 768px) and (prefers-reduced-motion: no-preference)',
-          mobile: '(max-width: 767px) and (prefers-reduced-motion: no-preference)',
-        },
-        (context) => {
-          if (context.conditions?.reduceMotion) {
-            gsap.set(revealItems, { autoAlpha: 1, x: 0, y: 0, clearProps: 'transform,visibility' });
-            return;
-          }
-
-          if (context.conditions?.desktop) {
-            const timeline = gsap
-              .timeline({ paused: true })
-              .fromTo(
-                revealItems,
-                { autoAlpha: 0, y: -32, force3D: true },
-                { autoAlpha: 1, y: 0, force3D: true, duration: 0.7, stagger: 0.15, ease: 'power3.out' },
-              );
-
-            ScrollTrigger.create({
-              id: 'home-services-bidirectional',
-              trigger: section,
-              start: 'top 82%',
-              end: 'bottom 18%',
-              onEnter: () => timeline.play(),
-              onEnterBack: () => timeline.reverse(),
-              onLeaveBack: () => timeline.reverse(),
-              onUpdate: (self) => {
-                if (!self.isActive) return;
-                if (self.direction === 1) timeline.play();
-                else timeline.reverse();
-              },
-            });
-            return;
-          }
-
-          if (context.conditions?.mobile) {
-            revealItems.forEach((item) => {
-              const tween = gsap.fromTo(
-                item,
-                { autoAlpha: 0, x: -32, force3D: true },
-                { autoAlpha: 1, x: 0, force3D: true, duration: 0.7, ease: 'power3.out', paused: true },
-              );
-
-              ScrollTrigger.create({
-                trigger: item,
-                start: 'top 90%',
-                onEnter: () => tween.play(),
-                onEnterBack: () => tween.play(),
-                onLeaveBack: () => tween.reverse(),
-              });
-            });
-          }
-        },
-      );
-
-      return () => media.revert();
-    },
-    { scope: servicesSectionRef },
-  );
-
   usePageAnimations(pageRef);
-
-  const activeService = useMemo(() => primaryServices[activeServiceId], [activeServiceId]);
 
   return (
     <div ref={pageRef}>
@@ -293,11 +241,11 @@ export default function HomePage() {
         </picture>
         <div data-hero-tint className="motion-opacity-layer absolute inset-0 bg-black/45 opacity-[0.67]" aria-hidden />
         <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-center px-4 py-16 text-center sm:px-6">
-          <h1 className="max-w-none text-balance text-4xl leading-[0.95] text-white drop-shadow-[0_2px_28px_rgba(0,0,0,0.35)] sm:whitespace-nowrap sm:text-[clamp(2.5rem,6vw,5.25rem)]">
+          <h1 className="max-w-none text-balance text-4xl leading-[1.1] text-white drop-shadow-[0_2px_28px_rgba(0,0,0,0.35)] sm:whitespace-nowrap sm:text-[clamp(2.5rem,5.5vw,4.75rem)] sm:leading-[1.08]">
             <span data-hero-word className="motion-transform-layer font-display inline-block">
               Casa nuova, stesso
             </span>{' '}
-            <span data-hero-word className="motion-transform-layer font-brand inline-block text-[1.08em] font-light uppercase leading-none text-[var(--brand-blue)]">
+            <span data-hero-word className="motion-transform-layer font-brand inline-block -mt-[0.1em] pt-[0.1em] text-[1.08em] font-light uppercase leading-[1.12] text-[var(--brand-blue)]">
               GEMÜT
             </span>
           </h1>
@@ -315,7 +263,7 @@ export default function HomePage() {
       </header>
 
       {listings.length > 0 ? (
-        <section ref={listingsRef} className="relative z-30 min-h-[260svh] bg-transparent [margin-top:-100svh]">
+        <section ref={listingsRef} className="home-listings-section relative z-30 min-h-[260svh] bg-transparent [margin-top:-100svh]">
           <div className="sticky top-0 flex min-h-[100svh] items-center overflow-hidden py-10 sm:py-14">
             <div data-listings-backdrop className="pointer-events-none absolute inset-0 bg-[var(--paper)] opacity-0" aria-hidden />
             <div data-listings-viewport className="motion-transform-layer motion-paint-boundary scrollbar-hidden relative z-10 w-full overflow-x-auto overflow-y-hidden px-4 py-6 sm:px-6" aria-label="Immobili disponibili">
@@ -336,54 +284,7 @@ export default function HomePage() {
         </section>
       ) : null}
 
-      <Section>
-        <div ref={servicesSectionRef} className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <div data-service-reveal data-service-reveal-index="0" className="lg:sticky lg:top-24">
-            <p className="eyebrow">
-              Servizi principali
-            </p>
-            <h2 className="font-display mt-4 max-w-2xl text-4xl leading-tight text-[var(--ink)] sm:text-6xl">
-              Ogni servizio ha un percorso chiaro, non una promessa generica.
-            </h2>
-            <div className="media-frame mt-8 h-[28rem] rounded-lg">
-              <img src={activeService.heroImage} alt="" className="h-full w-full object-cover" data-parallax />
-            </div>
-          </div>
-
-          <div className="border-t border-[var(--line)]">
-            {services.map((service, index) => {
-              const active = service.id === activeServiceId;
-              return (
-                <Link
-                  key={service.id}
-                  to={service.route}
-                  data-service-reveal
-                  data-service-reveal-index={index + 1}
-                  onMouseEnter={() => setActiveServiceId(service.id)}
-                  onFocus={() => setActiveServiceId(service.id)}
-                  className={`group grid gap-5 border-b border-[var(--line)] py-7 transition lg:grid-cols-[4rem_1fr_auto] ${
-                    active
-                      ? 'text-[var(--brand-blue-strong)]'
-                      : 'text-[var(--ink)] hover:text-[var(--brand-blue-strong)]'
-                  }`}
-                >
-                  <span className="font-brand text-xl text-[var(--graphite)]">0{index + 1}</span>
-                  <span>
-                    <span className="flex items-center gap-3">
-                      <Icon name={service.icon} className="h-5 w-5" />
-                      <span className="text-2xl font-semibold">{service.title}</span>
-                    </span>
-                    <span className="mt-3 block max-w-2xl text-sm leading-6 text-[var(--graphite)]">{service.summary}</span>
-                  </span>
-                  <span className="self-center text-sm font-semibold uppercase">Scopri</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </Section>
-
-      <Section className="section-line bg-[var(--paper-soft)]">
+      <Section className="bg-[var(--paper-soft)]">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div data-animate="image" className="media-frame mx-auto max-w-md rounded-lg">
             <img src="/images/profile.webp" alt="Filippo Marcuzzo" width="512" height="768" loading="lazy" decoding="async" />
@@ -425,7 +326,7 @@ export default function HomePage() {
           <div className="grid border-t border-[var(--line)] sm:grid-cols-2">
             {valueProps.map((item) => (
               <article key={item.title} data-animate className="border-b border-[var(--line)] py-6 sm:px-6 sm:odd:border-r">
-                <Icon name={item.icon} className="h-6 w-6 text-[var(--brand-blue-strong)]" />
+                <Icon name={item.icon} className="h-6 w-6 rounded bg-[var(--brand-blue)] p-0.5 text-[var(--ink)]" />
                 <h3 className="mt-4 text-xl font-semibold text-[var(--ink)]">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--graphite)]">{item.text}</p>
               </article>
@@ -465,13 +366,13 @@ export default function HomePage() {
       <Section className="section-line bg-[var(--brand-blue)] text-[var(--ink)]">
         <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-center">
           <div>
-            <p data-animate className="text-xs font-bold uppercase text-white/70">
+            <p data-animate className="text-xs font-bold uppercase text-[var(--ink)]">
               Primo passo
             </p>
             <h2 data-animate className="font-display mt-3 max-w-4xl text-4xl leading-tight sm:text-6xl">
               Hai un obiettivo immobiliare concreto?
             </h2>
-            <p data-animate className="mt-4 max-w-2xl text-base leading-7 text-white/80">
+            <p data-animate className="mt-4 max-w-2xl text-base leading-7 text-[var(--ink)]">
               Invia i dati essenziali. Ti ricontattiamo per capire il percorso piu adatto prima di muovere il mercato.
             </p>
           </div>

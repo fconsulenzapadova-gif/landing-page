@@ -1,9 +1,14 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { company } from '../content/site';
+import { usePageAnimations } from '../lib/usePageAnimations';
 
 export default function Footer() {
+  const footerRef = useRef<HTMLElement>(null);
+  usePageAnimations(footerRef);
+
   return (
-    <footer className="bg-[var(--ink)] px-4 py-14 text-white sm:px-6">
+    <footer ref={footerRef} className="bg-[var(--ink)] px-4 py-14 text-white sm:px-6">
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.3fr_0.8fr_0.9fr]">
         <div data-animate>
           <img src="/design-system/logo/logo-white.svg" alt={company.brand} className="h-10 w-auto" />

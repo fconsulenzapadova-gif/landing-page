@@ -2,6 +2,8 @@ import { createRoot } from 'react-dom/client';
 import LandingApp from './LandingApp';
 import './index.css';
 
+document.documentElement.classList.add('motion-enabled');
+
 const root = document.getElementById('root');
 
 if (!root) {

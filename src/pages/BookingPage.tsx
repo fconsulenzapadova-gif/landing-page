@@ -14,7 +14,7 @@ export default function BookingPage() {
       <Section className="section-line min-h-[70vh] bg-[var(--paper-soft)]">
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-center">
           <div data-animate className="rounded-lg border border-[var(--line)] bg-white p-8">
-            <Icon name="calendar" className="h-10 w-10 text-[var(--brand-blue-strong)]" />
+            <Icon name="calendar" className="h-10 w-10 rounded bg-[var(--brand-blue)] p-1.5 text-[var(--ink)]" />
             <p className="eyebrow mt-6">Prenotazione</p>
             <h1 className="font-display mt-3 text-5xl leading-tight text-[var(--ink)] sm:text-6xl">Prenota una consulenza</h1>
           </div>

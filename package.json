@@ -8,11 +8,16 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --test tests/site-requirements.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "worker:dev": "wrangler dev --config cloudflare/wrangler.jsonc",
+    "worker:check": "wrangler deploy --dry-run --config cloudflare/wrangler.jsonc",
+    "worker:deploy": "wrangler deploy --config cloudflare/wrangler.jsonc",
+    "worker:db:migrate:local": "wrangler d1 migrations apply gemut-leads-db --local --config cloudflare/wrangler.jsonc",
+    "worker:db:migrate": "wrangler d1 migrations apply gemut-leads-db --remote --config cloudflare/wrangler.jsonc",
+    "worker:turnstile": "node scripts/provision-turnstile.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@supabase/supabase-js": "^2.39.3",
     "gsap": "^3.15.0",
     "lucide-react": "^0.323.0",
     "react": "^18.2.0",
@@ -36,6 +41,7 @@
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "wrangler": "^4.111.0"
   }
 }

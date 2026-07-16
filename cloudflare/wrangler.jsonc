@@ -1,0 +1,21 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "gemut-leads-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-16",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "ALLOWED_ORIGINS": "https://gemutcapital.com,https://www.gemutcapital.com,http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:8080,http://localhost:8080",
+    "NOTIFICATION_FROM_EMAIL": "filippo@gemutcapital.com",
+    "NOTIFICATION_TO_EMAIL": "filippo@gemutcapital.com"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "gemut-leads-db",
+      "database_id": "d24216ba-a3b1-4acb-998a-041815de86d8",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

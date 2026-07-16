@@ -40,37 +40,6 @@ const splitList = (value: string) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
-const splitImageLinks = (value: string) =>
-  value
-    .split(/\r?\n|\|/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-const getDriveFileId = (value: string) => {
-  const pathMatch = value.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (pathMatch) return pathMatch[1];
-
-  try {
-    const url = new URL(value);
-    return url.searchParams.get('id') ?? '';
-  } catch {
-    return '';
-  }
-};
-
-export const normalizeListingImageUrl = (value: string) => {
-  const url = value.trim();
-  if (!url) return '';
-  if (url.startsWith('/')) return url;
-
-  const driveFileId = getDriveFileId(url);
-  if (driveFileId) {
-    return `https://drive.google.com/thumbnail?id=${encodeURIComponent(driveFileId)}&sz=w1600`;
-  }
-
-  return /^https?:\/\//i.test(url) ? url : '';
-};
-
 export function parseCsv(input: string) {
   const rows: string[][] = [];
   let row: string[] = [];
@@ -193,9 +162,6 @@ export function parseListingsSheet(csv: string): ParsedSheet {
       const availableFrom = get('Disponibile dal');
       const features = splitList(get('Caratteristiche'));
       const highlights = splitList(get('Punti di forza'));
-      const directImages = splitImageLinks(get('Link immagini', 'Immagini'))
-        .map(normalizeListingImageUrl)
-        .filter(Boolean);
       const defaultImage =
         requestType === 'vendita' ? '/images/piazza-vicina.webp' : '/images/sfondo-patrimoni.webp';
       const defaultMobileImage =
@@ -239,9 +205,9 @@ export function parseListingsSheet(csv: string): ParsedSheet {
         condition,
         energyClass,
         availableFrom,
-        image: directImages[0] || defaultImage,
-        mobileImage: directImages[0] || defaultMobileImage,
-        images: directImages.length ? directImages : [defaultImage],
+        image: defaultImage,
+        mobileImage: defaultMobileImage,
+        images: [defaultImage],
         imageFolderUrl: get('Link cartella immagini', 'Cartella immagini'),
         imageAlt: `${title}${municipality ? ` a ${municipality}` : ''}`,
         summary: summary || get('Descrizione completa') || `${propertyType || 'Immobile'} ${requestType === 'vendita' ? 'in vendita' : 'in locazione'}${municipality ? ` a ${municipality}` : ''}.`,

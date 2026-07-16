@@ -21,8 +21,14 @@ export default function PrivacyPage() {
               I dati possono essere usati per ricontattarti via telefono o email. Non sono presenti in questa versione sistemi analytics o marketing attivati dal consenso cookie.
             </p>
             <p>
+              Le richieste vengono protette da Cloudflare Turnstile e salvate in un database Cloudflare D1. Il sito non invia i dati del modulo a Google Forms, Supabase o CRM esterni e non conserva nel database l’indirizzo IP o il token antispam.
+            </p>
+            <p>
+              I dati vengono conservati per il tempo necessario a gestire la richiesta e gli eventuali rapporti conseguenti, nel rispetto degli obblighi applicabili.
+            </p>
+            <p>
               Per informazioni o richieste sui dati personali puoi scrivere a{' '}
-              <a className="font-semibold text-[var(--brand-blue-strong)] hover:underline" href={`mailto:${company.email}`}>
+              <a className="font-semibold text-[var(--ink)] underline decoration-[var(--brand-blue)] decoration-4 underline-offset-4" href={`mailto:${company.email}`}>
                 {company.email}
               </a>
               .

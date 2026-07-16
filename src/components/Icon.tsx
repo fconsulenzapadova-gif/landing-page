@@ -5,6 +5,9 @@ import {
   CalendarDays,
   Camera,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Expand,
   FileText,
   Home,
   KeyRound,
@@ -15,6 +18,7 @@ import {
   ShieldCheck,
   Target,
   Users,
+  X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { IconName } from '../content/site';
@@ -26,6 +30,10 @@ const icons = {
   calendar: CalendarDays,
   camera: Camera,
   check: CheckCircle2,
+  'chevron-left': ChevronLeft,
+  'chevron-right': ChevronRight,
+  close: X,
+  expand: Expand,
   file: FileText,
   home: Home,
   key: KeyRound,

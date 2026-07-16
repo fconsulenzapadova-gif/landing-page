@@ -7,6 +7,10 @@ export type IconName =
   | 'calendar'
   | 'camera'
   | 'check'
+  | 'chevron-left'
+  | 'chevron-right'
+  | 'close'
+  | 'expand'
   | 'file'
   | 'home'
   | 'key'
@@ -97,23 +101,16 @@ export const company = {
   whatsappUrl: 'https://wa.me/393792606775',
 } as const;
 
-export const navSections = [
-  {
-    title: 'Principale',
-    links: [{ label: 'Home', to: '/' }],
-  },
-  {
-    title: 'Servizi immobiliari',
-    links: [
-      { label: 'Acquisto casa', to: '/acquisto-casa' },
-      { label: 'Vendita immobili', to: '/vendita-immobili' },
-      { label: 'Locazioni', to: '/locazioni' },
-    ],
-  },
-  {
-    title: 'Patrimonio',
-    links: [{ label: 'Valutazione patrimonio', to: '/valutazione-patrimonio' }],
-  },
+export const navigationLinks = [
+  { label: 'Home', to: '/' },
+  { label: 'Immobili', to: '/immobili' },
+  { label: 'Servizi', to: '/servizi' },
+] as const;
+
+export const serviceNavigationLinks = [
+  { label: 'Vendita immobili', to: '/vendita-immobili' },
+  { label: 'Locazioni', to: '/locazioni' },
+  { label: 'Valutazione patrimonio', to: '/valutazione-patrimonio' },
 ] as const;
 
 export const primaryServices: Record<RequestType, ServiceContent> = {

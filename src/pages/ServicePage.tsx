@@ -1,11 +1,9 @@
 import { useRef } from 'react';
 import ButtonLink from '../components/ButtonLink';
 import Icon from '../components/Icon';
-import ListingCard from '../components/ListingCard';
 import PageHero from '../components/PageHero';
 import Section from '../components/Section';
 import { company, type ServiceContent } from '../content/site';
-import { useListings } from '../lib/useListings';
 import { getWhatsAppUrl } from '../lib/whatsapp';
 import { usePageAnimations } from '../lib/usePageAnimations';
 
@@ -15,11 +13,6 @@ interface ServicePageProps {
 
 export default function ServicePage({ service }: ServicePageProps) {
   const pageRef = useRef<HTMLDivElement>(null);
-  const { listings } = useListings();
-  const serviceListings =
-    service.id === 'vendita' || service.id === 'locazione'
-      ? listings.filter((listing) => listing.requestType === service.id)
-      : [];
   usePageAnimations(pageRef);
 
   return (
@@ -34,26 +27,6 @@ export default function ServicePage({ service }: ServicePageProps) {
         secondaryCta={{ label: 'WhatsApp', href: getWhatsAppUrl(company.phoneHref, service.whatsappMessage) }}
       />
 
-      {(service.id === 'vendita' || service.id === 'locazione') && serviceListings.length > 0 ? (
-        <Section className="section-line bg-white">
-          <div className="mb-8 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-            <div>
-              <p data-animate className="eyebrow">
-                Disponibilità
-              </p>
-              <h2 data-animate className="font-display mt-4 text-4xl leading-tight text-[var(--ink)] sm:text-5xl">
-                {service.id === 'vendita' ? 'Immobili in vendita' : 'Immobili in locazione'}
-              </h2>
-            </div>
-          </div>
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {serviceListings.map((listing) => (
-              <ListingCard key={listing.slug} listing={listing} animated />
-            ))}
-          </div>
-        </Section>
-      ) : null}
-
       <Section className="section-line">
         <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
@@ -67,7 +40,7 @@ export default function ServicePage({ service }: ServicePageProps) {
           <div className="grid gap-4 md:grid-cols-3">
             {service.highlights.map((item) => (
               <div key={item.title} data-animate className="rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-5">
-                <Icon name={item.icon} className="h-7 w-7 text-[var(--brand-blue-strong)]" />
+                <Icon name={item.icon} className="h-7 w-7 rounded bg-[var(--brand-blue)] p-1 text-[var(--ink)]" />
                 <h3 className="mt-4 text-lg font-semibold text-[var(--ink)]">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--graphite)]">{item.text}</p>
               </div>
@@ -88,7 +61,7 @@ export default function ServicePage({ service }: ServicePageProps) {
             <div className="mt-7 grid gap-0 border-t border-[var(--line)]">
               {service.steps.map((step, index) => (
                 <div key={step} data-animate className="grid grid-cols-[3.5rem_1fr] border-b border-[var(--line)] py-4">
-                  <span className="font-brand text-lg text-[var(--brand-blue-strong)]">0{index + 1}</span>
+                  <span className="font-brand inline-flex h-8 w-10 items-center justify-center rounded bg-[var(--brand-blue)] text-lg text-[var(--ink)]">0{index + 1}</span>
                   <p className="text-[var(--graphite)]">{step}</p>
                 </div>
               ))}
@@ -104,7 +77,7 @@ export default function ServicePage({ service }: ServicePageProps) {
             <div className="mt-7 grid gap-3">
               {service.benefits.map((benefit) => (
                 <div key={benefit} data-animate className="flex gap-3 rounded-lg border border-[var(--line)] bg-white p-4">
-                  <Icon name="check" className="h-5 w-5 shrink-0 text-[var(--brand-blue-strong)]" />
+                  <Icon name="check" className="h-5 w-5 shrink-0 rounded bg-[var(--brand-blue)] p-0.5 text-[var(--ink)]" />
                   <p className="text-[var(--graphite)]">{benefit}</p>
                 </div>
               ))}

@@ -28,24 +28,35 @@ export function usePageAnimations(scope: RefObject<HTMLElement | null>) {
         const mode = item.dataset.animate;
         const isImage = mode === 'image';
         const isLine = mode === 'line';
-
-        gsap.from(item, {
+        const fromVars = {
           opacity: isLine ? 1 : 0,
           y: isLine ? 0 : 28,
           scale: isImage ? 0.98 : 1,
           scaleX: isLine ? 0 : 1,
           transformOrigin: isLine ? 'left center' : undefined,
           force3D: true,
-          duration: isImage ? 1 : 0.8,
-          immediateRender: false,
-          onStart: () => gsap.set(item, { willChange: 'transform, opacity' }),
-          onComplete: () => gsap.set(item, { willChange: 'auto' }),
-          scrollTrigger: {
-            trigger: item,
-            start: 'top 88%',
-            once: true,
+        };
+
+        gsap.fromTo(
+          item,
+          fromVars,
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            scaleX: 1,
+            force3D: true,
+            duration: isImage ? 1 : 0.8,
+            immediateRender: false,
+            onStart: () => gsap.set(item, { willChange: 'transform, opacity' }),
+            onComplete: () => gsap.set(item, { willChange: 'auto' }),
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 88%',
+              once: true,
+            },
           },
-        });
+        );
       });
 
       media.add('(hover: hover) and (pointer: fine)', () => {

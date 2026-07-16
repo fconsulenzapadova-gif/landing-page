@@ -1,6 +1,6 @@
 # Gemut Capital - Design system
 
-Ultimo aggiornamento: 27 giugno 2026
+Ultimo aggiornamento: 1 luglio 2026
 
 ## Direzione
 
@@ -9,15 +9,20 @@ Il nuovo sito prende come riferimento la pagina Tandem Awwwards: superfici edito
 ## Token principali
 
 - Azzurro cielo brand: `#b3e5fc`.
-- Azzurro cielo hover: `#81d4fa`.
-- Azzurro forte accessibile: `#0277bd`, usato per testi piccoli su superfici chiare.
 - Ink: `#12130f`, testo principale e superfici scure.
-- Paper: `#f4f2ed`, fondo principale.
-- Paper soft: `#fbfaf6`, superfici chiare.
+- Graphite: `#666861`, testo secondario.
+- Paper: `#ece9e2`, fondo principale leggermente piu scuro.
+- Paper soft: `#f7f5ef`, superfici chiare.
 - Line: `#d8d4ca`, bordi sottili.
-- Graphite: `#75776f`, testo secondario.
+- Control border: `#807e77`, contorno interattivo con contrasto non testuale.
 - Sage: `#7d8777`, accento neutro secondario.
 - Clay: `#b55d42`, accento caldo secondario.
+
+L'azzurro brand e l'unico azzurro della UI. Su fondi chiari viene usato come
+fondo o decorazione con testo ink, non come testo piccolo. Rapporti principali:
+ink su azzurro `13.8:1`, graphite su paper `4.66:1`, ink su paper `14.5:1`,
+conformi ai livelli AA richiamati da EN 301 549. Il focus usa doppio contorno
+ink + azzurro.
 
 ## Tipografia
 
@@ -28,7 +33,8 @@ Il nuovo sito prende come riferimento la pagina Tandem Awwwards: superfici edito
 
 ## Asset
 
-- Logo azzurro cielo: `public/design-system/logo/logo-blue.svg` (filename mantenuto per compatibilita).
+- Logo nero navigazione: testo HTML `GEMÜT` con classe `font-brand`, non SVG esterno, per caricare correttamente De Fonte Plus anche su Safari.
+- Logo azzurro cielo: `public/design-system/logo/logo-blue.svg`.
 - Logo bianco: `public/design-system/logo/logo-white.svg`.
 - Font logo: `public/design-system/font/*.woff2`.
 - Reference: `public/design-system/reference/tandem-awwwards-reference.jpg`.
@@ -36,7 +42,7 @@ Il nuovo sito prende come riferimento la pagina Tandem Awwwards: superfici edito
 
 ## Layout
 
-- Hero home: primo viewport sempre full-screen con `Home.webp` full-bleed e headline centrale `Casa nuova, stesso GEMÜT`; `GEMÜT` usa il font brand, il resto usa il font display.
+- Hero home: primo viewport sempre full-screen con `Home.webp` full-bleed, overlay `bg-black/45` con opacita iniziale `0.67` e headline centrale `Casa nuova, stesso GEMÜT`; `GEMÜT` usa il font brand azzurro, il resto usa il font display; line-height e padding del wordmark evitano clipping della `Ü` su Safari.
 - Gallery immobili: sezione sticky dopo la curve swipe, centrata verticalmente sulle cards placeholder in riga orizzontale, senza titolo o descrizione introduttiva; la prima card parte dal margine sinistro del viewport e usa immagini WebP esistenti.
 - Pagine interne: hero chiaro con titolo serif e immagine laterale, niente overlay fotografici scuri come default.
 - Sezioni: bande full-width con contenuto max `7xl`, bordi sottili e griglie responsive.
@@ -56,7 +62,10 @@ Il nuovo sito prende come riferimento la pagina Tandem Awwwards: superfici edito
 ## UX
 
 - Navigazione misurata sullo spazio reale: logo a sinistra, voci centrate e CTA richiesta a destra.
+- Fondo navigazione: paper normale traslucido, piu coprente fuori dalla home, con backdrop blur.
+- Voci principali della navigazione sempre a peso `600`; stato attivo indicato dal fondo azzurro, non da un cambio di peso.
 - Menu a tendina centrato solo quando le voci non entrano piu nella barra; overlay full-screen con route pubbliche esplicite.
+- Miniature gallery con padding nel contenitore scrollabile, cosi bordo e ring di selezione restano interamente visibili.
 - Home dinamica: hover/focus sui servizi aggiorna l'immagine preview.
 - Gli immobili in evidenza sono placeholder cliccabili verso pagine dettaglio dimostrative, poi verso il form richiesta coerente.
 - Headline hero animata con GSAP core e fallback `prefers-reduced-motion`.

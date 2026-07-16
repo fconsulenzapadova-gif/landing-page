@@ -55,21 +55,21 @@ export default function CookieConsent() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              className="focus-ring rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+              className="focus-ring rounded-lg border border-[var(--control-border)] px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--brand-blue)]"
               onClick={() => setIsPanelOpen((open) => !open)}
             >
               Personalizza
             </button>
             <button
               type="button"
-              className="focus-ring rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+              className="focus-ring rounded-lg border border-[var(--control-border)] px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--brand-blue)]"
               onClick={() => save(defaultPreferences)}
             >
               Rifiuta
             </button>
             <button
               type="button"
-              className="focus-ring rounded-lg bg-[var(--brand-blue)] px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+              className="focus-ring rounded-lg bg-[var(--brand-blue)] px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:ring-2 hover:ring-[var(--ink)]"
               onClick={() => save({ necessary: true, analytics: true, marketing: true })}
             >
               Accetta

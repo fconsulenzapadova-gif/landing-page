@@ -3,6 +3,7 @@ export const config = {
 };
 
 const IMAGE_EXTENSION = /\.(?:avif|gif|jpe?g|png|webp)$/i;
+const isCoverImage = (name: string) => name.replace(/\.[^.]+$/, '').trim().toLocaleLowerCase('it') === 'copertina';
 
 const decodeHtml = (value: string) =>
   value
@@ -43,7 +44,10 @@ export const parsePublicFolderImages = (html: string) => {
     });
   }
 
-  return images.sort((first, second) => first.name.localeCompare(second.name, 'it', { numeric: true }));
+  return images.sort((first, second) => {
+    const coverPriority = Number(isCoverImage(second.name)) - Number(isCoverImage(first.name));
+    return coverPriority || first.name.localeCompare(second.name, 'it', { numeric: true });
+  });
 };
 
 export default async function handler(request: Request) {

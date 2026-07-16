@@ -29,16 +29,16 @@
 
   :root {
     --brand-blue: #b3e5fc;
-    --brand-blue-hover: #81d4fa;
-    --brand-blue-strong: #0277bd;
+    --paper-deep: #77736c;
     --ink: #12130f;
-    --graphite: #75776f;
-    --paper: #f4f2ed;
-    --paper-soft: #fbfaf6;
+    --graphite: #666861;
+    --paper: #ece9e2;
+    --paper-soft: #f7f5ef;
     --line: #d8d4ca;
+    --control-border: #807e77;
     --sage: #7d8777;
     --clay: #b55d42;
-    --background: 43 24% 94%;
+    --background: 42 16% 91%;
     --foreground: 75 12% 7%;
     --border: 40 17% 82%;
     --input: 40 17% 82%;
@@ -87,7 +87,12 @@
   }
 
   .eyebrow {
-    color: var(--brand-blue-strong);
+    display: inline-flex;
+    width: fit-content;
+    border-radius: 0.25rem;
+    background: var(--brand-blue);
+    color: var(--ink);
+    padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0;
@@ -122,12 +127,38 @@
     isolation: isolate;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    .motion-enabled [data-animate] {
+      opacity: 0;
+      transform: translate3d(0, 28px, 0);
+    }
+
+    .motion-enabled [data-animate='image'] {
+      transform: translate3d(0, 28px, 0) scale(0.98);
+    }
+
+    .motion-enabled [data-animate='line'] {
+      opacity: 1;
+      transform: scaleX(0);
+      transform-origin: left center;
+    }
+  }
+
   .focus-ring {
     outline: none;
   }
 
   .focus-ring:focus-visible {
-    box-shadow: 0 0 0 4px rgb(179 229 252 / 0.55);
+    box-shadow:
+      0 0 0 2px var(--ink),
+      0 0 0 5px var(--brand-blue);
+  }
+
+  .field-control:focus-visible {
+    border-color: var(--ink);
+    box-shadow:
+      0 0 0 2px var(--ink),
+      0 0 0 5px var(--brand-blue);
   }
 
   .media-frame {
@@ -157,5 +188,11 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (any-pointer: coarse) {
+  .home-listings-section {
+    min-height: calc(100svh + max(62svh, 380px));
   }
 }

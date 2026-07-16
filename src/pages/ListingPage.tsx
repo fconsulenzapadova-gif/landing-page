@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import ButtonLink from '../components/ButtonLink';
 import Icon from '../components/Icon';
+import ListingGallery from '../components/ListingGallery';
 import LoadingState from '../components/LoadingState';
 import Section from '../components/Section';
 import { useListings } from '../lib/useListings';
@@ -40,9 +41,7 @@ export default function ListingPage() {
               </ButtonLink>
             </div>
           </div>
-          <div data-animate="image" className="media-frame h-[22rem] rounded-lg sm:h-[32rem]">
-            <img src={listing.image} alt={listing.imageAlt} className="h-full w-full object-cover" data-parallax />
-          </div>
+          <ListingGallery key={listing.slug} images={listing.images} imageAlt={listing.imageAlt} />
         </div>
       </header>
 
@@ -75,7 +74,7 @@ export default function ListingPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               {listing.details.map((detail) => (
                 <div key={detail} data-animate className="flex gap-3 rounded-lg border border-[var(--line)] bg-white p-4">
-                  <Icon name="check" className="h-5 w-5 shrink-0 text-[var(--brand-blue-strong)]" />
+                  <Icon name="check" className="h-5 w-5 shrink-0 rounded bg-[var(--brand-blue)] p-0.5 text-[var(--ink)]" />
                   <span className="text-[var(--graphite)]">{detail}</span>
                 </div>
               ))}
@@ -83,36 +82,6 @@ export default function ListingPage() {
           </div>
         </div>
       </Section>
-
-      {listing.images.length > 1 ? (
-        <Section className="section-line bg-[var(--paper-soft)]">
-          <div>
-            <p data-animate className="eyebrow">
-              Gallery
-            </p>
-            <h2 data-animate className="font-display mt-4 text-4xl leading-tight text-[var(--ink)] sm:text-5xl">
-              Tutte le immagini
-            </h2>
-          </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            {listing.images.map((image, index) => (
-              <div
-                key={`${image}-${index}`}
-                data-animate="image"
-                className={`media-frame rounded-lg ${index === 0 ? 'md:col-span-2 aspect-[16/9]' : 'aspect-[4/3]'}`}
-              >
-                <img
-                  src={image}
-                  alt={`${listing.imageAlt} — foto ${index + 1}`}
-                  className="h-full w-full object-cover"
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  decoding="async"
-                />
-              </div>
-            ))}
-          </div>
-        </Section>
-      ) : null}
 
       <Section className="section-line bg-[var(--ink)] text-white">
         <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
