@@ -163,6 +163,20 @@ test('lead notification contains normalized form data and a safe reply-to', () =
   assert.doesNotMatch(message.text, /valid-test-token/);
 });
 
+test('notification explains search role and polygon without dumping GeoJSON', () => {
+  const validated = validateLeadPayload(validPayload(), now).value;
+  const message = buildLeadNotification(validated, {
+    from: 'filippo@gemutcapital.com',
+    to: 'filippo@gemutcapital.com',
+    receivedAt: '2027-01-15T08:00:00.000Z',
+  });
+
+  assert.match(message.text, /Ruolo: Ricerca immobile/);
+  assert.match(message.text, /Modalità posizione: Area disegnata sulla mappa/);
+  assert.match(message.text, /Vertici area: 3/);
+  assert.doesNotMatch(message.text, /coordinates|11\.86,45\.4/);
+});
+
 test('lead notification omits reply-to when customer provides only a phone number', () => {
   const validation = validateLeadPayload(validPayload({ email: '', contactPreference: 'telefono' }), now);
   const message = buildLeadNotification(validation.value, {

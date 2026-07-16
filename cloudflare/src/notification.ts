@@ -26,6 +26,16 @@ const requestTypeLabels = {
   locazione: 'Locazione',
 } as const;
 
+const requestRoleLabels = {
+  cerca: 'Ricerca immobile',
+  proprietario: 'Bene proprio',
+} as const;
+
+const locationModeLabels = {
+  text: 'Zona o indirizzo scritto',
+  polygon: 'Area disegnata sulla mappa',
+} as const;
+
 const contactPreferenceLabels = {
   telefono: 'Telefono',
   email: 'Email',
@@ -85,14 +95,20 @@ export function buildLeadNotification(
 ): EmailMessage {
   const requestType = requestTypeLabels[lead.requestType];
   const contactPreference = contactPreferenceLabels[lead.contactPreference];
+  const polygonVertices = lead.locationGeometry
+    ? String(lead.locationGeometry.coordinates[0].length - 1)
+    : 'Non applicabile';
   const fields = [
     ['Tipo richiesta', requestType],
+    ['Ruolo', requestRoleLabels[lead.requestRole]],
     ['Nome', lead.name],
     ['Email', display(lead.email)],
     ['Telefono', display(lead.phone)],
     ['Contatto preferito', contactPreference],
     ['Tipo immobile', lead.propertyType],
+    ['Modalità posizione', locationModeLabels[lead.locationMode]],
     ['Zona', lead.location],
+    ['Vertici area', polygonVertices],
     ['Budget / valore', display(lead.budget)],
     ['Tempistiche', display(lead.timeframe)],
     ['Caratteristiche', display(lead.features)],
