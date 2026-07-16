@@ -234,6 +234,22 @@ test('request form has no introductory header section', () => {
   assert.doesNotMatch(requests, /Raccontaci cosa ti serve\./);
 });
 
+test('guided request controls expose four intents and progressive inputs', () => {
+  const intent = read('src/components/request/RequestIntentSelector.tsx');
+  const property = read('src/components/request/PropertyDetailsStep.tsx');
+  const contact = read('src/components/request/ContactStep.tsx');
+  const progress = read('src/components/request/WizardProgress.tsx');
+  ['Compro casa', 'Vendo casa', 'Cerco in affitto', 'Metto in affitto'].forEach((label) => assert.match(intent, new RegExp(label)));
+  assert.match(intent, /role="radiogroup"/);
+  assert.match(progress, /circa 2 minuti/);
+  assert.match(property, /propertyTypes\.map/);
+  assert.match(property, /budgetOptions\.map/);
+  assert.match(property, /timeframeOptions\.map/);
+  assert.match(contact, /contactPreference/);
+  assert.match(contact, /form\.contactPreference === 'email'/);
+  assert.match(contact, /Aggiungi anche/);
+});
+
 test('required image assets exist and are used', () => {
   const sources = [
     read('src/pages/HomePage.tsx'),
