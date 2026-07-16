@@ -1,4 +1,5 @@
 import type { KeyboardEvent } from 'react';
+import { BadgeCheck, Home, KeyRound, Tag, type LucideIcon } from 'lucide-react';
 import {
   requestIntents,
   type RequestIntent,
@@ -9,10 +10,21 @@ import { getNextIntentIndex } from '../../lib/requestWizardFlow';
 interface Props {
   value: RequestIntentValue;
   onChange: (intent: RequestIntent) => void;
+  onSelect: (intent: RequestIntent) => void;
   error?: string;
 }
 
-function moveRadioFocus(event: KeyboardEvent<HTMLButtonElement>) {
+const intentIcons: Record<RequestIntentValue, LucideIcon> = {
+  acquisto: Home,
+  vendita: Tag,
+  'locazione-cerca': KeyRound,
+  'locazione-proprietario': BadgeCheck,
+};
+
+function moveRadioFocus(
+  event: KeyboardEvent<HTMLButtonElement>,
+  onChange: (intent: RequestIntent) => void,
+) {
   const radios = Array.from(
     event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]') ?? [],
   );
@@ -24,47 +36,51 @@ function moveRadioFocus(event: KeyboardEvent<HTMLButtonElement>) {
 
   event.preventDefault();
   radios[nextIndex]?.focus();
-  radios[nextIndex]?.click();
+  onChange(requestIntents[nextIndex]);
 }
 
-export default function RequestIntentSelector({ value, onChange, error }: Props) {
+export default function RequestIntentSelector({ value, onChange, onSelect, error }: Props) {
   return (
-    <fieldset className="grid gap-5">
+    <fieldset className="flex min-h-0 flex-1 flex-col gap-8">
       <legend
         id="request-step-heading"
-        className="font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-4xl"
+        className="mx-auto flex max-w-2xl flex-col items-center gap-3 text-center font-display text-4xl leading-tight text-[var(--ink)] outline-none sm:text-5xl"
         tabIndex={-1}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? 'request-intent-error' : undefined}
       >
         Qual è il tuo obiettivo?
       </legend>
-      <p className="text-sm leading-6 text-[var(--graphite)]">
+      <p className="text-center text-base leading-7 text-[var(--graphite)] sm:text-lg">
         Scegli il percorso: le domande successive si adatteranno alla tua richiesta.
       </p>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4" role="radiogroup" aria-label="Obiettivo richiesta">
-        {requestIntents.map((intent, index) => {
-          const active = value === intent.value;
-          return (
-            <button
-              key={intent.value}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              tabIndex={active || (!value && index === 0) ? 0 : -1}
-              onClick={() => onChange(intent)}
-              onKeyDown={moveRadioFocus}
-              className={`focus-ring min-h-28 rounded-lg border p-4 text-left transition ${
-                active
-                  ? 'border-[var(--ink)] bg-[var(--brand-blue)] shadow-[inset_0_0_0_1px_var(--ink)]'
-                  : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
-              }`}
-            >
-              <span className="block font-semibold text-[var(--ink)]">{intent.label}</span>
-              <span className="mt-2 block text-sm leading-6 text-[var(--graphite)]">{intent.description}</span>
-            </button>
-          );
-        })}
+      <div className="flex flex-1 items-center">
+        <div className="grid w-full grid-cols-2 gap-3 lg:grid-cols-4" role="radiogroup" aria-label="Obiettivo richiesta">
+          {requestIntents.map((intent, index) => {
+            const active = value === intent.value;
+            const IntentIcon = intentIcons[intent.value];
+            return (
+              <button
+                key={intent.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                tabIndex={active || (!value && index === 0) ? 0 : -1}
+                onClick={() => onSelect(intent)}
+                onKeyDown={(event) => moveRadioFocus(event, onChange)}
+                className={`focus-ring flex min-h-36 flex-col items-center justify-center rounded-lg border px-5 py-6 text-center transition ${
+                  active
+                    ? 'border-[var(--ink)] bg-[var(--brand-blue)] shadow-[inset_0_0_0_1px_var(--ink)]'
+                    : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)] hover:bg-[var(--paper-soft)]'
+                }`}
+              >
+                <IntentIcon className="mb-4 h-8 w-8 stroke-[1.8] text-[var(--ink)]" aria-hidden="true" />
+                <span className="text-sm font-bold uppercase tracking-[0.02em] text-[var(--ink)]">{intent.label}</span>
+                <span className="mt-2 text-xs leading-5 text-[var(--graphite)]">{intent.description}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
       {error && (
         <p id="request-intent-error" className="text-sm font-medium text-red-700" role="alert">

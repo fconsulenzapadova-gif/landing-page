@@ -180,7 +180,12 @@
   }
 
   .request-location-map {
-    min-height: clamp(22rem, 52vw, 32rem);
+    height: 100%;
+    background: var(--paper-soft);
+  }
+
+  .request-address-map {
+    height: 100%;
     background: var(--paper-soft);
   }
 
@@ -223,6 +228,11 @@
   }
 
   .request-location-map .maplibregl-ctrl-attrib {
+    background: rgb(247 245 239 / 0.92);
+    color: var(--graphite);
+  }
+
+  .request-address-map .maplibregl-ctrl-attrib {
     background: rgb(247 245 239 / 0.92);
     color: var(--graphite);
   }

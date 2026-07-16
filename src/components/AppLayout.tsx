@@ -1,16 +1,19 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import CookieConsent from './CookieConsent';
 import Footer from './Footer';
 import Navigation from './Navigation';
 
 export default function AppLayout() {
+  const location = useLocation();
+  const isRequestWizard = location.pathname === '/richieste';
+
   return (
-    <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
+    <div className={`${isRequestWizard ? 'min-h-svh' : 'min-h-screen'} bg-[var(--paper)] text-[var(--ink)]`}>
       <Navigation />
-      <main>
+      <main className={isRequestWizard ? 'min-h-[calc(100svh-4rem-1px)]' : undefined}>
         <Outlet />
       </main>
-      <Footer />
+      {!isRequestWizard && <Footer />}
       <CookieConsent />
     </div>
   );

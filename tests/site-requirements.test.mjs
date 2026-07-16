@@ -215,6 +215,8 @@ test('successful request shows an accessible animated confirmation', () => {
   assert.match(success, /Richiesta ricevuta\. Ti contatteremo entro un giorno lavorativo\./);
   assert.match(success, /role="status"/);
   assert.match(success, /aria-live="polite"/);
+  assert.match(success, /useLayoutEffect/);
+  assert.match(success, /sceneRef\.current\?\.scrollIntoView\(\{ behavior: 'auto', block: 'start' \}\)/);
   assert.match(success, /headingRef\.current\?\.focus\(\)/);
   assert.match(success, /onComplete: \(\) => headingRef\.current\?\.focus\(\)/);
   assert.match(success, /useGSAP/);
@@ -242,8 +244,17 @@ test('guided request controls expose four intents and progressive inputs', () =>
   const contact = read('src/components/request/ContactStep.tsx');
   const progress = read('src/components/request/WizardProgress.tsx');
   assert.match(intent, /role="radiogroup"/);
-  assert.match(progress, /circa 2 minuti/);
+  assert.match(intent, /flex flex-1 items-center/);
+  assert.match(progress, /circa 1 minuto/);
+  assert.match(progress, /screen === 0/);
+  assert.match(progress, /'Consenso'/);
   assert.match(property, /propertyTypes\.map/);
+  assert.doesNotMatch(property, /Building2/);
+  assert.doesNotMatch(contact, /UserRound/);
+  assert.match(property, /flex flex-1 items-center/);
+  assert.match(property, /form\.requestRole === 'proprietario' \? '' : 'items-center'/);
+  assert.ok((property.match(/flex flex-1 items-center/g) ?? []).length >= 4);
+  assert.ok((contact.match(/flex flex-1 items-center/g) ?? []).length >= 2);
   assert.match(property, /budgetOptions\.map/);
   assert.match(property, /timeframeOptions\.map/);
   assert.match(contact, /contactPreference/);
@@ -258,6 +269,7 @@ test('request page composes the adaptive wizard and submits geometry', () => {
   const requests = read('src/pages/RequestsPage.tsx');
   const intent = read('src/components/request/RequestIntentSelector.tsx');
   const contact = read('src/components/request/ContactStep.tsx');
+  const layout = read('src/components/AppLayout.tsx');
 
   assert.match(requests, /<RequestIntentSelector/);
   assert.match(requests, /<PropertyDetailsStep/);
@@ -270,6 +282,9 @@ test('request page composes the adaptive wizard and submits geometry', () => {
   assert.match(requests, /apiErrorSummary/);
   assert.match(requests, /role=\{status === 'error' \? 'alert' : 'status'\}/);
   assert.match(intent, /getNextIntentIndex/);
+  assert.match(requests, /h-\[calc\(100svh-4rem-1px\)\].*overflow-hidden/);
+  assert.match(layout, /const isRequestWizard = location\.pathname === '\/richieste'/);
+  assert.match(layout, /\{!isRequestWizard && <Footer \/>\}/);
   assert.match(contact, /id="notes"/);
   assert.match(contact, /value=\{form\.notes\}/);
   assert.match(contact, /updateField\('notes', event\.target\.value\)/);
@@ -284,16 +299,19 @@ test('request polygon map is free, lazy, branded and accessible', () => {
   assert.match(pkg, /"maplibre-gl": "5\.24\.0"/);
   assert.match(pkg, /"@mapbox\/mapbox-gl-draw": "1\.5\.1"/);
   assert.match(map, /https:\/\/tiles\.openfreemap\.org\/styles\/positron/);
-  assert.match(map, /© OpenStreetMap contributors/);
-  assert.match(map, /© OpenMapTiles/);
-  assert.match(map, /Annulla ultimo punto/);
-  assert.match(map, /Ricomincia/);
-  assert.match(map, /Conferma area/);
+  assert.match(map, /attributionControl: true/);
+  assert.match(map, /aria-label="Annulla ultimo punto"/);
+  assert.match(map, /aria-label="Ricomincia"/);
+  assert.match(map, /Undo2/);
+  assert.match(map, /RotateCcw/);
+  assert.doesNotMatch(map, /Conferma area/);
+  assert.doesNotMatch(map, /OpenFreeMap/);
   assert.match(map, /onUnavailable/);
   assert.match(map, /configureMapboxDrawForMapLibre\(MapboxDraw\.constants\.classes\)/);
   assert.match(map, /createLocationPolygonMapLifecycle/);
   assert.doesNotMatch(map, /access_token|apiKey|geolocation|getCurrentPosition/);
   assert.match(css, /\.request-location-map/);
+  assert.match(css, /\.request-location-map\s*\{[\s\S]*?height:\s*100%/);
   assert.match(css, /--brand-blue/);
   assert.match(css, /\.request-location-map \.maplibregl-canvas:focus-visible/);
   assert.doesNotMatch(css, /\.request-location-map \.maplibregl-canvas\s*\{\s*outline:\s*none/);
@@ -302,14 +320,13 @@ test('request polygon map is free, lazy, branded and accessible', () => {
   assert.match(css, /\.request-location-map\.maplibregl-map\.mode-static\.mouse-pointer[\s\S]*?cursor:\s*grab/);
 });
 
-test('location selector swaps text and map in one accessible panel', () => {
+test('location selector opens the map directly for seekers and keeps address input for owners', () => {
   const selector = read('src/components/request/LocationSelector.tsx');
   const map = read('src/components/request/LocationPolygonMap.tsx');
+  const addressPreview = read('src/components/request/AddressMapPreview.tsx');
   const boundary = read('src/components/request/LocationMapErrorBoundary.ts');
 
-  assert.match(selector, /Scrivi zona/);
-  assert.match(selector, /Seleziona sulla mappa/);
-  assert.match(selector, /mode === 'text' \? \(/);
+  assert.match(selector, /if \(!canSelectArea \|\| mode === 'text'\)/);
   assert.match(selector, /<LocationPolygonMap/);
   assert.match(selector, /lazy\(\(\) => loadLocationMapModule\(/);
   assert.doesNotMatch(selector, /import LocationPolygonMap from/);
@@ -325,17 +342,29 @@ test('location selector swaps text and map in one accessible panel', () => {
   assert.match(map, /draftValue\?: LocationPolygon \| null/);
   assert.match(map, /onDraftChange\?: \(value: LocationPolygon \| null\) => void/);
   assert.match(map, /onDraftChangeRef\.current\?\.\(polygon\)/);
-  assert.match(selector, /role="tablist"/);
-  assert.match(selector, /aria-selected=\{mode === 'text'\}/);
-  assert.match(selector, /role="tabpanel"/);
-  assert.match(selector, /onKeyDown=\{moveTabFocus\}/);
+  assert.doesNotMatch(selector, /Dove stai cercando\?/);
+  assert.doesNotMatch(selector, /role="tablist"/);
+  assert.doesNotMatch(selector, /Seleziona sulla mappa/);
   assert.match(selector, /locationLifecycle\.handleMapUnavailable\(message\)/);
-  assert.match(selector, /requestRole === 'proprietario'[\s\S]*?Comune, quartiere o indirizzo/);
-
-  const conditionalStart = selector.indexOf("{mode === 'text' ? (");
-  const conditionalEnd = selector.indexOf('\n      )}', conditionalStart);
-  assert.ok(conditionalStart >= 0 && conditionalEnd > conditionalStart, 'location panels must share one conditional');
-  assert.equal((selector.slice(conditionalStart, conditionalEnd).match(/role="tabpanel"/g) ?? []).length, 2);
+  assert.match(selector, /const canSelectArea = requestRole === 'cerca'/);
+  assert.match(selector, /!canSelectArea \|\| mode === 'text'/);
+  assert.match(selector, /'Indirizzo dell’immobile'/);
+  assert.match(selector, /autoComplete=\{requestRole === 'proprietario' \? 'street-address' : 'off'\}/);
+  assert.match(selector, /\{canSelectArea && \([\s\S]*?aria-label="Zone suggerite"/);
+  assert.match(selector, /VITE_GEOAPIFY_API_KEY/);
+  assert.match(selector, /https:\/\/api\.geoapify\.com\/v1\/geocode\/autocomplete/);
+  assert.match(selector, /new AbortController\(\)/);
+  assert.match(selector, /aria-label="Suggerimenti indirizzo"/);
+  assert.match(selector, /aria-autocomplete=\{isOwner \? 'list' : undefined\}/);
+  assert.match(selector, /<MapPin/);
+  assert.match(selector, /absolute left-0 right-0 top-full z-20/);
+  assert.match(selector, /<AddressMapPreview/);
+  assert.match(addressPreview, /interactive: true/);
+  assert.match(addressPreview, /new maplibregl\.Marker/);
+  assert.match(addressPreview, /map\.flyTo/);
+  assert.match(addressPreview, /api\.geoapify\.com\/v1\/geocode\/reverse/);
+  assert.match(addressPreview, /map\.on\('click', handleMapClick\)/);
+  assert.match(selector, /selectAddressFromMap/);
 });
 
 test('required image assets exist and are used', () => {

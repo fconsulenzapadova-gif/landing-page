@@ -11,10 +11,10 @@ export interface RequestIntent {
 }
 
 export const requestIntents: RequestIntent[] = [
-  { value: 'acquisto', label: 'Compro casa', description: 'Cerco un immobile da acquistare.', requestType: 'acquisto', requestRole: 'cerca' },
-  { value: 'vendita', label: 'Vendo casa', description: 'Voglio vendere o valutare un immobile.', requestType: 'vendita', requestRole: 'proprietario' },
-  { value: 'locazione-cerca', label: 'Cerco in affitto', description: 'Cerco un immobile da prendere in affitto.', requestType: 'locazione', requestRole: 'cerca' },
-  { value: 'locazione-proprietario', label: 'Metto in affitto', description: 'Voglio affittare un immobile che possiedo.', requestType: 'locazione', requestRole: 'proprietario' },
+  { value: 'acquisto', label: 'Compro casa', description: 'Voglio comprare casa', requestType: 'acquisto', requestRole: 'cerca' },
+  { value: 'vendita', label: 'Vendo casa', description: 'Voglio vendere casa', requestType: 'vendita', requestRole: 'proprietario' },
+  { value: 'locazione-cerca', label: 'Cerco in affitto', description: 'Cerco casa in affitto', requestType: 'locazione', requestRole: 'cerca' },
+  { value: 'locazione-proprietario', label: 'Metto in affitto', description: 'Voglio affittare casa', requestType: 'locazione', requestRole: 'proprietario' },
 ];
 
 export function getDefaultLocationMode(role: RequestRole): LocationMode {

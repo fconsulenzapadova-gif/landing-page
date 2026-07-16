@@ -1,6 +1,6 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import ButtonLink from './ButtonLink';
 import Section from './Section';
 
@@ -13,6 +13,10 @@ interface RequestSuccessProps {
 export default function RequestSuccess({ onReset }: RequestSuccessProps) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useLayoutEffect(() => {
+    sceneRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }, []);
 
   useGSAP(
     () => {

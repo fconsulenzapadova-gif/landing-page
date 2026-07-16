@@ -434,37 +434,62 @@ Altri valori ricadono su `acquisto`.
 
 UX corrente:
 
-- wizard in tre passaggi: obiettivo, immobile, contatti;
+- wizard composto da tre macro-sezioni (obiettivo, immobile, contatti) e otto
+  schermate effettive: obiettivo, posizione, tipo, budget, tempistica,
+  dettagli, contatti e consenso;
 - quattro obiettivi visibili: `Compro casa`, `Vendo casa`, `Cerco in affitto`
   e `Metto in affitto`;
-- scelta obiettivo separata dall’avanzamento: frecce, Home ed End cambiano la
-  selezione senza lasciare il passaggio; `Continua` conferma il percorso;
-- il ruolo `cerca` usa di default la mappa, mentre il ruolo `proprietario` usa
-  di default il testo; le tab consentono comunque di passare tra le due
-  modalita;
-- il pannello mappa e il pannello testo sono mutuamente esclusivi: il cambio
-  tab sostituisce il pannello attivo e non li monta mai insieme;
-- la mappa usa MapLibre GL JS, stile OpenFreeMap e Mapbox GL Draw, senza API
-  key, account, geocoding o geolocalizzazione; consente disegno, modifica,
-  annullamento dell’ultimo punto, reset e conferma del poligono, mantenendo
-  visibile l’attribuzione;
+- su mobile le quattro card obiettivo sono una griglia 2×2, con icona e breve
+  descrizione; un tap conferma e apre subito la schermata successiva, mentre
+  frecce, Home ed End aggiornano soltanto la selezione per tastiera;
+- il wizard occupa una schermata del viewport alla volta: niente footer pubblico
+  durante la compilazione e niente scroll verticale del documento; i contenuti
+  testuali sono centrati nello spazio libero, mentre la mappa lo riempie;
+- da posizione in poi, le azioni sono sempre ancorate al fondo della schermata:
+  `Indietro` a sinistra e l’azione avanti a destra;
+- la scritta di avanzamento e tempo stimato è visibile solo nella prima
+  schermata; negli step seguenti resta soltanto la barra, che avanza a ogni
+  schermata effettiva;
+- il ruolo `cerca` apre direttamente la mappa, senza card o selettori
+  intermedi, con la domanda `Dove ti piacerebbe abitare?`; se la mappa non è
+  disponibile viene mostrato il campo testuale;
+  il ruolo `proprietario` accetta soltanto via e numero civico dell’immobile,
+  con campo sopra una mappa che riempie lo spazio disponibile; i suggerimenti
+  Geoapify aggiornano la mappa mentre si digita e un clic sulla mappa inserisce
+  l’indirizzo del punto selezionato;
+- per il ruolo `proprietario` non sono disponibili selezione
+  area o zone suggerite;
+- per il ruolo `cerca`, la mappa è il solo pannello visibile; il campo testo
+  viene montato esclusivamente come fallback in caso di indisponibilità;
+- la selezione area usa MapLibre GL JS, stile OpenFreeMap e Mapbox GL Draw,
+  senza API key, account, geocoding o geolocalizzazione; consente disegno,
+  modifica, annullamento dell’ultimo punto e reset tramite icone compatte; usa
+  tutto lo spazio libero della schermata e un poligono valido viene confermato
+  automaticamente. L’attribuzione resta nel controllo nativo della mappa,
+  senza una fascia testuale esterna. Per il solo campo proprietario, Geoapify
+  Address Autocomplete riceve query di almeno tre caratteri, è annullabile e
+  ritardato durante la digitazione e centra la mappa sul primo risultato; il
+  reverse geocoding Geoapify trasforma in indirizzo un punto selezionato;
 - errori di inizializzazione, tile o WebGL attivano automaticamente il pannello
   testuale senza perdere l’intento selezionato;
-- navigazione indietro conserva campi e bozze, inclusa un’area non ancora
-  confermata; riselezionare lo stesso obiettivo non azzera la posizione;
+- navigazione indietro conserva campi e area selezionata; riselezionare lo
+  stesso obiettivo non azzera la posizione;
 - domande, label e preset economici adattati a tipo richiesta e ruolo: acquisto
   e vendita usano valori di compravendita, mentre la locazione usa canoni
   mensili; budget e tempistiche accettano anche un valore testuale personalizzato;
-- controlli immobile progressivi: la posizione rivela il tipo immobile, poi
-  budget/valore, tempistiche e infine i dettagli facoltativi, chiusi di default;
-- il canale di contatto rivela solo il campo obbligatorio relativo e permette
-  di aggiungere il recapito secondario;
+- controlli immobile progressivi su schermate dedicate: posizione, tipo
+  immobile, budget/valore, tempistiche e dettagli facoltativi; i titoli del
+  wizard non usano icone decorative e i contenuti sono centrati nello spazio
+  disponibile;
+- contatti e consenso sono schermate separate; il canale di contatto rivela
+  solo il campo obbligatorio relativo e permette di aggiungere il recapito
+  secondario;
 - progressivo accessibile e navigazione avanti/indietro;
 - campi responsive, errori associati agli input e stato invio esplicito;
 - errori restituiti dal Worker riportano al primo passaggio coinvolto, mappano
   gli errori geometria sulla posizione e restano annunciati in un riepilogo;
 - Turnstile normalmente invisibile con comparsa solo quando Cloudflare richiede interazione;
-- scena di conferma animata dopo salvataggio Cloudflare, con fallback immediato per `prefers-reduced-motion`.
+- scena di conferma animata dopo salvataggio Cloudflare, con fallback immediato per `prefers-reduced-motion`; quando compare, la viewport viene riportata all'inizio della conferma per rendere subito visibile il messaggio;
 - `Nuova richiesta` azzera dati e stato, genera un nuovo identificativo e rimonta il primo passaggio immediatamente visibile.
 
 ## 10. Cloudflare lead API

@@ -2,9 +2,9 @@ import { useCallback, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import RequestSuccess from '../components/RequestSuccess';
 import Section from '../components/Section';
-import ContactStep from '../components/request/ContactStep';
+import ContactStep, { type ContactScreen } from '../components/request/ContactStep';
 import LocationSelector from '../components/request/LocationSelector';
-import PropertyDetailsStep from '../components/request/PropertyDetailsStep';
+import PropertyDetailsStep, { type DetailsScreen } from '../components/request/PropertyDetailsStep';
 import RequestIntentSelector from '../components/request/RequestIntentSelector';
 import WizardProgress from '../components/request/WizardProgress';
 import type { LeadRequest, LocationMode, LocationPolygon } from '../lib/leads';
@@ -32,6 +32,17 @@ import { usePageAnimations } from '../lib/usePageAnimations';
 const stepLabels = ['Obiettivo', 'Immobile', 'Contatti'] as const;
 const stepHeadingId = 'request-step-heading';
 const intentErrorFields = new Set<keyof LeadRequest>(['requestType', 'requestRole']);
+const detailsScreenProgress: Record<DetailsScreen, number> = {
+  location: 1,
+  propertyType: 2,
+  budget: 3,
+  timeframe: 4,
+  details: 5,
+};
+const contactScreenProgress: Record<ContactScreen, number> = {
+  details: 6,
+  consent: 7,
+};
 
 interface RequestsPageProps {
   submitRequest?: typeof submitLeadRequest;
@@ -46,8 +57,16 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
   const [apiErrorSummary, setApiErrorSummary] = useState<string[]>([]);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [progressScreen, setProgressScreen] = useState(0);
   const { form, intentValue, locationText, step } = wizard;
   usePageAnimations(pageRef);
+
+  const handleDetailsScreenChange = useCallback((screen: DetailsScreen) => {
+    setProgressScreen(detailsScreenProgress[screen]);
+  }, []);
+  const handleContactScreenChange = useCallback((screen: ContactScreen) => {
+    setProgressScreen(contactScreenProgress[screen]);
+  }, []);
 
   const clearErrorState = (field: keyof LeadRequest) => {
     setErrors((current) => ({ ...current, [field]: undefined }));
@@ -70,6 +89,16 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
     setApiErrorSummary([]);
     setStatus('idle');
     setMessage('');
+  };
+
+  const selectIntentAndAdvance = (intent: RequestIntent) => {
+    setWizard((current) => advanceRequestWizard(selectRequestIntent(current, intent)));
+    setErrors({});
+    setApiErrorSummary([]);
+    setStatus('idle');
+    setMessage('');
+    setProgressScreen(1);
+    focusStepHeading();
   };
 
   const selectLocationMode = (locationMode: LocationMode) => {
@@ -127,6 +156,12 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
     });
   };
 
+  const showLocationMissing = () => {
+    setErrors((current) => ({ ...current, location: 'Indica la zona o la posizione.' }));
+    setApiErrorSummary([]);
+    focusError('location');
+  };
+
   const goToNextStep = () => {
     const nextErrors = validateRequestStep(form, locationText, step);
     setErrors(nextErrors);
@@ -136,6 +171,7 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
       return;
     }
     setWizard(advanceRequestWizard);
+    setProgressScreen(step === 1 ? 6 : 1);
     setStatus('idle');
     setMessage('');
     focusStepHeading();
@@ -143,6 +179,7 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
 
   const goToPreviousStep = () => {
     setWizard(retreatRequestWizard);
+    setProgressScreen(step === 2 ? 5 : 0);
     setErrors({});
     setApiErrorSummary([]);
     setStatus('idle');
@@ -195,6 +232,7 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
       setApiErrorSummary(normalized.summary);
       const changesStep = normalized.earliestStep !== step;
       setWizard((current) => setRequestWizardStep(current, normalized.earliestStep));
+      setProgressScreen(normalized.earliestStep === 0 ? 0 : normalized.earliestStep === 1 ? 1 : 6);
       focusError(normalized.firstField, changesStep);
     }
   };
@@ -205,6 +243,7 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
     setApiErrorSummary([]);
     setStatus('idle');
     setMessage('');
+    setProgressScreen(0);
     focusStepHeading();
   };
 
@@ -222,10 +261,10 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
 
   return (
     <div ref={pageRef}>
-      <Section className="section-line">
+      <Section className="section-line flex h-[calc(100svh-4rem-1px)] items-stretch overflow-hidden py-5 sm:py-8">
         <form
           onSubmit={onSubmit}
-          className="mx-auto max-w-5xl rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-5 sm:p-8"
+          className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-5 shadow-[0_1px_0_rgb(18_19_15_/_0.04)] sm:p-8 lg:p-10"
           noValidate
         >
           {message && (
@@ -244,13 +283,14 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
             </div>
           )}
 
-          <WizardProgress step={step} />
+          <WizardProgress screen={progressScreen} />
 
           {step === 0 && (
             <RequestIntentSelector
               value={intentValue}
               error={errors.requestType ?? errors.requestRole}
               onChange={selectIntent}
+              onSelect={selectIntentAndAdvance}
             />
           )}
 
@@ -275,6 +315,10 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
                   onMapUnavailable={onMapUnavailable}
                 />
               )}
+              onBack={goToPreviousStep}
+              onComplete={goToNextStep}
+              onLocationMissing={showLocationMissing}
+              onScreenChange={handleDetailsScreenChange}
             />
           )}
 
@@ -286,27 +330,11 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
               requestId={form.requestId}
               onTurnstileVerify={onTurnstileVerify}
               onTurnstileExpire={onTurnstileExpire}
+              onBack={goToPreviousStep}
+              isSubmitting={status === 'submitting'}
+              onScreenChange={handleContactScreenChange}
             />
           )}
-
-          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[var(--line)] pt-6 sm:flex-row sm:items-center sm:justify-between">
-            {step > 0 ? (
-              <button
-                type="button"
-                className="focus-ring rounded-lg border border-[var(--control-border)] bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)]"
-                onClick={goToPreviousStep}
-              >
-                Indietro
-              </button>
-            ) : <span />}
-            <button
-              type="submit"
-              disabled={status === 'submitting'}
-              className="focus-ring rounded-lg bg-[var(--brand-blue)] px-6 py-3 text-sm font-semibold text-[var(--ink)] transition hover:ring-2 hover:ring-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {status === 'submitting' ? 'Salvataggio in corso…' : step === stepLabels.length - 1 ? 'Invia richiesta' : 'Continua'}
-            </button>
-          </div>
         </form>
       </Section>
     </div>

@@ -1,4 +1,5 @@
-import { useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import type { LeadRequest } from '../../lib/leads';
 
 const propertyTypes = [
@@ -11,291 +12,331 @@ const timeframeOptions = [['subito', 'Il prima possibile'], ['entro-3-mesi', 'En
 
 type FormErrors = Partial<Record<keyof LeadRequest, string>>;
 type UpdateField = <FieldName extends keyof LeadRequest>(field: FieldName, value: LeadRequest[FieldName]) => void;
+export type DetailsScreen = 'location' | 'propertyType' | 'budget' | 'timeframe' | 'details';
 
 interface Props {
   form: LeadRequest;
   errors: FormErrors;
   updateField: UpdateField;
   locationSlot: ReactNode;
+  onBack: () => void;
+  onComplete: () => void;
+  onLocationMissing: () => void;
+  onScreenChange: (screen: DetailsScreen) => void;
 }
 
-function moveRadioFocus(event: KeyboardEvent<HTMLButtonElement>) {
-  const radios = Array.from(
-    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]') ?? [],
+function initialScreen(form: LeadRequest): DetailsScreen {
+  if (!form.location.trim()) return 'location';
+  if (!form.propertyType) return 'propertyType';
+  if (!form.budget) return 'budget';
+  if (!form.timeframe) return 'timeframe';
+  return 'details';
+}
+
+function ScreenActions({ onBack, onNext, nextLabel = 'Continua' }: { onBack: () => void; onNext: () => void; nextLabel?: string }) {
+  return (
+    <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--line)] pt-4">
+      <button
+        type="button"
+        className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[var(--control-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+        onClick={onBack}
+      >
+        <ChevronLeft className="h-4 w-4 stroke-[2]" aria-hidden="true" />
+        Indietro
+      </button>
+      <button
+        type="button"
+        className="focus-ring inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--brand-blue)] px-5 py-2 text-sm font-semibold text-[var(--ink)]"
+        onClick={onNext}
+      >
+        {nextLabel}
+      </button>
+    </div>
   );
-  const currentIndex = radios.indexOf(event.currentTarget);
-  if (currentIndex < 0) return;
-
-  let nextIndex: number | undefined;
-  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % radios.length;
-  if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + radios.length) % radios.length;
-  if (event.key === 'Home') nextIndex = 0;
-  if (event.key === 'End') nextIndex = radios.length - 1;
-  if (nextIndex === undefined) return;
-
-  event.preventDefault();
-  radios[nextIndex]?.focus();
-  radios[nextIndex]?.click();
 }
 
-function radioTabIndex(active: boolean, index: number, hasValue: boolean) {
-  return active || (!hasValue && index === 0) ? 0 : -1;
-}
-
-function includesOption(options: readonly string[], value: string) {
-  return options.includes(value);
-}
-
-export default function PropertyDetailsStep({ form, errors, updateField, locationSlot }: Props) {
+export default function PropertyDetailsStep({
+  form,
+  errors,
+  updateField,
+  locationSlot,
+  onBack,
+  onComplete,
+  onLocationMissing,
+  onScreenChange,
+}: Props) {
   const budgetOptions = form.requestType === 'locazione' ? rentBudgetOptions : purchaseBudgetOptions;
-  const hasPresetBudget = includesOption(budgetOptions, form.budget);
-  const hasPresetTimeframe = timeframeOptions.some(([value]) => value === form.timeframe);
-  const [showDetails, setShowDetails] = useState(Boolean(form.features));
+  const [screen, setScreen] = useState<DetailsScreen>(() => initialScreen(form));
   const [budgetMode, setBudgetMode] = useState<'preset' | 'custom'>(
-    form.budget && !hasPresetBudget ? 'custom' : 'preset',
+    form.budget && !budgetOptions.includes(form.budget) ? 'custom' : 'preset',
   );
   const [timeframeMode, setTimeframeMode] = useState<'preset' | 'custom'>(
-    form.timeframe && !hasPresetTimeframe ? 'custom' : 'preset',
+    form.timeframe && !timeframeOptions.some(([value]) => value === form.timeframe) ? 'custom' : 'preset',
   );
-  const [customBudgetDraft, setCustomBudgetDraft] = useState(hasPresetBudget ? '' : form.budget);
-  const [customTimeframeDraft, setCustomTimeframeDraft] = useState(hasPresetTimeframe ? '' : form.timeframe);
-  const hasLocation = Boolean(form.location.trim());
-  const hasBudgetSelection = budgetMode === 'custom' || Boolean(form.budget);
-  const hasTimeframeSelection = timeframeMode === 'custom' || Boolean(form.timeframe);
+  const [customBudgetDraft, setCustomBudgetDraft] = useState(budgetOptions.includes(form.budget) ? '' : form.budget);
+  const [customTimeframeDraft, setCustomTimeframeDraft] = useState(
+    timeframeOptions.some(([value]) => value === form.timeframe) ? '' : form.timeframe,
+  );
+  const [showDetails, setShowDetails] = useState(Boolean(form.features));
   const budgetLabel = form.requestRole === 'proprietario'
     ? 'Valore o canone desiderato'
     : form.requestType === 'locazione'
       ? 'Canone mensile indicativo'
       : 'Budget massimo';
-  const budgetPlaceholder = form.requestType === 'locazione'
-    ? 'Es. 900–1.200 €/mese'
-    : 'Es. 300.000–400.000 €';
+  const budgetPlaceholder = form.requestType === 'locazione' ? 'Es. 900–1.200 €/mese' : 'Es. 300.000–400.000 €';
+  const locationCopy: [string, string] = form.requestRole === 'cerca'
+    ? ['Dove ti piacerebbe abitare?', 'Disegna sulla mappa la zona ideale per te.']
+    : ['Dove si trova l’immobile?', 'Inserisci via e numero civico, poi continua.'];
+  const screenCopy: Record<DetailsScreen, [string, string]> = {
+    location: locationCopy,
+    propertyType: ['Che tipo di immobile?', 'Scegli la tipologia più vicina.'],
+    budget: [budgetLabel, 'Puoi scegliere “Da definire”.'],
+    timeframe: ['Quando?', 'Indica la tempistica ideale.'],
+    details: ['Ultimi dettagli', 'Facoltativi: puoi aggiungerli o inviare la richiesta.'],
+  };
+  const [title, description] = screenCopy[screen];
+
+  useEffect(() => {
+    onScreenChange(screen);
+  }, [onScreenChange, screen]);
+
+  const goBack = () => {
+    if (screen === 'location') return onBack();
+    if (screen === 'propertyType') return setScreen('location');
+    if (screen === 'budget') return setScreen('propertyType');
+    if (screen === 'timeframe') return setScreen('budget');
+    setScreen('timeframe');
+  };
 
   return (
-    <fieldset className="grid gap-6">
+    <fieldset className="flex min-h-0 flex-1 flex-col gap-5">
       <legend
         id="request-step-heading"
-        className="font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-4xl"
+        className="mx-auto flex max-w-2xl flex-col items-center gap-2 text-center font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-5xl"
         tabIndex={-1}
       >
-        Dettagli dell’immobile
+        {title}
       </legend>
-      <p className="text-sm leading-6 text-[var(--graphite)]">
-        Una risposta alla volta: puoi scegliere “Da definire” quando non hai ancora deciso.
-      </p>
+      <p className="text-center text-sm leading-6 text-[var(--graphite)] sm:text-lg">{description}</p>
 
-      {locationSlot}
-
-      {hasLocation && (
-        <fieldset className="grid gap-3">
-          <legend id="propertyType-label" className="text-base font-semibold text-[var(--ink)]">Che tipo di immobile?</legend>
-          <div
-            className="grid grid-cols-2 gap-3 md:grid-cols-3"
-            role="radiogroup"
-            aria-labelledby="propertyType-label"
-            aria-invalid={Boolean(errors.propertyType)}
-            aria-describedby={errors.propertyType ? 'propertyType-error' : undefined}
-          >
-            {propertyTypes.map(([value, label], index) => {
-              const active = form.propertyType === value;
-              return (
-                <button
-                  key={value}
-                  id={active || (!form.propertyType && index === 0) ? 'propertyType' : undefined}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  tabIndex={radioTabIndex(active, index, Boolean(form.propertyType))}
-                  onClick={() => updateField('propertyType', value)}
-                  onKeyDown={moveRadioFocus}
-                  className={`focus-ring min-h-14 rounded-lg border px-4 py-3 text-left text-sm font-semibold transition ${
-                    active
-                      ? 'border-[var(--ink)] bg-[var(--brand-blue)] shadow-[inset_0_0_0_1px_var(--ink)]'
-                      : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-          {errors.propertyType && <p id="propertyType-error" className="text-sm font-medium text-red-700">{errors.propertyType}</p>}
-        </fieldset>
+      {screen === 'location' && (
+        <>
+          {form.locationMode === 'text' ? (
+            <div className={`flex min-h-0 flex-1 ${form.requestRole === 'proprietario' ? '' : 'items-center'}`}>
+              <div className={form.requestRole === 'proprietario' ? 'flex min-h-0 flex-1' : 'w-full'}>{locationSlot}</div>
+            </div>
+          ) : locationSlot}
+          <ScreenActions
+            onBack={goBack}
+            onNext={() => {
+              if (!form.location.trim()) return onLocationMissing();
+              setScreen('propertyType');
+            }}
+          />
+        </>
       )}
 
-      {form.propertyType && (
-        <fieldset className="grid gap-3">
-          <legend id="budget-label" className="text-base font-semibold text-[var(--ink)]">{budgetLabel}</legend>
-          <div
-            className="flex flex-wrap gap-2"
-            role="radiogroup"
-            aria-labelledby="budget-label"
-            aria-invalid={Boolean(errors.budget)}
-            aria-describedby={errors.budget ? 'budget-error' : undefined}
-          >
-            {budgetOptions.map((option, index) => {
-              const active = budgetMode === 'preset' && form.budget === option;
-              return (
+      {screen === 'propertyType' && (
+        <>
+          <div className="flex flex-1 items-center">
+            <div className="grid w-full grid-cols-2 gap-3" role="radiogroup" aria-label="Tipo immobile" aria-invalid={Boolean(errors.propertyType)}>
+              {propertyTypes.map(([value, label]) => {
+                const active = form.propertyType === value;
+                return (
+                  <button
+                    key={value}
+                    id={active ? 'propertyType' : undefined}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => {
+                      updateField('propertyType', value);
+                      setScreen('budget');
+                    }}
+                    className={`focus-ring min-h-14 rounded-lg border px-4 py-3 text-left text-sm font-semibold transition ${
+                      active ? 'border-[var(--ink)] bg-[var(--brand-blue)] shadow-[inset_0_0_0_1px_var(--ink)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <ScreenActions onBack={goBack} onNext={() => setScreen('budget')} />
+        </>
+      )}
+
+      {screen === 'budget' && (
+        <>
+          <div className="flex flex-1 items-center">
+            <div className="grid w-full gap-3">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={budgetLabel}>
+                {budgetOptions.map((option) => {
+                  const active = budgetMode === 'preset' && form.budget === option;
+                  return (
+                    <button
+                      key={option}
+                      id={active ? 'budget' : undefined}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => {
+                        setBudgetMode('preset');
+                        updateField('budget', option);
+                        setScreen('timeframe');
+                      }}
+                      className={`focus-ring min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                        active ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
                 <button
-                  key={option}
-                  id={active || (!hasBudgetSelection && index === 0) ? 'budget' : undefined}
+                  id={budgetMode === 'custom' ? 'budget' : undefined}
                   type="button"
                   role="radio"
-                  aria-checked={active}
-                  tabIndex={radioTabIndex(active, index, hasBudgetSelection)}
+                  aria-checked={budgetMode === 'custom'}
                   onClick={() => {
-                    setBudgetMode('preset');
-                    updateField('budget', option);
+                    setBudgetMode('custom');
+                    updateField('budget', customBudgetDraft);
                   }}
-                  onKeyDown={moveRadioFocus}
                   className={`focus-ring min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                    active ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
+                    budgetMode === 'custom' ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
                   }`}
                 >
-                  {option}
+                  Altro importo
                 </button>
-              );
-            })}
-            <button
-              id={budgetMode === 'custom' ? 'budget' : undefined}
-              type="button"
-              role="radio"
-              aria-checked={budgetMode === 'custom'}
-              tabIndex={budgetMode === 'custom' ? 0 : -1}
-              onClick={() => {
-                setBudgetMode('custom');
-                updateField('budget', customBudgetDraft);
-              }}
-              onKeyDown={moveRadioFocus}
-              className={`focus-ring min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                budgetMode === 'custom' ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
-              }`}
-            >
-              Altro importo
-            </button>
+              </div>
+              {budgetMode === 'custom' && (
+                <label className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="budget-custom">
+                  Budget personalizzato
+                  <input
+                    id="budget-custom"
+                    type="text"
+                    value={customBudgetDraft}
+                    onChange={(event) => {
+                      setCustomBudgetDraft(event.target.value);
+                      updateField('budget', event.target.value);
+                    }}
+                    className="field-control min-h-11 rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
+                    placeholder={budgetPlaceholder}
+                  />
+                </label>
+              )}
+            </div>
           </div>
-          {budgetMode === 'custom' && (
-            <label className="grid max-w-xl gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="budget-custom">
-              Budget personalizzato
-              <input
-                id="budget-custom"
-                type="text"
-                value={customBudgetDraft}
-                onChange={(event) => {
-                  setCustomBudgetDraft(event.target.value);
-                  updateField('budget', event.target.value);
-                }}
-                aria-label="Budget personalizzato"
-                aria-invalid={Boolean(errors.budget)}
-                aria-describedby={errors.budget ? 'budget-error' : undefined}
-                className="field-control min-h-11 w-full rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
-                placeholder={budgetPlaceholder}
-              />
-            </label>
-          )}
-          {errors.budget && <p id="budget-error" className="text-sm font-medium text-red-700" role="alert">{errors.budget}</p>}
-        </fieldset>
+          <ScreenActions
+            onBack={goBack}
+            onNext={() => {
+              if (form.budget.trim()) setScreen('timeframe');
+            }}
+          />
+        </>
       )}
 
-      {form.budget && (
-        <fieldset className="grid gap-3">
-          <legend id="timeframe-label" className="text-base font-semibold text-[var(--ink)]">Quando?</legend>
-          <div
-            className="flex flex-wrap gap-2"
-            role="radiogroup"
-            aria-labelledby="timeframe-label"
-            aria-invalid={Boolean(errors.timeframe)}
-            aria-describedby={errors.timeframe ? 'timeframe-error' : undefined}
-          >
-            {timeframeOptions.map(([value, label], index) => {
-              const active = timeframeMode === 'preset' && form.timeframe === value;
-              return (
+      {screen === 'timeframe' && (
+        <>
+          <div className="flex flex-1 items-center">
+            <div className="grid w-full gap-3">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Tempistica">
+                {timeframeOptions.map(([value, label]) => {
+                  const active = timeframeMode === 'preset' && form.timeframe === value;
+                  return (
+                    <button
+                      key={value}
+                      id={active ? 'timeframe' : undefined}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => {
+                        setTimeframeMode('preset');
+                        updateField('timeframe', value);
+                        setScreen('details');
+                      }}
+                      className={`focus-ring min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                        active ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
                 <button
-                  key={value}
-                  id={active || (!hasTimeframeSelection && index === 0) ? 'timeframe' : undefined}
+                  id={timeframeMode === 'custom' ? 'timeframe' : undefined}
                   type="button"
                   role="radio"
-                  aria-checked={active}
-                  tabIndex={radioTabIndex(active, index, hasTimeframeSelection)}
+                  aria-checked={timeframeMode === 'custom'}
                   onClick={() => {
-                    setTimeframeMode('preset');
-                    updateField('timeframe', value);
+                    setTimeframeMode('custom');
+                    updateField('timeframe', customTimeframeDraft);
                   }}
-                  onKeyDown={moveRadioFocus}
                   className={`focus-ring min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                    active ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
+                    timeframeMode === 'custom' ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
                   }`}
                 >
-                  {label}
+                  Altro periodo
                 </button>
-              );
-            })}
-            <button
-              id={timeframeMode === 'custom' ? 'timeframe' : undefined}
-              type="button"
-              role="radio"
-              aria-checked={timeframeMode === 'custom'}
-              tabIndex={timeframeMode === 'custom' ? 0 : -1}
-              onClick={() => {
-                setTimeframeMode('custom');
-                updateField('timeframe', customTimeframeDraft);
-              }}
-              onKeyDown={moveRadioFocus}
-              className={`focus-ring min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                timeframeMode === 'custom' ? 'border-[var(--ink)] bg-[var(--brand-blue)]' : 'border-[var(--control-border)] bg-white hover:border-[var(--ink)]'
-              }`}
-            >
-              Altro periodo
-            </button>
+              </div>
+              {timeframeMode === 'custom' && (
+                <label className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="timeframe-custom">
+                  Tempistica personalizzata
+                  <input
+                    id="timeframe-custom"
+                    type="text"
+                    value={customTimeframeDraft}
+                    onChange={(event) => {
+                      setCustomTimeframeDraft(event.target.value);
+                      updateField('timeframe', event.target.value);
+                    }}
+                    className="field-control min-h-11 rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
+                    placeholder="Es. Entro settembre 2027"
+                  />
+                </label>
+              )}
+            </div>
           </div>
-          {timeframeMode === 'custom' && (
-            <label className="grid max-w-xl gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="timeframe-custom">
-              Tempistica personalizzata
-              <input
-                id="timeframe-custom"
-                type="text"
-                value={customTimeframeDraft}
-                onChange={(event) => {
-                  setCustomTimeframeDraft(event.target.value);
-                  updateField('timeframe', event.target.value);
-                }}
-                aria-label="Tempistica personalizzata"
-                aria-invalid={Boolean(errors.timeframe)}
-                aria-describedby={errors.timeframe ? 'timeframe-error' : undefined}
-                className="field-control min-h-11 w-full rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
-                placeholder="Es. Entro settembre 2027"
-              />
-            </label>
-          )}
-          {errors.timeframe && <p id="timeframe-error" className="text-sm font-medium text-red-700" role="alert">{errors.timeframe}</p>}
-        </fieldset>
+          <ScreenActions
+            onBack={goBack}
+            onNext={() => {
+              if (form.timeframe.trim()) setScreen('details');
+            }}
+          />
+        </>
       )}
 
-      {form.timeframe && (
-        <div className="grid gap-3">
-          <button
-            type="button"
-            className="focus-ring min-h-11 w-fit rounded-lg border border-[var(--control-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]"
-            aria-expanded={showDetails}
-            aria-controls="features-panel"
-            onClick={() => setShowDetails((current) => !current)}
-          >
-            {showDetails ? 'Nascondi dettagli' : 'Aggiungi dettagli'}
-          </button>
-          {showDetails && (
-            <label id="features-panel" className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="features">
-              Dettagli facoltativi
-              <textarea
-                id="features"
-                className="field-control min-h-28 rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
-                value={form.features}
-                onChange={(event) => updateField('features', event.target.value)}
-                rows={4}
-                placeholder="Spazi, condizioni, vincoli o risultati importanti…"
-              />
-            </label>
-          )}
-        </div>
+      {screen === 'details' && (
+        <>
+          <div className="flex flex-1 items-center">
+            <div className="grid w-full gap-3">
+              <button
+                type="button"
+                className="focus-ring min-h-11 w-fit rounded-lg border border-[var(--control-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+                aria-expanded={showDetails}
+                aria-controls="features-panel"
+                onClick={() => setShowDetails((current) => !current)}
+              >
+                {showDetails ? 'Nascondi dettagli' : 'Aggiungi dettagli'}
+              </button>
+              {showDetails && (
+                <label id="features-panel" className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="features">
+                  Dettagli facoltativi
+                  <textarea
+                    id="features"
+                    className="field-control min-h-24 rounded-lg border border-[var(--control-border)] bg-white px-3 py-2 text-base font-normal outline-none transition"
+                    value={form.features}
+                    onChange={(event) => updateField('features', event.target.value)}
+                    rows={3}
+                    placeholder="Spazi, condizioni, vincoli o risultati importanti…"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+          <ScreenActions onBack={goBack} onNext={onComplete} nextLabel="Vai ai contatti" />
+        </>
       )}
     </fieldset>
   );

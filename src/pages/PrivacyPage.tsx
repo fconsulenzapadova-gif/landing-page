@@ -21,7 +21,7 @@ export default function PrivacyPage() {
               I dati possono essere usati per ricontattarti via telefono o email. Non sono presenti in questa versione sistemi analytics o marketing attivati dal consenso cookie.
             </p>
             <p>
-              Le richieste vengono protette da Cloudflare Turnstile e salvate in un database Cloudflare D1. Il sito non invia i dati del modulo a Google Forms, Supabase o CRM esterni e non conserva nel database l’indirizzo IP o il token antispam.
+              Le richieste vengono protette da Cloudflare Turnstile e salvate in un database Cloudflare D1. Quando usi i suggerimenti di indirizzo, il testo digitato viene inviato direttamente dal browser a Geoapify esclusivamente per proporre indirizzi pertinenti. Il sito non invia i dati del modulo a Google Forms, Supabase o CRM esterni e non conserva nel database l’indirizzo IP o il token antispam.
             </p>
             <p>
               I dati vengono conservati per il tempo necessario a gestire la richiesta e gli eventuali rapporti conseguenti, nel rispetto degli obblighi applicabili.

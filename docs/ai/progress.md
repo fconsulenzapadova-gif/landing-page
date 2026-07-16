@@ -2,6 +2,16 @@
 
 ## Milestone
 
+- 16 luglio 2026 — UI del wizard richieste aggiornata come app a schermate:
+  viewport bloccato senza footer o scroll, obiettivi 2×2 su mobile con
+  avanzamento al tap, dettagli immobile e consenso contatti separati. Dalla
+  posizione in poi i comandi sono fissi in basso, con indietro a sinistra e
+  avanti a destra. La ricerca mostra direttamente la sola mappa, mentre per i
+  proprietari è consentito solo l’indirizzo; chi cerca vede `Dove ti
+  piacerebbe abitare?`, la mappa riempie lo spazio libero e l’area è confermata
+  in modo automatico con controlli annulla/reset a icona. Le attribuzioni non
+  hanno una fascia esterna. Il testo di avanzamento resta soltanto all’inizio.
+  Test, lint, build e controllo browser superati.
 - 16 luglio 2026 — wizard richieste guidato distribuito in produzione con
   migrazione D1 additiva, Worker compatibile e frontend Vercel; health Worker,
   build remota e smoke test pubblico su mappa/testo superati.

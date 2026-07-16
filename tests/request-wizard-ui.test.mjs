@@ -172,44 +172,98 @@ function stepHeading(expectedText) {
   return heading;
 }
 
+function progressScreen() {
+  const progress = document.querySelector('[role="progressbar"]');
+  assert.ok(progress, 'wizard progress must exist');
+  return Number(progress.getAttribute('aria-valuenow'));
+}
+
 async function reachContactStep() {
   await click(button('Vendo casa'));
-  await click(button('Continua'));
   const location = document.querySelector('input[autocomplete="street-address"]');
   assert.ok(location);
   await change(location, 'Padova Centro');
-  await click(button('Appartamento'));
   await click(button('Continua'));
+  await click(button('Appartamento'));
+  await click(button('Da definire'));
+  await click(button('Da definire'));
+  await click(button('Vai ai contatti'));
   await change(document.getElementById('name'), 'Ada Lovelace');
   await change(document.getElementById('phone'), '3331234567');
+  await click(button('Continua'));
   await change(document.getElementById('privacyAccepted'), true);
 }
 
 async function reachPropertyChoices(intentLabel) {
   await click(button(intentLabel));
-  await click(button('Continua'));
-  const textTab = button('Scrivi zona');
-  if (textTab.getAttribute('aria-selected') !== 'true') await click(textTab);
-  const location = document.querySelector('[role="tabpanel"] input');
+  const location = document.querySelector('input[autocomplete="street-address"]');
   assert.ok(location, 'text location input must exist');
   await change(location, 'Padova Centro');
+  await click(button('Continua'));
   await click(button('Appartamento'));
 }
 
-test('wizard keyboard selection stays reachable and every forward/back step focuses its heading', async () => {
+test('wizard intent cards use a mobile grid and advance immediately when activated', async () => {
   const rendered = await renderWizard();
   const firstIntent = button('Compro casa');
+  const intentGrid = document.querySelector('[role="radiogroup"]');
+  assert.ok(intentGrid);
+  assert.equal(intentGrid.querySelectorAll('[role="radio"]').length, 4);
+  assert.equal([...document.querySelectorAll('button')].some((candidate) => candidate.textContent.trim() === 'Continua'), false);
+  assert.equal(firstIntent.textContent.includes('Voglio comprare casa'), true);
   firstIntent.focus();
 
   await keyDown(firstIntent, 'ArrowRight');
   assert.equal(stepHeading('Qual è il tuo obiettivo?').contains(document.activeElement), false);
   assert.equal(document.activeElement.textContent.trim().startsWith('Vendo casa'), true);
+  assert.equal(document.activeElement.getAttribute('aria-checked'), 'true');
 
-  await click(button('Continua'));
-  assert.strictEqual(document.activeElement, stepHeading('Dettagli dell’immobile'));
+  await click(document.activeElement);
+  assert.strictEqual(document.activeElement, stepHeading('Dove si trova l’immobile?'));
 
   await click(button('Indietro'));
   assert.strictEqual(document.activeElement, stepHeading('Qual è il tuo obiettivo?'));
+  await click(button('Compro casa'));
+  assert.strictEqual(document.activeElement, stepHeading('Dove ti piacerebbe abitare?'));
+  await rendered.unmount();
+});
+
+test('wizard progress advances through every visible sub-screen', async () => {
+  const rendered = await renderWizard();
+  assert.equal(progressScreen(), 1);
+
+  await click(button('Vendo casa'));
+  assert.equal(progressScreen(), 2);
+  const location = document.querySelector('input[autocomplete="street-address"]');
+  assert.ok(location);
+  await change(location, 'Padova Centro');
+  await click(button('Continua'));
+  assert.equal(progressScreen(), 3);
+  await click(button('Appartamento'));
+  assert.equal(progressScreen(), 4);
+  await click(button('Da definire'));
+  assert.equal(progressScreen(), 5);
+  await click(button('Da definire'));
+  assert.equal(progressScreen(), 6);
+  await click(button('Vai ai contatti'));
+  assert.equal(progressScreen(), 7);
+  await change(document.getElementById('name'), 'Ada Lovelace');
+  await change(document.getElementById('phone'), '3331234567');
+  await click(button('Continua'));
+  assert.equal(progressScreen(), 8);
+
+  await rendered.unmount();
+});
+
+test('owner intents accept only a street address, without map or suggested zones', async () => {
+  const rendered = await renderWizard();
+  await click(button('Vendo casa'));
+
+  assert.equal(document.querySelector('[role="tablist"]'), null);
+  assert.equal(document.querySelector('[aria-label="Zone suggerite"]'), null);
+  const address = document.querySelector('input[autocomplete="street-address"]');
+  assert.ok(address, 'street address input must exist');
+  assert.equal(address.getAttribute('placeholder'), 'Es. via Roma 10, Padova');
   await rendered.unmount();
 });
 
@@ -251,19 +305,19 @@ test('API intent errors return to step zero, expose description and focus the in
   await rendered.unmount();
 });
 
-test('property budget presets and labels follow purchase or rent intent', async () => {
+test('property budget presets follow purchase or rent intent', async () => {
   const purchase = await renderWizard();
-  await reachPropertyChoices('Compro casa');
+  await reachPropertyChoices('Vendo casa');
 
-  assert.equal(document.getElementById('budget-label').textContent, 'Budget massimo');
+  assert.equal(stepHeading('Valore o canone desiderato').textContent, 'Valore o canone desiderato');
   assert.ok(button('Fino a 200.000 €'));
   assert.equal(document.body.textContent.includes('€/mese'), false);
   await purchase.unmount();
 
   const rent = await renderWizard();
-  await reachPropertyChoices('Cerco in affitto');
+  await reachPropertyChoices('Metto in affitto');
 
-  assert.equal(document.getElementById('budget-label').textContent, 'Canone mensile indicativo');
+  assert.equal(stepHeading('Valore o canone desiderato').textContent, 'Valore o canone desiderato');
   assert.ok(button('Fino a 800 €/mese'));
   assert.equal(document.body.textContent.includes('200.000–350.000 €'), false);
   await click(button('Altro importo'));
@@ -280,31 +334,30 @@ test('custom budget and timeframe drafts survive preset toggles and reach the ex
   });
   await reachPropertyChoices('Vendo casa');
 
-  const lastBudgetPreset = button('Oltre 500.000 €');
-  lastBudgetPreset.focus();
-  await keyDown(lastBudgetPreset, 'ArrowRight');
-  assert.equal(document.activeElement.textContent.trim(), 'Altro importo');
-  assert.equal(document.activeElement.getAttribute('aria-checked'), 'true');
+  await click(button('Altro importo'));
   const customBudget = document.getElementById('budget-custom');
   assert.ok(customBudget, 'custom budget input must exist');
-  assert.equal(customBudget.getAttribute('aria-label'), 'Budget personalizzato');
   await change(customBudget, '300.000–400.000 €');
   await click(button('Fino a 200.000 €'));
+  await click(button('Indietro'));
   await click(button('Altro importo'));
   assert.equal(document.getElementById('budget-custom').value, '300.000–400.000 €');
+  await click(button('Continua'));
 
   await click(button('Altro periodo'));
   const customTimeframe = document.getElementById('timeframe-custom');
   assert.ok(customTimeframe, 'custom timeframe input must exist');
-  assert.equal(customTimeframe.getAttribute('aria-label'), 'Tempistica personalizzata');
   await change(customTimeframe, 'Entro settembre 2027');
   await click(button('Entro 3 mesi'));
+  await click(button('Indietro'));
   await click(button('Altro periodo'));
   assert.equal(document.getElementById('timeframe-custom').value, 'Entro settembre 2027');
 
   await click(button('Continua'));
+  await click(button('Vai ai contatti'));
   await change(document.getElementById('name'), 'Ada Lovelace');
   await change(document.getElementById('phone'), '3331234567');
+  await click(button('Continua'));
   await change(document.getElementById('privacyAccepted'), true);
   await click(button('Invia richiesta'));
 

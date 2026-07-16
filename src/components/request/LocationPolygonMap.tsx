@@ -2,6 +2,7 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { RotateCcw, Undo2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { LocationPolygon } from '../../lib/leads';
 import { isValidLocationPolygon } from '../../lib/requestWizard';
@@ -77,7 +78,7 @@ export default function LocationPolygonMap({
         style: styleUrl,
         center: padovaCenter,
         zoom: 11,
-        attributionControl: false,
+        attributionControl: true,
       });
     } catch {
       handleUnavailable('La mappa non è disponibile. Inserisci la zona come testo.');
@@ -98,7 +99,7 @@ export default function LocationPolygonMap({
         draftRef.current = polygon;
         setDraftIsValid(Boolean(polygon));
         onDraftChangeRef.current?.(polygon);
-        onChangeRef.current(null);
+        onChangeRef.current(polygon);
       },
       onUnavailable: handleUnavailable,
     });
@@ -117,7 +118,7 @@ export default function LocationPolygonMap({
     draftRef.current = polygon;
     setDraftIsValid(true);
     onDraftChangeRef.current?.(polygon);
-    onChangeRef.current(null);
+    onChangeRef.current(polygon);
     draw.changeMode('direct_select', { featureId: String(featureId) });
   }
 
@@ -143,12 +144,6 @@ export default function LocationPolygonMap({
     replaceDrawFeature(next);
   }
 
-  function confirmPolygon() {
-    if (draftRef.current && isValidLocationPolygon(draftRef.current)) {
-      onChangeRef.current(draftRef.current);
-    }
-  }
-
   const describedBy = [
     'location-map-instructions',
     error ? 'location-map-error' : '',
@@ -157,17 +152,17 @@ export default function LocationPolygonMap({
   const actionsDisabled = !draftIsValid || Boolean(unavailableMessage);
 
   return (
-    <div className="grid gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div
-        className="overflow-hidden rounded-lg border border-[var(--control-border)] bg-[var(--paper-soft)]"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--control-border)] bg-[var(--paper-soft)]"
         role="application"
         aria-label="Seleziona una zona sulla mappa"
         aria-describedby={describedBy}
       >
         <p id="location-map-instructions" className="sr-only">
-          Traccia un poligono sulla mappa, correggi i punti se necessario, poi conferma l’area.
+          Traccia un poligono sulla mappa: l’area viene salvata automaticamente quando è completa.
         </p>
-        <div ref={mapContainerRef} className="request-location-map" />
+        <div ref={mapContainerRef} className="request-location-map min-h-0 flex-1" />
         {unavailableMessage && (
           <p id="location-map-unavailable" className="border-t border-[var(--line)] bg-white p-4 text-sm text-[var(--ink)]" role="status">
             {unavailableMessage}
@@ -175,46 +170,28 @@ export default function LocationPolygonMap({
         )}
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-3" aria-label="Azioni area mappa">
+      <div className="flex justify-end gap-2" aria-label="Azioni area mappa">
         <button
           type="button"
-          className="focus-ring min-h-11 rounded-lg border border-[var(--control-border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="focus-ring inline-flex size-11 items-center justify-center rounded-lg border border-[var(--control-border)] bg-white text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="Annulla ultimo punto"
+          title="Annulla ultimo punto"
           disabled={actionsDisabled}
           onClick={removeLastVertex}
         >
-          Annulla ultimo punto
+          <Undo2 className="h-5 w-5 stroke-[1.9]" aria-hidden="true" />
         </button>
         <button
           type="button"
-          className="focus-ring min-h-11 rounded-lg border border-[var(--control-border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="focus-ring inline-flex size-11 items-center justify-center rounded-lg border border-[var(--control-border)] bg-white text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="Ricomincia"
+          title="Ricomincia"
           disabled={Boolean(unavailableMessage)}
           onClick={resetPolygon}
         >
-          Ricomincia
-        </button>
-        <button
-          type="button"
-          className="focus-ring min-h-11 rounded-lg border border-[var(--ink)] bg-[var(--brand-blue)] px-4 py-3 text-sm font-semibold text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={actionsDisabled}
-          onClick={confirmPolygon}
-        >
-          Conferma area
+          <RotateCcw className="h-5 w-5 stroke-[1.9]" aria-hidden="true" />
         </button>
       </div>
-
-      <p className="text-xs leading-5 text-[var(--graphite)]">
-        <a className="underline underline-offset-2" href="https://openfreemap.org/" target="_blank" rel="noreferrer">
-          OpenFreeMap
-        </a>{' '}
-        ·{' '}
-        <a className="underline underline-offset-2" href="https://openmaptiles.org/" target="_blank" rel="noreferrer">
-          © OpenMapTiles
-        </a>{' '}
-        · Dati{' '}
-        <a className="underline underline-offset-2" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
-          © OpenStreetMap contributors
-        </a>
-      </p>
       {error && (
         <p id="location-map-error" className="text-sm font-medium text-red-700" role="alert">
           {error}
