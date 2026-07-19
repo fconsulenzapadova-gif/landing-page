@@ -1,5 +1,11 @@
 import { validateLeadPayload, type ValidLead } from './validation.ts';
 import { sendLeadNotification } from './notification.ts';
+import {
+  getListingMediaResponse,
+  getListingsResponse,
+  type ListingsMediaStore,
+  type ListingsDatabase,
+} from './listings.ts';
 
 interface D1Result {
   success: boolean;
@@ -9,14 +15,16 @@ interface D1Result {
 interface D1PreparedStatement {
   bind: (...values: unknown[]) => D1PreparedStatement;
   run: () => Promise<D1Result>;
+  all: <T>() => Promise<{ success: boolean; results: T[] }>;
 }
 
-interface D1Database {
+interface D1Database extends ListingsDatabase {
   prepare: (query: string) => D1PreparedStatement;
 }
 
 interface Env {
   DB: D1Database;
+  LISTING_MEDIA: ListingsMediaStore;
   ALLOWED_ORIGINS: string;
   GMAIL_CLIENT_ID: string;
   GMAIL_CLIENT_SECRET: string;
@@ -121,7 +129,20 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === 'GET' && url.pathname === '/health') {
-      return json({ ok: true, service: 'gemut-leads' }, 200);
+      return json({ ok: true, service: 'gemut-leads', features: ['leads', 'listings'] }, 200);
+    }
+
+    if (request.method === 'GET' && url.pathname === '/api/listings') {
+      return getListingsResponse(request, env.DB);
+    }
+
+    if (request.method === 'GET' && url.pathname.startsWith('/media/')) {
+      try {
+        const objectKey = decodeURIComponent(url.pathname.slice('/media/'.length));
+        return getListingMediaResponse(request, env.LISTING_MEDIA, objectKey);
+      } catch {
+        return new Response('Not found', { status: 404 });
+      }
     }
 
     if (url.pathname !== '/api/leads') return json({ ok: false, message: 'Risorsa non trovata.' }, 404);

@@ -2,6 +2,29 @@
 
 ## Milestone
 
+- 19 luglio 2026 — dettaglio immobili reso mobile-first: immagini prima di
+  titolo e dati, ritorno alla pagina di provenienza, informazioni decisionali
+  ordinate per priorità, CTA sticky mobile non sovrapposta al footer e card
+  desktop laterale. Gallery/lightbox e responsive verificati in browser; test,
+  lint e build superati.
+
+- 18 luglio 2026 — corretto reveal del catalogo Cloudflare asincrono: card e
+  dettaglio immobili ora diventano visibili dopo caricamento dati; click reale
+  lista → dettaglio verificato in browser.
+
+- 18 luglio 2026 — catalogo immobili migrato integralmente da Google
+  Sheets/Drive a Cloudflare Worker + D1 + Workers KV. Schema e API read-only
+  pronti per futuro CRM; tre immobili demo e sei media pubblicati, Worker remoto
+  distribuito e verificato.
+
+- 18 luglio 2026 — wizard richieste reso mobile-first anche su viewport bassi;
+  contenuti lunghi scrollano nel pannello con azioni fisse. Disegno area
+  semplificato: poligono valido dal terzo tap, punti successivi sempre
+  aggiungibili, nessuna selezione o modifica tramite trascinamento.
+
+- 16 luglio 2026 — frontend aggiornato distribuito in produzione con variabile
+  Geoapify configurata su Vercel; deployment pronto sui due domini pubblici,
+  smoke test `/richieste` superato e nessun errore Vercel rilevato nell’ultima ora.
 - 16 luglio 2026 — UI del wizard richieste aggiornata come app a schermate:
   viewport bloccato senza footer o scroll, obiettivi 2×2 su mobile con
   avanzamento al tap, dettagli immobile e consenso contatti separati. Dalla
@@ -31,7 +54,7 @@
 - 16 luglio 2026 — DNS autorevole migrato su Cloudflare preservando record web,
   Google Workspace, SPF e DKIM; Worker notifiche distribuito e health/CORS verificati.
 - 16 luglio 2026 — adottato bootstrap memoria portabile: indice AI, PRD prodotto, overview architettura, decision record, runbook, pattern e contesto attivo.
-- 1 luglio 2026 — documentato stato app public-only, catalogo immobili da Google Sheets/Drive, navigazione Home/Immobili/Servizi e motion GSAP.
+- 1 luglio 2026 — documentato stato iniziale app public-only, navigazione Home/Immobili/Servizi e motion GSAP.
 
 ## Stato
 

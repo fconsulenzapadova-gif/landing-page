@@ -1,6 +1,6 @@
 # PRD - Gemut Capital
 
-Ultimo aggiornamento: 16 luglio 2026
+Ultimo aggiornamento: 19 luglio 2026
 
 ## 1. Scopo
 
@@ -40,7 +40,7 @@ Il sito presenta:
 - UI dinamica con hero full-screen fotografica, headline animata, navigazione
   misurata sullo spazio reale, reveal on scroll, parallax leggero, transizione
   curve swipe dalla hero al contenuto e gallery orizzontale di immobili letti
-  dal foglio Google Sheets pubblico.
+  dall'API Cloudflare pubblica.
 
 La nuova app non monta piu dashboard CRM, AuthProvider, React Query, hook CRM o
 componenti shadcn/Radix nel runtime pubblico.
@@ -68,9 +68,9 @@ componenti shadcn/Radix nel runtime pubblico.
 | Dati societari, route, servizi, copy centrale | `src/content/site.ts` |
 | Animazioni GSAP di pagina | `src/lib/usePageAnimations.ts` |
 | Home | `src/pages/HomePage.tsx` |
-| Dati immobili da Google Sheets | `src/lib/listings.ts`, `src/lib/useListings.ts` |
+| Dati immobili da Cloudflare | `src/lib/listings.ts`, `src/lib/useListings.ts`, `cloudflare/src/listings.ts` |
 | Catalogo immobili | `src/pages/ListingsPage.tsx` |
-| Immagini da cartelle Drive pubbliche | `api/drive-images.ts` |
+| Immagini immobili da Workers KV | `cloudflare/src/listings.ts`, binding `LISTING_MEDIA` |
 | Card immobile condivisa | `src/components/ListingCard.tsx` |
 | Carosello e lightbox immobile | `src/components/ListingGallery.tsx` |
 | Dettaglio immobile | `src/pages/ListingPage.tsx` |
@@ -107,15 +107,14 @@ componenti shadcn/Radix nel runtime pubblico.
 - Tailwind CSS;
 - Lucide React;
 - GSAP con `@gsap/react` e `ScrollTrigger`;
-- MapLibre GL JS con stile OpenFreeMap e Mapbox GL Draw;
-- Cloudflare Workers, D1 e Turnstile;
+- MapLibre GL JS con stile OpenFreeMap;
+- Cloudflare Workers, D1, Workers KV e Turnstile;
 - Node test runner;
 - Vercel.
 
 Dipendenze runtime dichiarate dopo la pulizia:
 
 - `@gsap/react`;
-- `@mapbox/mapbox-gl-draw`, per disegnare e modificare aree poligonali;
 - `gsap`;
 - `lucide-react`;
 - `maplibre-gl`, per renderizzare la mappa con stile OpenFreeMap;
@@ -158,12 +157,11 @@ Scelte architetturali:
 - navigazione principale limitata a Home, Immobili e Servizi;
 - pagine principali data-driven;
 - componenti condivisi piccoli e senza dipendenze shadcn;
-- immobili caricati nel browser dall'export CSV pubblico del Google Sheet
-  `15gP-IIWheuid1GCGGRMJk5vysmq3Oa3rIhVT8ndD5eg`, senza Google Sheets API;
-- cartelle immagini lette dalla funzione Vercel `api/drive-images.ts` tramite
-  la vista HTML pubblica `embeddedfolderview`, senza Google Drive API o chiavi;
-- la stessa funzione e montata come middleware in dev e preview Vite, evitando
-  differenze tra localhost e produzione;
+- immobili caricati da `GET /api/listings`, con record pubblicati in D1;
+- immagini servite da Workers KV tramite `/media/<object-key>`, con chiavi
+  immutabili e cache lunga;
+- nessun endpoint pubblico di scrittura catalogo; il futuro CRM userà un
+  confine autenticato sullo stesso schema;
 - unico flusso form in `RequestsPage` + `submitLeadRequest`;
 - animazioni create nelle pagine tramite `usePageAnimations`, con `useGSAP`,
   scope locale, `ScrollTrigger` e rispetto di `prefers-reduced-motion`;
@@ -188,7 +186,7 @@ Scelte architetturali:
 | `/richieste?type=locazione` | Form con tipo locazione | Attivo |
 | `/prenotazione` | `BookingPage` | Parziale |
 | `/privacy` | `PrivacyPage` | Parziale |
-| `/immobili/:slug` | `ListingPage` con dati e gallery dal foglio pubblico | Attivo |
+| `/immobili/:slug` | `ListingPage` con dati D1 e gallery Workers KV | Attivo |
 | `/accesso-clienti` | Redirect a `/richieste` | Legacy compatibile |
 | `/valorizzazione-book-fotografico` | Redirect a `/` | Legacy compatibile |
 | `/servizi-premium` | Redirect a `/` | Legacy compatibile |
@@ -223,7 +221,7 @@ I vecchi redirect verso `localhost:8081` sono stati rimossi.
   brevemente senza spazio aggiuntivo da pin e una curva color carta sale dal
   basso con `ScrollTrigger`; la curva mantiene il morph dinamico del path tra
   stato nascosto, onda e copertura completa;
-- gallery orizzontale di immobili pubblicati nel foglio subito dopo la curve swipe, con
+- gallery orizzontale di immobili pubblicati nel catalogo subito dopo la curve swipe, con
   sezione `sticky` CSS centrata verticalmente sulle card, senza titolo o
   descrizione introduttiva; la prima card parte centrata nel viewport e resta
   ferma durante il reveal, poi lo scrub GSAP avvia il movimento orizzontale
@@ -259,67 +257,49 @@ scroll basati su transform/opacity e parallax leggero solo su dispositivi con
 puntatore fine. Su touch il parallax continuo viene disattivato. Con
 `prefers-reduced-motion` le animazioni vengono neutralizzate.
 
-### Immobili da Google Sheets
+### Immobili da Cloudflare
 
-Fonte attiva:
+Il sito legge `GET /api/listings` dal Worker Cloudflare. D1 conserva dati e
+stato editoriale nelle tabelle `listings` e `listing_images`; solo lo stato
+`published` appare sul sito. Campi strutturati includono contratto, prezzo in
+centesimi, caratteristiche, descrizioni e ordine pubblico.
 
-```text
-https://docs.google.com/spreadsheets/d/15gP-IIWheuid1GCGGRMJk5vysmq3Oa3rIhVT8ndD5eg/
-```
+Workers KV conserva immagini tramite chiavi immutabili. D1 collega chiavi agli
+immobili e definisce `position`; `/media/<object-key>` restituisce il file con
+content type, ETag e cache annuale. Se un immobile non ha media, il frontend usa
+un fallback locale neutro.
 
-Il sito legge direttamente l'export CSV pubblico del tab con `gid=0`, senza
-Google Sheets API, credenziali o variabili ambiente. Una riga viene pubblicata
-solo se `Pubblica *` vale `Sì` e contiene almeno contratto e titolo.
+Tre record `DEMO-001` ... `DEMO-003` verificano vendita, locazione e prezzo su
+richiesta; sei immagini demo verificano copertina e gallery. Il seed è separato
+dalle migrazioni e sostituisce solo righe `demo-*`.
 
-Colonne supportate:
+Non esiste un endpoint pubblico di scrittura. Il futuro CRM inserirà media con
+nuove chiavi, record D1 e relazioni; la pubblicazione avverrà solo dopo il
+completamento del record. Il sito continuerà a leggere lo stesso DTO pubblico.
 
-- pubblicazione, codice, slug, contratto, titolo e tipologia;
-- comune, zona, indirizzo e CAP;
-- prezzo numerico o testo prezzo;
-- superficie, locali, camere, bagni, piano e ascensore;
-- stato immobile, classe energetica e disponibilita;
-- descrizione breve e completa;
-- caratteristiche e punti di forza, separati da `|` o a capo;
-- link cartella immagini pubblica.
+`ListingPage` renderizza dati reali per `/immobili/:slug` con gerarchia
+mobile-first: gallery full-bleed come primo contenuto, quindi prezzo, zona,
+titolo compatto, dati essenziali, descrizione, caratteristiche e punti di forza.
+Il controllo `Indietro`, sovrapposto in alto a sinistra alla gallery, usa la
+cronologia del browser e riporta alla lista o pagina di provenienza. Su mobile
+la CTA richiesta resta sticky in fondo al dettaglio ma si arresta prima del
+footer; su desktop diventa una card sticky laterale con prezzo, riferimento e
+un'unica azione.
 
-Il valore cartella deve essere URL Drive completo in testo semplice (o ID
-cartella), non smart chip/hyperlink con etichetta personalizzata: l'export CSV
-pubblico espone il testo visualizzato, non l'URL nascosto.
-
-L'ordine pubblico coincide con l'ordine fisico delle righe nel foglio. Non
-esiste una colonna ordine. Il testo alternativo immagini non e gestito nel
-foglio: viene generato dal sito combinando titolo e comune.
-
-`api/drive-images.ts` riceve il link cartella, legge la vista HTML pubblica
-Google Drive e restituisce solo JPG, JPEG, PNG, WebP, AVIF e GIF. I file sono
-ordinati per nome. Se esiste un file con nome base `copertina` (estensione e
-maiuscole irrilevanti), viene spostato in prima posizione e usato come
-copertina; altrimenti viene usata la prima immagine ordinata per nome. Le altre
-immagini alimentano la gallery del dettaglio. La cartella e i file devono
-essere accessibili a chiunque abbia il link. Le risposte sono memorizzate dalla
-CDN fino a 5 minuti.
-
-I cinque esempi iniziali sono stati rimossi dal codice e inseriti nel foglio
-come righe `DEMO-001` ... `DEMO-005`. Le immagini arrivano solo dalla cartella
-pubblica associata alla riga. Se una riga non ha cartella o la cartella non
-restituisce immagini, il sito usa un'immagine locale neutra coerente con
-vendita o locazione. Se il foglio non e raggiungibile o non contiene righe
-pubblicate, il sito non inventa immobili e restituisce una lista vuota.
-
-`ListingPage` renderizza dati reali per `/immobili/:slug`. La gallery hero usa
-`ListingGallery`: carosello con frecce, contatore e miniature, piu lightbox a
-schermo intero. Il lightbox supporta chiusura su sfondo, `Escape`, navigazione
-con frecce tastiera, focus iniziale e focus trap. Con una sola immagine restano
-attivi apertura e chiusura del lightbox, senza controlli di navigazione. Il
-contenitore delle miniature include spazio interno per mostrare interamente
-bordo e ring della miniatura selezionata. Le CTA portano al form richieste con
-`type=vendita` o `type=locazione`.
+La gallery usa `ListingGallery`: carosello con frecce sempre raggiungibili anche
+su touch, contatore e miniature da `sm`, piu lightbox a schermo intero. Il
+lightbox supporta chiusura su sfondo, `Escape`, navigazione con frecce tastiera,
+focus iniziale e focus trap. Con una sola immagine restano attivi apertura e
+chiusura del lightbox, senza controlli di navigazione. Le CTA portano al form
+richieste con `type=vendita` o `type=locazione`.
 
 `ListingsPage` renderizza su `/immobili` tutte le righe pubblicate, sia in
 vendita sia in locazione. Il filtro iniziale e `Tutti`; i filtri `In vendita`
 e `In locazione` restringono la griglia nel browser. Durante il caricamento e
 quando il filtro non produce risultati vengono mostrati stati testuali
-espliciti. Le card portano al dettaglio `/immobili/:slug`.
+espliciti. La pagina non usa una hero: dopo la navigazione inizia direttamente
+con titolo catalogo, filtri e lista. Le card portano al dettaglio
+`/immobili/:slug`.
 
 ### Servizi principali
 
@@ -443,8 +423,10 @@ UX corrente:
   descrizione; un tap conferma e apre subito la schermata successiva, mentre
   frecce, Home ed End aggiornano soltanto la selezione per tastiera;
 - il wizard occupa una schermata del viewport alla volta: niente footer pubblico
-  durante la compilazione e niente scroll verticale del documento; i contenuti
-  testuali sono centrati nello spazio libero, mentre la mappa lo riempie;
+  durante la compilazione e niente scroll verticale del documento; sui viewport
+  bassi ogni pannello mantiene titolo in alto e contenuto centrato; quando il
+  contenuto non entra, scorre internamente senza spostare barra di avanzamento
+  e azioni, mentre la mappa riempie lo spazio disponibile;
 - da posizione in poi, le azioni sono sempre ancorate al fondo della schermata:
   `Indietro` a sinistra e l’azione avanti a destra;
 - la scritta di avanzamento e tempo stimato è visibile solo nella prima
@@ -462,11 +444,12 @@ UX corrente:
   area o zone suggerite;
 - per il ruolo `cerca`, la mappa è il solo pannello visibile; il campo testo
   viene montato esclusivamente come fallback in caso di indisponibilità;
-- la selezione area usa MapLibre GL JS, stile OpenFreeMap e Mapbox GL Draw,
-  senza API key, account, geocoding o geolocalizzazione; consente disegno,
-  modifica, annullamento dell’ultimo punto e reset tramite icone compatte; usa
-  tutto lo spazio libero della schermata e un poligono valido viene confermato
-  automaticamente. L’attribuzione resta nel controllo nativo della mappa,
+- la selezione area usa MapLibre GL JS e stile OpenFreeMap, senza API key,
+  account, geocoding o geolocalizzazione. Ogni tap aggiunge un punto; dal terzo
+  punto il poligono è valido e confermato automaticamente, ma resta possibile
+  aggiungere altri punti. Il tracciato non può essere selezionato o spostato;
+  sono disponibili annullamento dell’ultimo punto e reset tramite icone
+  compatte. L’attribuzione resta nel controllo nativo della mappa,
   senza una fascia testuale esterna. Per il solo campo proprietario, Geoapify
   Address Autocomplete riceve query di almeno tre caratteri, è annullabile e
   ritardato durante la digitazione e centra la mappa sul primo risultato; il
@@ -671,13 +654,13 @@ Motion attivo:
   spacer, cosi la gallery puo salire sotto la curva invece di aspettare la fine
   della hero;
 - la timeline hero e lo scroll orizzontale vengono reinizializzati quando
-  arrivano asincronamente le righe del foglio; prima dello scroll il viewport
+  arrivano asincronamente i record dell'API; prima dello scroll il viewport
   immobili resta invisibile e non copre la prima schermata;
-- il caricamento del CSV parte alla valutazione del modulo e le immagini delle
+- il caricamento del catalogo parte alla valutazione del modulo e le immagini delle
   card home usano `loading="eager"`: dati e media sono quindi preparati subito,
   mentre la visibilita resta governata dalla transizione scroll;
 - `HomePage` usa `ScrollTrigger` senza `pin` GSAP per la gallery orizzontale
-  degli immobili pubblicati nel foglio: la sezione resta `sticky` via CSS, risale con
+  degli immobili pubblicati: la sezione resta `sticky` via CSS, risale con
   overlap di un viewport rispetto alla hero e il track si muove su asse `x` con
   `ease: "none"` e `scrub` numerico; il track viene inizializzato con la prima
   card centrata e il movimento parte con un ritardo pari a circa il 72% della
@@ -746,8 +729,6 @@ Contiene:
 - `base: "/"`;
 - dev server host `::`, porta `8080`;
 - plugin React SWC;
-- middleware locale `/api/drive-images` che riusa la funzione Vercel durante
-  `vite dev` e `vite preview`;
 - alias `@`;
 - output `dist`;
 - filtro warning `PLUGIN_WARNING`.
@@ -761,9 +742,7 @@ Contiene:
 - output `dist`;
 - rewrite globale verso `/index.html`.
 
-La directory `api/` contiene `drive-images.ts`, funzione Edge pubblica usata
-solo come proxy same-origin della vista pubblica delle cartelle Drive. Non usa
-Google API, OAuth o chiavi.
+Vercel ospita solo la SPA. Catalogo, media e lead passano dal Worker Cloudflare.
 
 ## 16. Test e verifiche
 
@@ -813,8 +792,7 @@ Limiti:
 
 - non verificano rendering visuale;
 - l'invio D1 remoto richiede risorse Cloudflare distribuite;
-- non verificano automaticamente una cartella Drive reale del cliente finche
-  nel foglio non viene inserito un relativo link pubblico;
+- non verificano automaticamente il futuro flusso di scrittura CRM, non ancora esposto;
 - non verificano layout responsive in browser.
 
 ## 17. Debito e limiti noti
@@ -822,13 +800,11 @@ Limiti:
 - `BookingPage` non ha calendario reale.
 - `PrivacyPage` e sintetica.
 - Cookie analytics/marketing sono solo preferenze locali.
-- I dati immobili dipendono dalla disponibilita dell'export CSV pubblico del
-  foglio.
-- L'elenco immagini usa il markup pubblico `embeddedfolderview` di Google
-  Drive, non un'API contrattuale: se Google modifica quel markup, il parser va
-  aggiornato.
-- Le cartelle e le immagini Drive devono restare pubbliche; in caso contrario
-  la scheda usa l'immagine locale neutra del relativo contratto.
+- Il catalogo richiede Worker e D1 disponibili; in errore restituisce lista vuota.
+- Workers KV Free limita media a 1 GB e 100.000 letture giornaliere; superata
+  questa scala, l'adapter media va migrato a R2.
+- Workers KV è eventualmente consistente: nuove chiavi possono richiedere un
+  breve intervallo prima di risultare leggibili da ogni edge.
 - Il form richiede Worker, D1 e Turnstile distribuiti e due variabili frontend.
 - La consultazione operativa dei lead avviene da dashboard/CLI D1; non esiste
   ancora una dashboard applicativa riservata.

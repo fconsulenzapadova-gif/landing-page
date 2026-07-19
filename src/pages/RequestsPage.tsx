@@ -290,10 +290,10 @@ export default function RequestsPage({ submitRequest = submitLeadRequest }: Requ
 
   return (
     <div ref={pageRef}>
-      <Section className="section-line flex h-[calc(100svh-4rem-1px)] items-stretch overflow-hidden py-5 sm:py-8">
+      <Section className="section-line flex h-[calc(100svh-4rem-1px)] items-stretch overflow-hidden px-2 py-2 sm:px-6 sm:py-8">
         <form
           onSubmit={onSubmit}
-          className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-5 shadow-[0_1px_0_rgb(18_19_15_/_0.04)] sm:p-8 lg:p-10"
+          className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-3 sm:p-8 lg:p-10 shadow-[0_1px_0_rgb(18_19_15_/_0.04)]"
           noValidate
         >
           {message && (

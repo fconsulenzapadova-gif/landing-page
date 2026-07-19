@@ -1,6 +1,6 @@
 # Development Runbook
 
-Ultimo aggiornamento: 16 luglio 2026
+Ultimo aggiornamento: 18 luglio 2026
 
 ## Avvio
 
@@ -32,12 +32,25 @@ Se `npm` non è nel `PATH`, caricare prima il runtime workspace disponibile e us
 3. Aggiornare documento memoria più specifico.
 4. Confermare coerenza tra codice, stato feature e `docs/product/PRD.md`.
 
-## Workflow dati esterni
+## Catalogo Cloudflare
 
-- Google Sheet: pubblicare solo righe con `Pubblica * = Sì`; URL cartella Drive come testo semplice o ID.
-- Google Drive: cartella/file accessibili a chiunque abbia link; `copertina.*` diventa prima immagine.
-- Cloudflare lead: configurazione in `cloudflare/wrangler.jsonc`, Worker in
-  `cloudflare/src/`, schema versionato in `cloudflare/migrations/`.
+- Dati immobili: tabelle `listings` e `listing_images` in D1, schema in
+  `cloudflare/migrations/0004_create_listings.sql`.
+- Media: Workers KV `LISTING_MEDIA`; ogni chiave deve essere immutabile e avere
+  metadata `contentType` ed `etag`.
+- API pubblica: `GET /api/listings` e `GET /media/<object-key>`; nessuna scrittura pubblica.
+- Demo: `cloudflare/seeds/demo-listings.sql`, eseguibile localmente con
+  `npm run worker:db:seed-listings:local` e da remoto con
+  `npm run worker:db:seed-listings`. Il seed sostituisce solo ID `demo-*`.
+- Futuro CRM: scrivere prima media con nuova chiave, poi record/relazioni D1 in
+  transazione; pubblicare impostando `status = 'published'` solo a dati completi.
+
+Workers KV Free include 1 GB, 100.000 letture/giorno e 1.000 scritture/giorno.
+Ottimizzare le immagini prima dell'upload. Se il catalogo supera questi limiti,
+migrare il solo adapter media a R2 mantenendo invariati object key e API pubblica.
+
+Configurazione Cloudflare in `cloudflare/wrangler.jsonc`, Worker in
+`cloudflare/src/`, schema versionato in `cloudflare/migrations/`.
 
 ## Cloudflare lead
 

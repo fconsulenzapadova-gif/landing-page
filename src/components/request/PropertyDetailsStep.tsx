@@ -51,7 +51,7 @@ function formatBudgetRange(minimum: string, maximum: string, unit: string) {
 
 function ScreenActions({ onBack, onNext, nextLabel = 'Continua' }: { onBack: () => void; onNext: () => void; nextLabel?: string }) {
   return (
-    <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--line)] pt-4">
+    <div className="mt-auto flex shrink-0 items-center justify-between gap-3 border-t border-[var(--line)] pt-3 sm:pt-4">
       <button
         type="button"
         className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[var(--control-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]"
@@ -120,15 +120,15 @@ export default function PropertyDetailsStep({
   };
 
   return (
-    <fieldset className="flex min-h-0 flex-1 flex-col gap-5">
+    <fieldset className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-5">
       <legend
         id="request-step-heading"
-        className="mx-auto flex max-w-2xl flex-col items-center gap-2 text-center font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-5xl"
+        className="mx-auto flex max-w-2xl shrink-0 flex-col items-center gap-2 text-center font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-5xl"
         tabIndex={-1}
       >
         {title}
       </legend>
-      <p className="text-center text-sm leading-6 text-[var(--graphite)] sm:text-lg">{description}</p>
+      <p className="shrink-0 text-center text-sm leading-5 text-[var(--graphite)] sm:text-lg sm:leading-6">{description}</p>
 
       {screen === 'location' && (
         <>
@@ -149,8 +149,8 @@ export default function PropertyDetailsStep({
 
       {screen === 'propertyType' && (
         <>
-          <div className="flex flex-1 items-center">
-            <div className="grid w-full grid-cols-2 gap-3" role="radiogroup" aria-label="Tipo immobile" aria-invalid={Boolean(errors.propertyType)}>
+          <div className="request-screen-scroll flex min-h-0 flex-1 items-start overflow-y-auto sm:items-center">
+            <div className="request-screen-center grid w-full grid-cols-2 gap-3" role="radiogroup" aria-label="Tipo immobile" aria-invalid={Boolean(errors.propertyType)}>
               {propertyTypes.map(([value, label]) => {
                 const active = form.propertyType === value;
                 return (
@@ -180,8 +180,8 @@ export default function PropertyDetailsStep({
 
       {screen === 'budget' && (
         <>
-          <div className="flex flex-1 items-center">
-            <div className="grid w-full gap-4">
+          <div className="request-screen-scroll flex min-h-0 flex-1 items-start overflow-y-auto sm:items-center">
+            <div className="request-screen-center grid w-full gap-4">
               <div className="grid grid-cols-2 gap-3" role="group" aria-label="Intervallo budget">
                 <label className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="budget-minimum">
                   Minimo
@@ -251,8 +251,8 @@ export default function PropertyDetailsStep({
 
       {screen === 'timeframe' && (
         <>
-          <div className="flex flex-1 items-center">
-            <div className="grid w-full gap-3">
+          <div className="request-screen-scroll flex min-h-0 flex-1 items-start overflow-y-auto sm:items-center">
+            <div className="request-screen-center grid w-full gap-3">
               <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Tempistica">
                 {timeframeOptions.map(([value, label]) => {
                   const active = form.timeframe === value;
@@ -303,8 +303,8 @@ export default function PropertyDetailsStep({
 
       {screen === 'details' && (
         <>
-          <div className="flex flex-1 items-center">
-            <div className="grid w-full gap-3">
+          <div className="request-screen-scroll flex min-h-0 flex-1 items-start overflow-y-auto sm:items-center">
+            <div className="request-screen-center grid w-full gap-3">
               <label id="features-panel" className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="features">
                 Dettagli facoltativi
                 <textarea

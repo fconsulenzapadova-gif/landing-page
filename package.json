@@ -14,11 +14,12 @@
     "worker:deploy": "wrangler deploy --config cloudflare/wrangler.jsonc",
     "worker:db:migrate:local": "wrangler d1 migrations apply gemut-leads-db --local --config cloudflare/wrangler.jsonc",
     "worker:db:migrate": "wrangler d1 migrations apply gemut-leads-db --remote --config cloudflare/wrangler.jsonc",
+    "worker:db:seed-listings:local": "wrangler d1 execute gemut-leads-db --local --file cloudflare/seeds/demo-listings.sql --config cloudflare/wrangler.jsonc",
+    "worker:db:seed-listings": "wrangler d1 execute gemut-leads-db --remote --file cloudflare/seeds/demo-listings.sql --config cloudflare/wrangler.jsonc",
     "worker:turnstile": "node scripts/provision-turnstile.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@mapbox/mapbox-gl-draw": "1.5.1",
     "gsap": "^3.15.0",
     "lucide-react": "^0.323.0",
     "maplibre-gl": "5.24.0",
@@ -28,7 +29,6 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@types/mapbox__mapbox-gl-draw": "1.4.9",
     "@types/node": "^20.11.5",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",

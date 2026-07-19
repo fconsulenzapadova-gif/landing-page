@@ -1,6 +1,6 @@
 # Active Context
 
-Ultimo aggiornamento: 16 luglio 2026
+Ultimo aggiornamento: 19 luglio 2026
 
 ## Stato corrente
 
@@ -9,6 +9,40 @@ Ultimo aggiornamento: 16 luglio 2026
 - Non ripristinare, sovrascrivere o includere automaticamente modifiche non proprie.
 
 ## Focus handoff
+
+- Dettaglio `/immobili/:slug` riprogettato mobile-first dopo iterazione
+  Superdesign: gallery full-bleed prima di ogni testo, `Indietro` basato su
+  cronologia, prezzo/zona/titolo compatto e fatti principali in ordine di
+  priorità. CTA sticky mobile si arresta prima del footer; desktop usa card
+  laterale sticky. Gallery, lightbox, frecce touch e ritorno lista verificati in
+  browser a 390 px e 1440 px senza overflow o errori console. Test, lint e build
+  superati; nessun deploy eseguito.
+
+- Catalogo immobili ora su Cloudflare: D1 (`listings`, `listing_images`) +
+  Workers KV (`LISTING_MEDIA`) dietro `GET /api/listings` e `/media/*`.
+  Integrazione Google Sheets/Drive e funzione Vercel rimosse. Tre record demo e
+  sei immagini demo sono presenti localmente e nel backend remoto. Worker
+  `gemut-leads-api` versione `a9e9dd75-d19a-4c34-8059-d78279c99f10` distribuito.
+  Frontend Vercel produzione `dpl_5o69BcbZH97Fb4nLwXmyx85AC6bX` attivo su
+  `www.gemutcapital.com`; catalogo, filtro locazione, dettaglio e immagini KV
+  verificati in browser senza errori console.
+  Frontend deriva endpoint catalogo da `VITE_LEADS_API_URL` se
+  `VITE_LISTINGS_API_URL` non è configurata. Su localhost prova il Worker locale
+  e ripiega automaticamente sul catalogo remoto read-only: home e `/immobili`
+  mostrano i tre demo anche senza `worker:dev`. Nessun endpoint CRM di scrittura
+  è ancora esposto.
+  Lifecycle reveal asincrono corretto: `ListingsPage` reinizializza GSAP quando
+  cambia il numero di record; `ListingPage` monta il componente animato solo
+  dopo il caricamento. Card e dettaglio non restano più a `opacity: 0`.
+  `/immobili` non mostra più la hero fotografica: parte direttamente da titolo,
+  filtri e lista.
+
+- Wizard `/richieste` adattato ai telefoni piccoli: titoli restano in alto,
+  contenuti centrati e pannelli lunghi scorrono internamente; le azioni restano
+  ancorate. La schermata iniziale conserva gerarchia e dimensioni originali,
+  comprimendole solo sui viewport bassi. La mappa area aggiunge un vertice a ogni tap, conferma
+  automaticamente il poligono dal terzo punto, permette ulteriori punti e non
+  consente selezione o trascinamento del tracciato.
 
 - Wizard `/richieste` ora a schermate fisse, senza footer né scroll del documento:
   obiettivi 2×2 su mobile con descrizione e avanzamento al tap, dettagli
@@ -38,9 +72,11 @@ Ultimo aggiornamento: 16 luglio 2026
   La bozza scade dopo 24 ore, viene rimossa su invio riuscito/nuova richiesta e
   non contiene token Turnstile, honeypot o metadati tecnici.
 - Progetto Geoapify `Gemüt Capital Website` creato e chiave configurata in
-  `.env` locale, con referrer/origini consentiti per localhost e i due domini
-  pubblici. La variabile Vercel di produzione e il collaudo live restano in
-  attesa dell’accesso Vercel dell’utente nella scheda Chrome già aperta.
+  `.env` locale e su Vercel Production, con referrer/origini consentiti per
+  localhost e i due domini pubblici. Il frontend aggiornato è in produzione
+  con deployment Vercel `dpl_7E9ggAhKfVpWVXfEcgS5Fx1wjEA5`; entrambi gli alias
+  pubblici rispondono `200` su `/richieste` e il bundle distribuito contiene
+  l’integrazione Geoapify.
 - Wizard guidato distribuito in produzione: migrazione D1
   `0003_add_lead_location_geometry.sql`, Worker `gemut-leads-api` versione
   `35863fff-9915-436c-a072-b5245932f924` e deployment Vercel

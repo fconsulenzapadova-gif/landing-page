@@ -81,22 +81,22 @@ export default function ContactStep({
   };
 
   return (
-    <fieldset className="flex min-h-0 flex-1 flex-col gap-5">
+    <fieldset className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-5">
       <legend
         id="request-step-heading"
-        className="mx-auto flex max-w-2xl flex-col items-center gap-2 text-center font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-5xl"
+        className="mx-auto flex max-w-2xl shrink-0 flex-col items-center gap-2 text-center font-display text-3xl leading-tight text-[var(--ink)] outline-none sm:text-5xl"
         tabIndex={-1}
       >
         {screen === 'details' ? 'Come possiamo ricontattarti?' : 'Un ultimo consenso'}
       </legend>
-      <p className="text-center text-sm leading-6 text-[var(--graphite)] sm:text-lg">
+      <p className="shrink-0 text-center text-sm leading-5 text-[var(--graphite)] sm:text-lg sm:leading-6">
         {screen === 'details' ? 'Mostriamo solo il recapito necessario al canale che preferisci.' : 'Conferma la privacy e invia la richiesta.'}
       </p>
 
       {screen === 'details' && (
         <>
-          <div className="flex flex-1 items-center">
-            <div className="grid w-full gap-5">
+          <div className="request-screen-scroll flex min-h-0 flex-1 items-start overflow-y-auto sm:items-center">
+            <div className="request-screen-center grid w-full gap-5">
               <ContactField id="name" label="Nome e cognome" error={errors.name} required>
                 <input
                   id="name"
@@ -199,8 +199,8 @@ export default function ContactStep({
 
       {screen === 'consent' && (
         <>
-          <div className="flex flex-1 items-center">
-            <div className="grid w-full gap-3">
+          <div className="request-screen-scroll flex min-h-0 flex-1 items-start overflow-y-auto sm:items-center">
+            <div className="request-screen-center grid w-full gap-3">
               <label id="notes-panel" className="grid gap-2 text-sm font-semibold text-[var(--ink)]" htmlFor="notes">
                 <span>Note <span className="ml-2 font-normal text-[var(--graphite)]">Facoltative</span></span>
                 <textarea id="notes" className={`${fieldClassName} min-h-20`} value={form.notes} onChange={(event) => updateField('notes', event.target.value)} rows={2} placeholder="Aggiungi informazioni utili per il ricontatto." aria-invalid={Boolean(errors.notes)} aria-describedby={errors.notes ? 'notes-error' : undefined} />
@@ -233,7 +233,7 @@ export default function ContactStep({
 
 function ActionBar({ onBack, onNext, submit = false, isSubmitting = false }: { onBack: () => void; onNext?: () => void; submit?: boolean; isSubmitting?: boolean }) {
   return (
-    <div className="mt-auto flex items-center justify-between gap-3 border-t border-[var(--line)] pt-4">
+    <div className="mt-auto flex shrink-0 items-center justify-between gap-3 border-t border-[var(--line)] pt-3 sm:pt-4">
       <button type="button" className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[var(--control-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)]" onClick={onBack}>
         <ChevronLeft className="h-4 w-4 stroke-[2]" aria-hidden="true" /> Indietro
       </button>

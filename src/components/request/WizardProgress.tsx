@@ -18,7 +18,7 @@ export default function WizardProgress({ screen }: Props) {
   const completion = (currentScreen / screenLabels.length) * 100;
 
   return (
-    <div className={`grid w-full ${screen === 0 ? 'mb-10 gap-3 sm:mb-12' : 'mb-6 sm:mb-8'}`}>
+    <div className={`grid w-full shrink-0 ${screen === 0 ? 'request-progress-initial mb-10 gap-3 sm:mb-12' : 'mb-3 sm:mb-8'}`}>
       <div
         className="h-1 w-full overflow-hidden rounded-full bg-[var(--line)]"
         role="progressbar"

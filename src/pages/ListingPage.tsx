@@ -1,110 +1,172 @@
 import { useRef } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
-import ButtonLink from '../components/ButtonLink';
-import Icon from '../components/Icon';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import ListingGallery from '../components/ListingGallery';
 import LoadingState from '../components/LoadingState';
-import Section from '../components/Section';
+import type { FeaturedListing } from '../content/site';
 import { useListings } from '../lib/useListings';
 import { usePageAnimations } from '../lib/usePageAnimations';
 
-export default function ListingPage() {
+interface ListingFact {
+  label: string;
+  value: string;
+}
+
+const compactFacts = (listing: FeaturedListing): ListingFact[] =>
+  [
+    listing.surface ? { label: 'Superficie', value: `${listing.surface} m²` } : null,
+    listing.rooms ? { label: 'Locali', value: listing.rooms } : null,
+    listing.bedrooms ? { label: 'Camere', value: listing.bedrooms } : null,
+    listing.bathrooms ? { label: 'Bagni', value: listing.bathrooms } : null,
+    listing.floor ? { label: 'Piano', value: listing.floor } : null,
+  ].filter((fact): fact is ListingFact => fact !== null);
+
+const characteristicRows = (listing: FeaturedListing): ListingFact[] =>
+  [
+    listing.propertyType ? { label: 'Tipologia', value: listing.propertyType } : null,
+    listing.floor ? { label: 'Piano', value: listing.floor } : null,
+    listing.elevator ? { label: 'Ascensore', value: listing.elevator } : null,
+    listing.condition ? { label: 'Stato immobile', value: listing.condition } : null,
+    listing.energyClass ? { label: 'Classe energetica', value: listing.energyClass } : null,
+    listing.availableFrom ? { label: 'Disponibilità', value: listing.availableFrom } : null,
+  ].filter((row): row is ListingFact => row !== null);
+
+function ListingDetails({ listing }: { listing: FeaturedListing }) {
   const pageRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const facts = compactFacts(listing);
+  const characteristics = characteristicRows(listing);
+  usePageAnimations(pageRef);
+
+  return (
+    <div ref={pageRef} className="bg-[var(--paper)]">
+      <section className="section-line bg-[var(--paper-soft)] lg:px-6 lg:py-6">
+        <ListingGallery
+          key={listing.slug}
+          images={listing.images}
+          imageAlt={listing.imageAlt}
+          onBack={() => navigate(-1)}
+        />
+      </section>
+
+      <div className="mx-auto grid w-full max-w-7xl gap-12 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:py-16">
+        <div className="min-w-0 space-y-12">
+          <header data-animate className="space-y-5">
+            <div className="space-y-2">
+              <p className="font-display text-4xl leading-none tracking-tight text-[var(--ink)] sm:text-5xl">
+                {listing.price}
+              </p>
+              <p className="text-base font-medium text-[var(--graphite)] sm:text-lg">{listing.location}</p>
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="font-display max-w-3xl text-[1.875rem] leading-[1.12] tracking-tight text-[var(--ink)] sm:text-4xl">
+                {listing.title}
+              </h1>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--graphite)]">
+                {listing.status} · Rif. {listing.code}
+              </p>
+            </div>
+
+            {facts.length ? (
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-5 border-y border-[var(--line)] py-5 sm:grid-cols-3 lg:grid-cols-5">
+                {facts.map((fact) => (
+                  <div key={fact.label} className="min-w-0">
+                    <dt className="text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-[var(--graphite)]">
+                      {fact.label}
+                    </dt>
+                    <dd className="mt-1 truncate text-base font-semibold text-[var(--ink)]">{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+          </header>
+
+          <section data-animate className="border-t border-[var(--line)] pt-8 sm:pt-10">
+            <h2 className="font-display text-3xl leading-tight text-[var(--ink)]">Descrizione</h2>
+            <p className="mt-5 whitespace-pre-line text-base leading-7 text-[var(--graphite)] sm:text-lg sm:leading-8">
+              {listing.description || listing.summary}
+            </p>
+          </section>
+
+          {characteristics.length || listing.details.length ? (
+            <section data-animate className="border-t border-[var(--line)] pt-8 sm:pt-10">
+              <h2 className="font-display text-3xl leading-tight text-[var(--ink)]">Caratteristiche</h2>
+
+              {characteristics.length ? (
+                <dl className="mt-5 divide-y divide-[var(--line)] border-y border-[var(--line)]">
+                  {characteristics.map((item) => (
+                    <div key={item.label} className="grid grid-cols-[minmax(7rem,0.75fr)_1.25fr] gap-4 py-3.5 text-sm sm:text-base">
+                      <dt className="font-medium text-[var(--graphite)]">{item.label}</dt>
+                      <dd className="text-right font-semibold text-[var(--ink)]">{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+
+              {listing.details.length ? (
+                <ul className="mt-5 grid gap-2 sm:grid-cols-2" aria-label="Altri dettagli">
+                  {listing.details.map((detail) => (
+                    <li key={detail} className="rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] px-4 py-3 text-sm text-[var(--graphite)]">
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          ) : null}
+
+          {listing.highlights.length ? (
+            <section data-animate className="border-t border-[var(--line)] pt-8 sm:pt-10">
+              <h2 className="font-display text-3xl leading-tight text-[var(--ink)]">Punti di forza</h2>
+              <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                {listing.highlights.map((item) => (
+                  <li key={item} className="rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-4 text-sm font-semibold text-[var(--ink)]">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
+
+        <aside className="hidden lg:block">
+          <div data-animate className="sticky top-24 rounded-lg border border-[var(--line)] bg-[var(--paper-soft)] p-6">
+            <p className="font-display text-3xl leading-none text-[var(--ink)]">{listing.price}</p>
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--graphite)]">
+              Rif. {listing.code}
+            </p>
+            <Link
+              to={`/richieste?type=${listing.requestType}`}
+              className="focus-ring mt-6 flex min-h-12 w-full items-center justify-center rounded-lg bg-[var(--brand-blue)] px-5 py-3 text-center text-sm font-semibold text-[var(--ink)] transition hover:ring-2 hover:ring-[var(--ink)]"
+            >
+              Richiedi informazioni
+            </Link>
+          </div>
+        </aside>
+      </div>
+
+      <div
+        className="sticky bottom-0 z-40 border-t border-[var(--line)] bg-[var(--paper-soft)] px-4 pt-3 lg:hidden"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      >
+        <Link
+          to={`/richieste?type=${listing.requestType}`}
+          className="focus-ring flex min-h-12 w-full items-center justify-center rounded-lg bg-[var(--brand-blue)] px-5 py-3 text-sm font-semibold text-[var(--ink)]"
+        >
+          Richiedi informazioni
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export default function ListingPage() {
   const { slug } = useParams();
   const { listings, isLoading } = useListings();
   const listing = listings.find((item) => item.slug === slug);
-  usePageAnimations(pageRef);
 
   if (!listing && isLoading) return <LoadingState />;
   if (!listing) return <Navigate to="/" replace />;
 
-  return (
-    <div ref={pageRef}>
-      <header className="section-line bg-[var(--paper-soft)] px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div>
-            <p data-animate className="eyebrow">
-              {listing.status} · Rif. {listing.code}
-            </p>
-            <h1 data-animate className="font-display mt-4 max-w-4xl text-5xl leading-[0.95] text-[var(--ink)] sm:text-7xl">
-              {listing.title}
-            </h1>
-            <p data-animate className="mt-6 max-w-2xl text-base leading-7 text-[var(--graphite)] sm:text-lg sm:leading-8">
-              {listing.description || listing.summary}
-            </p>
-            <div data-animate className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <ButtonLink to={`/richieste?type=${listing.requestType}`} showArrow>
-                Richiedi informazioni
-              </ButtonLink>
-              <ButtonLink to="/" variant="outline">
-                Torna alla home
-              </ButtonLink>
-            </div>
-          </div>
-          <ListingGallery key={listing.slug} images={listing.images} imageAlt={listing.imageAlt} />
-        </div>
-      </header>
-
-      <Section className="section-line">
-        <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
-          <div>
-            <p data-animate className="eyebrow">
-              Dettagli
-            </p>
-            <h2 data-animate className="font-display mt-4 text-4xl leading-tight text-[var(--ink)] sm:text-5xl">
-              Informazioni principali
-            </h2>
-          </div>
-          <div className="grid gap-4">
-            <div data-animate className="grid gap-0 rounded-lg border border-[var(--line)] bg-[var(--paper-soft)]">
-              <div className="grid grid-cols-[8rem_1fr] border-b border-[var(--line)] p-4">
-                <span className="text-sm font-semibold uppercase text-[var(--graphite)]">Zona</span>
-                <span className="text-[var(--ink)]">{listing.location}</span>
-              </div>
-              <div className="grid grid-cols-[8rem_1fr] border-b border-[var(--line)] p-4">
-                <span className="text-sm font-semibold uppercase text-[var(--graphite)]">Prezzo</span>
-                <span className="text-[var(--ink)]">{listing.price}</span>
-              </div>
-              <div className="grid grid-cols-[8rem_1fr] p-4">
-                <span className="text-sm font-semibold uppercase text-[var(--graphite)]">Tipo</span>
-                <span className="text-[var(--ink)]">{listing.propertyType || listing.status}</span>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {listing.details.map((detail) => (
-                <div key={detail} data-animate className="flex gap-3 rounded-lg border border-[var(--line)] bg-white p-4">
-                  <Icon name="check" className="h-5 w-5 shrink-0 rounded bg-[var(--brand-blue)] p-0.5 text-[var(--ink)]" />
-                  <span className="text-[var(--graphite)]">{detail}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      <Section className="section-line bg-[var(--ink)] text-white">
-        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-          <div>
-            <p data-animate className="text-xs font-bold uppercase text-white/60">
-              Punti di forza
-            </p>
-            <h2 data-animate className="font-display mt-4 text-4xl leading-tight sm:text-6xl">
-              Le caratteristiche da conoscere.
-            </h2>
-          </div>
-          <div className="grid gap-3">
-            {listing.highlights.map((item) => (
-              <div key={item} data-animate className="rounded-lg border border-white/15 bg-white/[0.04] p-5">
-                <p className="text-sm leading-6 text-white/70">{item}</p>
-              </div>
-            ))}
-            <Link data-animate to={`/richieste?type=${listing.requestType}`} className="focus-ring mt-3 inline-flex rounded-lg bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)]">
-              Apri form dedicato
-            </Link>
-          </div>
-        </div>
-      </Section>
-    </div>
-  );
+  return <ListingDetails listing={listing} />;
 }

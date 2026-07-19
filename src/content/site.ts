@@ -79,7 +79,6 @@ export interface FeaturedListing {
   image: string;
   mobileImage: string;
   images: string[];
-  imageFolderUrl: string;
   imageAlt: string;
   summary: string;
   description: string;

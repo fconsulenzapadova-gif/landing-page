@@ -4,11 +4,12 @@ import Icon from './Icon';
 interface ListingGalleryProps {
   images: string[];
   imageAlt: string;
+  onBack?: () => void;
 }
 
 const wrapIndex = (index: number, length: number) => (index + length) % length;
 
-export default function ListingGallery({ images, imageAlt }: ListingGalleryProps) {
+export default function ListingGallery({ images, imageAlt, onBack }: ListingGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -91,7 +92,7 @@ export default function ListingGallery({ images, imageAlt }: ListingGalleryProps
   return (
     <>
       <div data-listing-carousel data-animate="image" className="min-w-0">
-        <div className="media-frame relative h-[22rem] rounded-lg sm:h-[32rem]">
+        <div className="media-frame relative aspect-[4/3] w-full sm:aspect-[16/9] lg:mx-auto lg:max-w-[90rem] lg:aspect-[21/9] lg:rounded-lg">
           <button
             type="button"
             onClick={openLightbox}
@@ -103,6 +104,19 @@ export default function ListingGallery({ images, imageAlt }: ListingGalleryProps
               <Icon name="expand" className="h-5 w-5" />
             </span>
           </button>
+
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              data-listing-back
+              className="focus-ring absolute left-4 top-4 z-10 inline-flex min-h-11 items-center gap-1 rounded-lg bg-[var(--paper-soft)]/95 px-3 text-sm font-semibold text-[var(--ink)] shadow-sm transition-colors hover:bg-white"
+              aria-label="Torna alla pagina precedente"
+            >
+              <Icon name="chevron-left" className="h-5 w-5" />
+              Indietro
+            </button>
+          ) : null}
 
           {imageCount > 1 ? (
             <>
@@ -134,7 +148,7 @@ export default function ListingGallery({ images, imageAlt }: ListingGalleryProps
 
         {imageCount > 1 ? (
           <div
-            className="scrollbar-hidden mt-3 flex gap-3 overflow-x-auto p-1"
+            className="scrollbar-hidden mx-auto mt-3 hidden max-w-7xl gap-3 overflow-x-auto p-1 px-4 sm:flex sm:px-6"
             aria-label="Seleziona una foto"
           >
             {images.map((image, index) => (

@@ -1,7 +1,7 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import type { RefObject } from 'react';
+import type { DependencyList, RefObject } from 'react';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 ScrollTrigger.config({ ignoreMobileResize: true });
@@ -11,7 +11,7 @@ gsap.defaults({
   ease: 'power3.out',
 });
 
-export function usePageAnimations(scope: RefObject<HTMLElement | null>) {
+export function usePageAnimations(scope: RefObject<HTMLElement | null>, dependencies: DependencyList = []) {
   useGSAP(
     () => {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -84,6 +84,6 @@ export function usePageAnimations(scope: RefObject<HTMLElement | null>) {
 
       return () => media.revert();
     },
-    { scope },
+    { scope, dependencies: [...dependencies], revertOnUpdate: dependencies.length > 0 },
   );
 }

@@ -1,14 +1,14 @@
 # Architecture Overview
 
-Ultimo aggiornamento: 16 luglio 2026
+Ultimo aggiornamento: 18 luglio 2026
 
 ## Runtime
 
 `index.html` → `src/main-landing.tsx` → `LandingApp` → `BrowserRouter` → route lazy-loaded → `AppLayout` → pagina pubblica.
 
 Stack: React 18, TypeScript, Vite 8, React Router 6, Tailwind CSS,
-GSAP/ScrollTrigger, Vercel per il frontend e Cloudflare Workers + D1 +
-Turnstile per la raccolta lead.
+GSAP/ScrollTrigger, Vercel per il frontend e Cloudflare Workers + D1 + Workers
+KV + Turnstile per catalogo e raccolta lead.
 
 ## Confini moduli
 
@@ -17,6 +17,8 @@ Turnstile per la raccolta lead.
 - Contenuti, route e dati societari: `src/content/site.ts`.
 - Pagine pubbliche: `src/pages/`.
 - Catalogo: `src/lib/listings.ts`, `src/lib/useListings.ts`, componenti `Listing*`.
+- Catalogo backend: `cloudflare/src/listings.ts` legge record pubblicati da D1,
+  costruisce il DTO pubblico e serve media immutabili da Workers KV.
 - Lead frontend: `src/pages/RequestsPage.tsx` orchestra i componenti isolati in
   `src/components/request/`; `src/lib/requestWizard.ts` centralizza gli intenti
   e `src/lib/requestWizardFlow.ts` governa transizioni e payload prima di
@@ -27,15 +29,21 @@ Turnstile per la raccolta lead.
 - Lead backend: `cloudflare/src/index.ts` → validazione server + Turnstile → D1
   → notifica tramite Gmail API con scope limitato a `gmail.send`.
 - Motion: `src/lib/usePageAnimations.ts`; animazioni specifiche home in `HomePage.tsx`.
-- Proxy immagini Drive: `api/drive-images.ts`, riusato dal middleware Vite in dev/preview.
 
 ## Flussi dati
 
 ### Immobili
 
-Browser → export CSV pubblico Google Sheets → parser `listings.ts` → pagine/card. Cartella Drive pubblica → `/api/drive-images` → parser HTML `embeddedfolderview` → immagini ordinate, con `copertina.*` prioritaria.
+```text
+Browser → GET /api/listings → Worker → D1 listings + listing_images
+  → DTO pubblico → pagine/card
+Browser → /media/<object-key> → Worker → Workers KV → immagine cacheabile
+```
 
-Nessuna Google API, OAuth o chiave. Se fonte non disponibile, nessun immobile inventato; per riga senza immagini viene usato fallback locale neutro.
+Solo record `published` sono pubblici. Immagini ordinate tramite `position` e
+referenziate da chiavi immutabili. Nessun endpoint pubblico scrive catalogo:
+il futuro CRM userà endpoint autenticati sullo stesso schema, senza cambiare il
+contratto di lettura del sito.
 
 ### Lead
 
@@ -64,9 +72,10 @@ esclusivamente nei secret del Worker.
 ## Deploy
 
 Vercel installa dipendenze, esegue build Vite, pubblica `dist` e riscrive route
-SPA verso `index.html`. La funzione Edge `api/drive-images.ts` espone solo il
-proxy same-origin della cartella Drive pubblica. Il Worker lead è distribuito
-separatamente con Wrangler, usa un binding D1 e riceve dal frontend solo tramite
-`VITE_LEADS_API_URL`.
+SPA verso `index.html`. Il Worker pubblico è distribuito separatamente con
+Wrangler, usa binding D1 e KV ed espone catalogo read-only, media e invio lead.
+Il frontend usa `VITE_LISTINGS_API_URL` e `VITE_LEADS_API_URL`; in assenza della
+prima deriva `/api/listings` dalla seconda. Su localhost prova prima il Worker
+locale e, se non disponibile, ripiega sull'API pubblica read-only remota.
 
 Dettagli prodotto e stato feature: `docs/product/PRD.md`. Comandi: `docs/runbooks/development.md`.

@@ -97,6 +97,8 @@ test('main navigation exposes only home, listings and services', () => {
   assert.match(navigation, /currentTarget\.blur\(\)/);
   assert.match(navigation, /onClick=\{closeServiceNavigation\}/);
   assert.match(listingsPage, /Immobili disponibili/);
+  assert.match(listingsPage, /<h1 data-animate/);
+  assert.doesNotMatch(listingsPage, /<PageHero|PageHero from/);
   assert.match(listingsPage, /In vendita/);
   assert.match(listingsPage, /In locazione/);
   assert.match(servicesPage, /Come vendiamo gli immobili/);
@@ -108,66 +110,61 @@ test('main navigation exposes only home, listings and services', () => {
   assert.doesNotMatch(servicesPage, /<PageHero|Come lavoriamo|service\.steps|service\.highlights/);
 });
 
-test('public listings come from the public Google Sheet and public Drive folders', () => {
+test('public listings come from the Cloudflare D1 and KV API', () => {
   const listings = read('src/lib/listings.ts');
   const hook = read('src/lib/useListings.ts');
-  const driveImages = read('api/drive-images.ts');
+  const listingsPage = read('src/pages/ListingsPage.tsx');
   const servicePage = read('src/pages/ServicePage.tsx');
+  const listingPage = read('src/pages/ListingPage.tsx');
   const viteConfig = read('vite.config.ts');
+  const worker = read('cloudflare/src/index.ts');
+  const wrangler = read('cloudflare/wrangler.jsonc');
+  const migration = read('cloudflare/migrations/0004_create_listings.sql');
 
-  assert.match(listings, /15gP-IIWheuid1GCGGRMJk5vysmq3Oa3rIhVT8ndD5eg/);
-  assert.match(listings, /export\?format=csv&gid=/);
-  assert.match(listings, /Link cartella immagini/);
-  assert.match(listings, /\/api\/drive-images\?folder=/);
-  assert.doesNotMatch(listings, /Alt immagini|Link immagini|get\('Ordine'\)|normalizeListingImageUrl|splitImageLinks|\.sort\(/);
+  assert.match(listings, /VITE_LISTINGS_API_URL/);
+  assert.match(listings, /\/api\/listings/);
+  assert.match(listings, /mapApiListing/);
   assert.match(hook, /loadListings/);
-  assert.match(driveImages, /embeddedfolderview/);
-  assert.match(driveImages, /flip-entry-title/);
-  assert.match(driveImages, /isCoverImage/);
-  assert.doesNotMatch(driveImages, /googleapis|API_KEY/);
-  assert.match(viteConfig, /local-drive-images-function/);
-  assert.match(viteConfig, /driveImagesHandler/);
+  assert.match(worker, /getListingsResponse/);
+  assert.match(worker, /getListingMediaResponse/);
+  assert.match(wrangler, /"kv_namespaces"/);
+  assert.match(wrangler, /"binding": "LISTING_MEDIA"/);
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS listings/);
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS listing_images/);
+  assert.doesNotMatch(listings, /google|sheet|drive/i);
+  assert.doesNotMatch(viteConfig, /drive-images|driveImages/i);
+  assert.match(listingsPage, /usePageAnimations\(pageRef, \[listings\.length\]\)/);
+  assert.match(listingPage, /function ListingDetails[\s\S]*?usePageAnimations\(pageRef\)/);
+  assert.match(listingPage, /return <ListingDetails listing=\{listing\} \/>/);
   assert.doesNotMatch(servicePage, /useListings|ListingCard|Immobili in vendita|Immobili in locazione/);
 });
 
-test('listing parsers map public sheet rows and public folder markup', async () => {
-  const { parseListingsSheet } = await import('../src/lib/listings.ts');
-  const { parsePublicFolderImages } = await import('../api/drive-images.ts');
-  const csv = [
-    'Pubblica *,Codice immobile *,Contratto *,Titolo *,Tipologia *,Comune *,Descrizione breve *,Link cartella immagini *',
-    'Sì,GEM-002,Vendita,Casa seconda,Appartamento,Padova,Descrizione,https://drive.google.com/drive/folders/FOLDER123',
-    'Sì,GEM-001,Locazione,Casa prima,Loft,Vicenza,Descrizione,https://drive.google.com/drive/folders/FOLDER456',
-  ].join('\n');
-  const parsed = parseListingsSheet(csv);
+test('listing API rows map to the public card contract', async () => {
+  const { buildListingEndpoints, mapApiListing } = await import('../src/lib/listings.ts');
+  const listing = mapApiListing({
+    code: 'DEMO-001', slug: 'demo-padova', title: 'Demo Padova', requestType: 'vendita',
+    propertyType: 'Appartamento', municipality: 'Padova', zone: 'Centro', address: '', postalCode: '35100',
+    priceCents: 32500000, priceLabel: '', surfaceSqm: 110, rooms: 4, bedrooms: 2, bathrooms: 2,
+    floor: '2', elevator: 'Sì', condition: 'Ottimo', energyClass: 'A2', availableFrom: 'Subito',
+    summary: 'Scheda dimostrativa', description: 'Descrizione dimostrativa',
+    features: ['Terrazzo'], highlights: ['Centro'], images: ['https://worker.test/media/demo/cover.webp'],
+  });
 
-  assert.equal(parsed.listings.length, 2);
-  assert.equal(parsed.listings[0].slug, 'gem-002');
-  assert.equal(parsed.listings[0].requestType, 'vendita');
-  assert.equal(parsed.listings[0].imageFolderUrl, 'https://drive.google.com/drive/folders/FOLDER123');
-  assert.equal(parsed.listings[0].imageAlt, 'Casa seconda a Padova');
-  assert.equal(parsed.listings[1].slug, 'gem-001');
-  assert.equal(parsed.listings[1].requestType, 'locazione');
+  assert.equal(listing.slug, 'demo-padova');
+  assert.equal(listing.status, 'In vendita');
+  assert.equal(listing.priceValue, 325000);
+  assert.match(listing.price, /325[.\s]000/);
+  assert.equal(listing.image, 'https://worker.test/media/demo/cover.webp');
+  assert.deepEqual(listing.images, ['https://worker.test/media/demo/cover.webp']);
+  assert.ok(listing.details.includes('110 m²'));
 
-  const folderEntry = (id, name) =>
-    `<div class="flip-entry"><a href="https://drive.google.com/file/d/${id}/view?usp=drive_web">` +
-    `<div class="flip-entry-title">${name}</div></a></div>` +
-    '<div class="flip-entry-last-modified">';
-  const folderMarkup = [
-    folderEntry('IMAGE003', '03-esterno.jpg'),
-    folderEntry('IMAGE002', 'copertina.PNG'),
-    folderEntry('IMAGE001', '01-interno.webp'),
-  ].join('');
-  const images = parsePublicFolderImages(folderMarkup);
-
-  assert.equal(images.length, 3);
-  assert.equal(images[0].name, 'copertina.PNG');
-  assert.match(images[0].url, /thumbnail\?id=IMAGE002/);
-  assert.deepEqual(images.slice(1).map((image) => image.name), ['01-interno.webp', '03-esterno.jpg']);
-
-  const imagesWithoutCover = parsePublicFolderImages(
-    folderEntry('IMAGE003', '03-esterno.jpg') + folderEntry('IMAGE001', '01-interno.webp'),
-  );
-  assert.equal(imagesWithoutCover[0].name, '01-interno.webp');
+  assert.deepEqual(buildListingEndpoints('localhost'), [
+    'http://127.0.0.1:8787/api/listings',
+    'https://gemut-leads-api.gemutcapital.workers.dev/api/listings',
+  ]);
+  assert.deepEqual(buildListingEndpoints('www.gemutcapital.com'), [
+    'https://gemut-leads-api.gemutcapital.workers.dev/api/listings',
+  ]);
 });
 
 test('lead form uses the Cloudflare API without Supabase or external CRM', () => {
@@ -244,17 +241,17 @@ test('guided request controls expose four intents and progressive inputs', () =>
   const contact = read('src/components/request/ContactStep.tsx');
   const progress = read('src/components/request/WizardProgress.tsx');
   assert.match(intent, /role="radiogroup"/);
-  assert.match(intent, /flex flex-1 items-center/);
+  assert.match(intent, /overflow-y-auto/);
   assert.match(progress, /circa 1 minuto/);
   assert.match(progress, /screen === 0/);
   assert.match(progress, /'Consenso'/);
   assert.match(property, /propertyTypes\.map/);
   assert.doesNotMatch(property, /Building2/);
   assert.doesNotMatch(contact, /UserRound/);
-  assert.match(property, /flex flex-1 items-center/);
+  assert.match(property, /request-screen-scroll/);
   assert.match(property, /form\.requestRole === 'proprietario' \? '' : 'items-center'/);
-  assert.ok((property.match(/flex flex-1 items-center/g) ?? []).length >= 4);
-  assert.ok((contact.match(/flex flex-1 items-center/g) ?? []).length >= 2);
+  assert.ok((property.match(/request-screen-scroll/g) ?? []).length >= 4);
+  assert.ok((contact.match(/request-screen-scroll/g) ?? []).length >= 2);
   assert.match(property, /id="budget-minimum"/);
   assert.match(property, /id="budget-maximum"/);
   assert.match(property, /formatBudgetRange/);
@@ -310,7 +307,7 @@ test('request polygon map is free, lazy, branded and accessible', () => {
   const map = read('src/components/request/LocationPolygonMap.tsx');
   const css = read('src/index.css');
   assert.match(pkg, /"maplibre-gl": "5\.24\.0"/);
-  assert.match(pkg, /"@mapbox\/mapbox-gl-draw": "1\.5\.1"/);
+  assert.doesNotMatch(pkg, /@mapbox\/mapbox-gl-draw/);
   assert.match(map, /https:\/\/tiles\.openfreemap\.org\/styles\/positron/);
   assert.match(map, /attributionControl: \{ compact: true \}/);
   assert.match(map, /aria-label="Annulla ultimo punto"/);
@@ -320,17 +317,37 @@ test('request polygon map is free, lazy, branded and accessible', () => {
   assert.doesNotMatch(map, /Conferma area/);
   assert.doesNotMatch(map, /OpenFreeMap/);
   assert.match(map, /onUnavailable/);
-  assert.match(map, /configureMapboxDrawForMapLibre\(MapboxDraw\.constants\.classes\)/);
-  assert.match(map, /createLocationPolygonMapLifecycle/);
+  assert.match(map, /map\.on\('click', handleMapClick\)/);
+  assert.match(map, /polygonFromPoints/);
+  assert.match(map, /pointsFromPolygon/);
+  assert.doesNotMatch(map, /direct_select|simple_select|MapboxDraw/);
   assert.doesNotMatch(map, /access_token|apiKey|geolocation|getCurrentPosition/);
   assert.match(css, /\.request-location-map/);
   assert.match(css, /\.request-location-map\s*\{[\s\S]*?height:\s*100%/);
   assert.match(css, /--brand-blue/);
   assert.match(css, /\.request-location-map \.maplibregl-canvas:focus-visible/);
   assert.doesNotMatch(css, /\.request-location-map \.maplibregl-canvas\s*\{\s*outline:\s*none/);
-  assert.match(css, /\.request-location-map\.maplibregl-map\.mouse-add[\s\S]*?cursor:\s*crosshair/);
-  assert.match(css, /\.request-location-map\.maplibregl-map\.mode-direct_select\.feature-midpoint\.mouse-pointer[\s\S]*?cursor:\s*cell/);
-  assert.match(css, /\.request-location-map\.maplibregl-map\.mode-static\.mouse-pointer[\s\S]*?cursor:\s*grab/);
+  assert.match(css, /\.request-location-map[\s\S]*?cursor:\s*crosshair/);
+});
+
+test('request wizard keeps content reachable on small mobile screens', () => {
+  const requests = read('src/pages/RequestsPage.tsx');
+  const intent = read('src/components/request/RequestIntentSelector.tsx');
+  const property = read('src/components/request/PropertyDetailsStep.tsx');
+  const contact = read('src/components/request/ContactStep.tsx');
+
+  assert.match(requests, /px-2 py-2 sm:px-6 sm:py-8/);
+  assert.match(requests, /p-3 sm:p-8/);
+  assert.match(intent, /overflow-y-auto/);
+  assert.match(intent, /request-screen-center/);
+  assert.match(intent, /request-intent-card[^\n]*min-h-36/);
+  assert.match(property, /request-screen-scroll/);
+  assert.match(property, /request-screen-center/);
+  assert.match(contact, /request-screen-scroll/);
+  assert.match(contact, /request-screen-center/);
+  assert.match(intent, /text-4xl.*sm:text-5xl/);
+  assert.match(property, /shrink-0.*border-t/);
+  assert.match(contact, /shrink-0.*border-t/);
 });
 
 test('location selector opens the map directly for seekers and keeps address input for owners', () => {
@@ -535,7 +552,19 @@ test('design system assets and GSAP motion are wired', () => {
   assert.match(listing, /listing\.images/);
   assert.match(listing, /richieste\?type=/);
   assert.match(listing, /ListingGallery/);
+  assert.match(listing, /onBack=\{\(\) => navigate\(-1\)\}/);
+  assert.doesNotMatch(listing, /Torna alla home/);
+  assert.ok(listing.indexOf('<ListingGallery') < listing.indexOf('<h1'));
+  assert.match(listing, /listing\.price[\s\S]*listing\.location[\s\S]*listing\.title/);
+  assert.match(listing, /<p className="font-display text-4xl[^>]*>[\s\S]*?\{listing\.price\}/);
+  assert.match(listing, /<h1 className="font-display max-w-3xl/);
+  assert.match(listing, /Superficie/);
+  assert.match(listing, /Camere/);
+  assert.match(listing, /Bagni/);
+  assert.match(listing, /sticky bottom-0/);
   assert.match(listingGallery, /data-listing-carousel/);
+  assert.match(listingGallery, /data-listing-back/);
+  assert.match(listingGallery, /aspect-\[4\/3\]/);
   assert.match(listingGallery, /data-listing-lightbox/);
   assert.match(listingGallery, /aria-modal="true"/);
   assert.match(listingGallery, /ArrowLeft/);
